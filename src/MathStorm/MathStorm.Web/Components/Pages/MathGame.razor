@@ -1,0 +1,86 @@
+@page "/mathgame"
+@rendermode InteractiveServer
+@inject IGameService GameService
+@using MathStorm.Web.Components.Game
+@implements IDisposable
+
+<PageTitle>Math Storm Game</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="text-center"><i class="fas fa-calculator"></i> Math Storm</h1>
+                    <p class="text-center text-muted">Test your math skills with 10 challenging questions!</p>
+                </div>
+                <div class="card-body">
+                    @if (!gameSession.IsGameStarted)
+                    {
+                        <div class="text-center">
+                            <h3>Ready to test your math skills?</h3>
+                            <p>You'll have 10 questions covering addition, subtraction, multiplication, and division.</p>
+                            <p>Your score is calculated based on accuracy and speed!</p>
+                            <button class="btn btn-primary btn-lg" @onclick="StartGame">
+                                <i class="fas fa-play"></i> Start Game
+                            </button>
+                        </div>
+                    }
+                    else if (!gameSession.IsGameComplete)
+                    {
+                        <QuestionComponent GameSession="@gameSession" OnAnswerSubmitted="HandleAnswerSubmitted" />
+                    }
+                    else
+                    {
+                        <ResultsComponent GameSession="@gameSession" OnRestartGame="RestartGame" />
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private GameSession gameSession = new();
+
+    protected override void OnInitialized()
+    {
+        gameSession = GameService.CreateNewGame();
+    }
+
+    private void StartGame()
+    {
+        gameSession = GameService.CreateNewGame();
+        gameSession.IsGameStarted = true;
+        GameService.StartQuestion(gameSession);
+        StateHasChanged();
+    }
+
+    private void HandleAnswerSubmitted(double userAnswer)
+    {
+        GameService.SubmitAnswer(gameSession, userAnswer);
+        
+        if (gameSession.CurrentQuestionIndex < gameSession.Questions.Count - 1)
+        {
+            GameService.NextQuestion(gameSession);
+            GameService.StartQuestion(gameSession);
+        }
+        else
+        {
+            GameService.NextQuestion(gameSession);
+        }
+        
+        StateHasChanged();
+    }
+
+    private void RestartGame()
+    {
+        gameSession = GameService.CreateNewGame();
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        // Nothing to dispose in this component
+    }
+}

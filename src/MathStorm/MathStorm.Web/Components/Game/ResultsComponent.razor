@@ -1,0 +1,104 @@
+@rendermode InteractiveServer
+
+<div class="row">
+    <div class="col">
+        <div class="text-center mb-4">
+            <h2><i class="fas fa-trophy"></i> Game Complete!</h2>
+            <h4 class="text-primary">Total Score: @GameSession.TotalScore.ToString("F1")</h4>
+            <p class="text-muted">Lower scores are better! (Time × Percentage Error)</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line"></i> Detailed Results</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Question</th>
+                                <th>Your Answer</th>
+                                <th>Correct Answer</th>
+                                <th>Error %</th>
+                                <th>Time (s)</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var question in GameSession.Questions)
+                            {
+                                <tr class="@GetRowClass(question)">
+                                    <td>@question.QuestionText</td>
+                                    <td>@(question.UserAnswer?.ToString("F1") ?? "N/A")</td>
+                                    <td>@question.CorrectAnswer.ToString("F1")</td>
+                                    <td>
+                                        <span class="badge @GetErrorBadgeClass(question.PercentageDifference)">
+                                            @question.PercentageDifference%
+                                        </span>
+                                    </td>
+                                    <td>@question.TimeInSeconds.ToString("F1")</td>
+                                    <td>@question.Score.ToString("F1")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-dark">
+                            <tr>
+                                <td colspan="5"><strong>Total Score:</strong></td>
+                                <td><strong>@GameSession.TotalScore.ToString("F1")</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <button class="btn btn-primary btn-lg" @onclick="RestartGame">
+                <i class="fas fa-redo"></i> Play Again
+            </button>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6><i class="fas fa-info-circle"></i> Scoring Information</h6>
+                <ul class="list-unstyled mb-0">
+                    <li><i class="fas fa-check text-success"></i> <strong>Perfect answers (0% error):</strong> Score = Time only</li>
+                    <li><i class="fas fa-exclamation text-warning"></i> <strong>Close answers (1-10% error):</strong> Low penalty</li>
+                    <li><i class="fas fa-times text-danger"></i> <strong>Incorrect answers (>10% error):</strong> High penalty</li>
+                    <li><i class="fas fa-clock text-info"></i> <strong>Speed matters:</strong> Faster answers get lower scores</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public GameSession GameSession { get; set; } = new();
+    [Parameter] public EventCallback OnRestartGame { get; set; }
+
+    private async Task RestartGame()
+    {
+        await OnRestartGame.InvokeAsync();
+    }
+
+    private string GetRowClass(MathQuestion question)
+    {
+        return question.PercentageDifference switch
+        {
+            0 => "table-success",
+            <= 10 => "table-warning",
+            _ => "table-danger"
+        };
+    }
+
+    private string GetErrorBadgeClass(int errorPercentage)
+    {
+        return errorPercentage switch
+        {
+            0 => "bg-success",
+            <= 10 => "bg-warning",
+            _ => "bg-danger"
+        };
+    }
+}
