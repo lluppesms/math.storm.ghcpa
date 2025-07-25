@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------
 # Pipeline used by the azd command
 # ----------------------------------------------------------------------------------------------------
-name: dadabase.blazor.azd
+name: mathstorm.blazor.azd
 
 infra:
     provider: bicep
@@ -13,6 +13,6 @@ pipeline:
 
 services:
   web:
-    project: ./src/Dadabase/DadABase.Web/
+    project: ./src/mathstorm/mathstorm.Web/
     language: csharp
     host: appservice

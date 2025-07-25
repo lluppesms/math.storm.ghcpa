@@ -1,6 +1,6 @@
-# Azure DevOps YAML Pipeline Guidelines for DadABase Projects
+# Azure DevOps YAML Pipeline Guidelines for Math.Storm Projects
 
-This document outlines the structured approach to Azure DevOps YAML pipelines used in the DadABase project. Following these guidelines will help maintain consistency across future projects.
+This document outlines the structured approach to Azure DevOps YAML pipelines used in the Math.Storm project. Following these guidelines will help maintain consistency across future projects.
 
 ## Table of Contents
 1. [Pipeline Structure](#pipeline-structure)
@@ -101,7 +101,7 @@ This document outlines the structured approach to Azure DevOps YAML pipelines us
 
 ### Variable Hierarchy
 1. **Pipeline Parameters**: User-configurable options defined at pipeline runtime
-2. **Variable Groups**: Central, shared variables across pipelines (e.g., `DadABase.Web`)
+2. **Variable Groups**: Central, shared variables across pipelines (e.g., `Math.Storm.Web`)
 3. **Environment-Specific Variables**: Variables defined in environment-specific files
 4. **Common Variables**: Shared variables across all environments
 
@@ -115,7 +115,7 @@ This document outlines the structured approach to Azure DevOps YAML pipelines us
 For projects, a variable group similar to this is required, which will defined variables that are UNIQUE to this deployment of this project:
 
 ``` yml
-DadABase.Web
+Math.Storm.Web
   - appName
   - apiKey
   - adDomain
@@ -244,7 +244,7 @@ parameters:
     default: DEV
 
 variables:
-  - group: DadABase.Web
+  - group: Math.Storm.Web
   - template: vars/var-service-connections.yml
 
 stages:
@@ -267,7 +267,7 @@ parameters:
     default: DEV
 
 variables:
-  - group: DadABase.Web
+  - group: Math.Storm.Web
   - template: vars/var-service-connections.yml
 
 stages:
@@ -278,4 +278,4 @@ stages:
 
 ---
 
-*This document was created to guide Azure DevOps pipeline development for projects similar to DadABase. Follow these practices to maintain consistency and quality across CI/CD deployments.*
+*This document was created to guide Azure DevOps pipeline development for projects similar to Math.Storm. Follow these practices to maintain consistency and quality across CI/CD deployments.*

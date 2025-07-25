@@ -33,9 +33,9 @@ Secret Values:
 ``` bash
 gh auth login
 
-gh variable set APP_NAME -b "xxx-dadabase"
+gh variable set APP_NAME -b "lll-mathstorm"
 gh variable set RESOURCEGROUP_LOCATION -b "eastus"
-gh variable set RESOURCEGROUP_PREFIX -b "rg_dadabase-webg" 
+gh variable set RESOURCEGROUP_PREFIX -b "rg_mathstorm-webg" 
 gh variable set API_KEY -b "somesecretstring"
 
 gh secret set LOGIN_CLIENTID -b "<yourADClientId>"
@@ -43,12 +43,10 @@ gh secret set LOGIN_DOMAIN -b "<yourdomain>.onmicrosoft.com"
 gh secret set LOGIN_INSTANCEENDPOINT -b "https://login.microsoftonline.com/"
 gh secret set LOGIN_TENANTID -b "<yourTenantId>"
 
-gh variable set RESOURCEGROUP_LOCATION -b "eastus"
-
-gh variable set APP_PROJECT_FOLDER_NAME -b "src\Dadabase\DadABase.Web"
-gh variable set APP_PROJECT_NAME -b "DadABase.Web"
-gh variable set APP_TEST_FOLDER_NAME -b "src\Dadabase\DadABase.Tests"
-gh variable set APP_TEST_PROJECT_NAME -b "DadABase.Tests"
+gh variable set APP_PROJECT_FOLDER_NAME -b "src\MathStorm\MathStorm.Web"
+gh variable set APP_PROJECT_NAME -b "MathStorm.Web"
+gh variable set APP_TEST_FOLDER_NAME -b "src\MathStorm\MathStorm.Tests"
+gh variable set APP_TEST_PROJECT_NAME -b "MathStorm.Tests"
 ```
 
 ---

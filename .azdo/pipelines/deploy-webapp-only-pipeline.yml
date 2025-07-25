@@ -17,12 +17,12 @@ trigger:
 
 # ----------------------------------------------------------------------------------------------------
 variables:
-  - group: Dadabase.Web
+  - group: Math.Storm.Web
 
 # ----------------------------------------------------------------------------------------------------
 resources:
   pipelines:
-  - pipeline: dadabase.web.build.deploy    # internal identifier for the resource
+  - pipeline: Math.Storm.web.build.deploy    # internal identifier for the resource
     source: dbw.infra-and-webapp-pipeline  # name of the pipeline that produces an artifact
     branch: main                           # should only allow builds from the main branch to be used
 
@@ -45,10 +45,10 @@ stages:
   - template: pipes/deploy-only-pipe.yml
     parameters:
       environments: [ '${{ parameters.deployToEnvironment }}' ]
-      pipelineResourceIdentifier: 'dadabase.web.build.deploy'
+      pipelineResourceIdentifier: 'Math.Storm.web.build.deploy'
 
 - ${{ if eq(parameters.deployToEnvironment, 'MULTIPLE') }}:
   - template: pipes/deploy-only-pipe.yml
     parameters:
       environments: ['DEV','PROD']
-      pipelineResourceIdentifier: 'dadabase.web.build.deploy'
+      pipelineResourceIdentifier: 'Math.Storm.web.build.deploy'

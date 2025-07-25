@@ -14,7 +14,7 @@ trigger:
   #     - main
   # paths:
   #   include:
-  #     - 'src/Dadabase.Web/*'
+  #     - 'src/Math.Storm.Web/*'
   #   exclude: 
   #     - '**/*.yml'
   #     - '**/*.yaml'
@@ -48,7 +48,7 @@ parameters:
 
 # ----------------------------------------------------------------------------------------------------
 variables:
-  - group: Dadabase.Web
+  - group: Math.Storm.Web
 
 # ----------------------------------------------------------------------------------------------------
 stages:

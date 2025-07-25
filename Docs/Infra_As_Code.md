@@ -1,6 +1,6 @@
-# Infrastructure as Code Guidelines for DadABase Projects
+# Infrastructure as Code Guidelines for Math.Storm Projects
 
-This document outlines the structured approach to Infrastructure as Code (IaC) used in the DadABase project. Following these guidelines will help maintain consistency across future projects.
+This document outlines the structured approach to Infrastructure as Code (IaC) used in the Math.Storm project. Following these guidelines will help maintain consistency across future projects.
 
 ## Table of Contents
 1. [Folder Structure](#folder-structure)
@@ -62,7 +62,7 @@ This document outlines the structured approach to Infrastructure as Code (IaC) u
 Resource naming is centralized in `resourcenames.bicep` which provides consistent naming across all deployments:
 
 1. **Naming Pattern**: `[appName]-[environmentCode]-[resourceAbbreviation]`
-   - Example: `dadabase-dev-appsvc` for an App Service Plan
+   - Example: `Math.Storm-dev-appsvc` for an App Service Plan
 
 2. **Abbreviations**: Stored in `data/resourceAbbreviations.json` for consistency:
    - `appsvc` for App Service Plans
@@ -269,4 +269,4 @@ module webApp 'website.bicep' = {
 
 ---
 
-*This document was created to guide infrastructure development for projects similar to DadABase. Follow these practices to maintain consistency and quality across infrastructure deployments.*
+*This document was created to guide infrastructure development for projects similar to Math.Storm. Follow these practices to maintain consistency and quality across infrastructure deployments.*

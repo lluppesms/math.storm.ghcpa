@@ -1,6 +1,6 @@
-# DadABase Coding Standards
+# Math.Storm Coding Standards
 
-This document outlines the coding standards and conventions used in the DadABase project. It serves as a reference for maintaining consistency across the codebase.
+This document outlines the coding standards and conventions used in the Math.Storm project. It serves as a reference for maintaining consistency across the codebase.
 
 ## Table of Contents
 1. [Project Structure](#project-structure)
@@ -15,8 +15,8 @@ This document outlines the coding standards and conventions used in the DadABase
 ## Project Structure
 
 ### Solution Organization
-- **DadABase.Web:** Main web application project containing Blazor components, pages, and API controllers.
-- **DadABase.Tests:** Test project containing unit and integration tests.
+- **Math.Storm.Web:** Main web application project containing Blazor components, pages, and API controllers.
+- **Math.Storm.Tests:** Test project containing unit and integration tests.
 
 ### Folder Structure
 - **API/**: Contains API controllers with RESTful endpoints.
@@ -132,8 +132,8 @@ public Joke GetJokeById(int id)
 
 ## Conclusion
 
-These standards are designed to ensure code consistency, readability, and maintainability across the DadABase project. Following these guidelines will help maintain code quality and make collaboration more effective.
+These standards are designed to ensure code consistency, readability, and maintainability across the Math.Storm project. Following these guidelines will help maintain code quality and make collaboration more effective.
 
 ---
 
-*This document was generated based on the code analysis of the DadABase project as of May 28, 2025.*
+*This document was generated based on the code analysis of the Math.Storm project as of May 28, 2025.*

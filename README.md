@@ -26,11 +26,11 @@ Deployment Options include:
 
 [![Open in vscode.dev](https://img.shields.io/badge/Open%20in-vscode.dev-blue)][1]
 
-[1]: https://vscode.dev/github/lluppesms/dadabase.net8.web/
+[1]: https://github.com/lluppesms/math.storm.ghcpa/
 
 [![azd Compatible](/Docs/images/AZD_Compatible.png)](/.azure/readme.md)
 
-[![deploy.infra.and.website](https://github.com/lluppesms/dadabase.blazor.demo/actions/workflows/deploy-infra-website.yml/badge.svg)](https://github.com/lluppesms/dadabase.blazor.demo/actions/workflows/deploy-infra-website.yml)
+[![deploy.infra.and.website](https://github.com/lluppesms/math.storm.ghcpa/actions/workflows/deploy-infra-website.yml/badge.svg)](https://github.com/lluppesms/math.storm.ghcpa/actions/workflows/deploy-infra-website.yml)
 
 ---
 
