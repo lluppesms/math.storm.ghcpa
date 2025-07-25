@@ -91,10 +91,9 @@ public class GameService : IGameService
                 break;
                 
             case MathOperation.Division:
+                question.Number1 = _random.Next(1, 1000);
                 question.Number2 = _random.Next(1, 100);
-                var quotient = _random.Next(1, 100);
-                question.Number1 = question.Number2 * quotient;
-                question.CorrectAnswer = quotient;
+                question.CorrectAnswer = Math.Round((double)question.Number1 / question.Number2, 1);
                 break;
         }
         

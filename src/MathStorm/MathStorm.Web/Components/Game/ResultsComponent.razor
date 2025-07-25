@@ -30,8 +30,8 @@
                             {
                                 <tr class="@GetRowClass(question)">
                                     <td><span class="me-2">@GetOperationSymbol(question.Operation)</span>@question.QuestionText</td>
-                                    <td class="text-end">@(question.UserAnswer?.ToString("F1") ?? "N/A")</td>
-                                    <td class="text-end">@question.CorrectAnswer.ToString("F1")</td>
+                                    <td class="text-end">@(question.UserAnswer.HasValue ? FormatAnswer(question.UserAnswer.Value, question.Operation) : "N/A")</td>
+                                    <td class="text-end">@FormatAnswer(question.CorrectAnswer, question.Operation)</td>
                                     <td class="text-end">
                                         <span class="badge @GetErrorBadgeClass(question.PercentageDifference)">
                                             @question.PercentageDifference%
@@ -124,6 +124,15 @@
             MathOperation.Multiplication => "✖️",
             MathOperation.Division => "➗",
             _ => "❓"
+        };
+    }
+
+    private string FormatAnswer(double answer, MathOperation operation)
+    {
+        return operation switch
+        {
+            MathOperation.Division => answer.ToString("F1"),
+            _ => answer.ToString("F0")
         };
     }
 }
