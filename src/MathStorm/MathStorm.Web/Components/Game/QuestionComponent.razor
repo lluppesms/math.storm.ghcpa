@@ -21,7 +21,7 @@
                     <div class="mb-4">
                         <h2 class="display-4 mb-3">@GameSession.CurrentQuestion.QuestionText = ?</h2>
                         <div class="mb-3">
-                            <input @ref="answerInput" type="number" @bind="userAnswer" 
+                            <input @ref="answerInput" type="number" @bind="userAnswer" @bind:event="oninput"
                                    @onkeydown="HandleKeyDown"
                                    class="form-control form-control-lg text-center" 
                                    placeholder="Enter your answer"
