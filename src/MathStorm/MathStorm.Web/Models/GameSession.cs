@@ -8,6 +8,7 @@ public class GameSession
     public bool IsGameStarted { get; set; } = false;
     public DateTime? QuestionStartTime { get; set; }
     public double TotalScore => Questions.Sum(q => q.Score);
+    public Difficulty Difficulty { get; set; } = Difficulty.Expert;
     
     public MathQuestion? CurrentQuestion => 
         CurrentQuestionIndex < Questions.Count ? Questions[CurrentQuestionIndex] : null;

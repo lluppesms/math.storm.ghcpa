@@ -9,7 +9,7 @@ public class MathQuestion
     public double CorrectAnswer { get; set; }
     public double? UserAnswer { get; set; }
     public double TimeInSeconds { get; set; }
-    public int PercentageDifference { get; set; }
+    public double PercentageDifference { get; set; }
     public double Score { get; set; }
     
     public string QuestionText => $"{Number1} {GetOperationSymbol()} {Number2}";

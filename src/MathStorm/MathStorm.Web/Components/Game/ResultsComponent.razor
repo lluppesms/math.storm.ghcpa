@@ -34,7 +34,7 @@
                                     <td class="text-end">@FormatAnswer(question.CorrectAnswer, question.Operation)</td>
                                     <td class="text-end">
                                         <span class="badge @GetErrorBadgeClass(question.PercentageDifference)">
-                                            @question.PercentageDifference%
+                                            @question.PercentageDifference.ToString("F1")%
                                         </span>
                                     </td>
                                     <td class="text-end">@question.TimeInSeconds.ToString("F1")</td>
@@ -93,7 +93,7 @@
         };
     }
 
-    private string GetErrorBadgeClass(int errorPercentage)
+    private string GetErrorBadgeClass(double errorPercentage)
     {
         return errorPercentage switch
         {

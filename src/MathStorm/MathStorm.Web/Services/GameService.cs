@@ -6,14 +6,15 @@ public class GameService : IGameService
 {
     private readonly Random _random = new();
     
-    public GameSession CreateNewGame()
+    public GameSession CreateNewGame(Difficulty difficulty = Difficulty.Expert)
     {
-        var gameSession = new GameSession();
+        var gameSession = new GameSession { Difficulty = difficulty };
+        var settings = DifficultySettings.GetSettings(difficulty);
         
-        // Generate 10 random math questions
-        for (int i = 0; i < 10; i++)
+        // Generate questions based on difficulty settings
+        for (int i = 0; i < settings.QuestionCount; i++)
         {
-            gameSession.Questions.Add(GenerateRandomQuestion(i + 1));
+            gameSession.Questions.Add(GenerateRandomQuestion(i + 1, settings));
         }
         
         return gameSession;
@@ -42,10 +43,10 @@ public class GameService : IGameService
         var correctAnswer = currentQuestion.CorrectAnswer;
         var difference = Math.Abs(correctAnswer - userAnswer);
         var percentageDifference = correctAnswer == 0 ? 
-            (userAnswer == 0 ? 0 : 100) : 
-            Math.Round((difference / Math.Abs(correctAnswer)) * 100);
+            (userAnswer == 0 ? 0 : Math.Abs(userAnswer) * 100) : 
+            Math.Round((difference / Math.Abs(correctAnswer)) * 100, 1);
         
-        currentQuestion.PercentageDifference = Math.Min(100, (int)percentageDifference);
+        currentQuestion.PercentageDifference = percentageDifference;
         
         // Calculate score using new formula: (Percentage difference * Time) + (Time * Time_Factor)
         // where Time_Factor = 10
@@ -61,38 +62,43 @@ public class GameService : IGameService
         gameSession.QuestionStartTime = null;
     }
     
-    private MathQuestion GenerateRandomQuestion(int id)
+    private MathQuestion GenerateRandomQuestion(int id, DifficultySettings settings)
     {
-        var operation = (MathOperation)_random.Next(0, 4);
+        var operation = settings.AllowedOperations[_random.Next(0, settings.AllowedOperations.Length)];
         var question = new MathQuestion
         {
             Id = id,
             Operation = operation
         };
         
+        var maxValue = (int)Math.Pow(10, settings.MaxDigits) - 1;
+        
         switch (operation)
         {
             case MathOperation.Addition:
-                question.Number1 = _random.Next(1, 10000);
-                question.Number2 = _random.Next(1, 10000);
+                question.Number1 = _random.Next(1, maxValue + 1);
+                question.Number2 = _random.Next(1, maxValue + 1);
                 question.CorrectAnswer = question.Number1 + question.Number2;
                 break;
                 
             case MathOperation.Subtraction:
-                question.Number1 = _random.Next(1, 10000);
-                question.Number2 = _random.Next(1, Math.Min(question.Number1, 10000));
+                question.Number1 = _random.Next(1, maxValue + 1);
+                question.Number2 = _random.Next(1, Math.Min(question.Number1, maxValue) + 1);
                 question.CorrectAnswer = question.Number1 - question.Number2;
                 break;
                 
             case MathOperation.Multiplication:
-                question.Number1 = _random.Next(1, 100);
-                question.Number2 = _random.Next(1, 100);
+                var multiplicationMax = settings.MaxDigits <= 2 ? 99 : 100;
+                question.Number1 = _random.Next(1, multiplicationMax + 1);
+                question.Number2 = _random.Next(1, multiplicationMax + 1);
                 question.CorrectAnswer = question.Number1 * question.Number2;
                 break;
                 
             case MathOperation.Division:
-                question.Number1 = _random.Next(1, 1000);
-                question.Number2 = _random.Next(1, 100);
+                var divisionMaxDividend = settings.MaxDigits <= 2 ? 99 : 1000;
+                var divisionMaxDivisor = settings.MaxDigits <= 2 ? 9 : 100;
+                question.Number1 = _random.Next(1, divisionMaxDividend + 1);
+                question.Number2 = _random.Next(1, divisionMaxDivisor + 1);
                 question.CorrectAnswer = Math.Round((double)question.Number1 / question.Number2, 1);
                 break;
         }
