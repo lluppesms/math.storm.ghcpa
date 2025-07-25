@@ -5,7 +5,7 @@
         <div class="text-center mb-4">
             <h2><i class="fas fa-trophy"></i> Game Complete!</h2>
             <h4 class="text-primary">Total Score: @GameSession.TotalScore.ToString("F1")</h4>
-            <p class="text-muted">Lower scores are better! (Time × Percentage Error)</p>
+            <p class="text-muted">Lower scores are better! (Error% × Time + Time × 10)</p>
         </div>
 
         <div class="card">
@@ -63,10 +63,11 @@
             <div class="card-body">
                 <h6><i class="fas fa-info-circle"></i> Scoring Information</h6>
                 <ul class="list-unstyled mb-0">
-                    <li><i class="fas fa-check text-success"></i> <strong>Perfect answers (0% error):</strong> Score = Time only</li>
-                    <li><i class="fas fa-exclamation text-warning"></i> <strong>Close answers (1-10% error):</strong> Low penalty</li>
-                    <li><i class="fas fa-times text-danger"></i> <strong>Incorrect answers (>10% error):</strong> High penalty</li>
+                    <li><i class="fas fa-check text-success"></i> <strong>Perfect answers (0% error):</strong> Score = Time × 10</li>
+                    <li><i class="fas fa-exclamation text-warning"></i> <strong>Close answers (1-10% error):</strong> Low accuracy penalty</li>
+                    <li><i class="fas fa-times text-danger"></i> <strong>Incorrect answers (>10% error):</strong> High accuracy penalty</li>
                     <li><i class="fas fa-clock text-info"></i> <strong>Speed matters:</strong> Faster answers get lower scores</li>
+                    <li><i class="fas fa-calculator text-primary"></i> <strong>Formula:</strong> (Error% × Time) + (Time × 10)</li>
                 </ul>
             </div>
         </div>

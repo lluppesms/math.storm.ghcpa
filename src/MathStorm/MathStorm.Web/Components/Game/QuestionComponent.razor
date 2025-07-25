@@ -114,16 +114,15 @@
 
     private async Task SubmitAnswer()
     {
-        if (userAnswer.HasValue)
-        {
-            timer?.Dispose();
-            await OnAnswerSubmitted.InvokeAsync(userAnswer.Value);
-        }
+        // Use 0 as default if no answer is provided
+        var answer = userAnswer ?? 0;
+        timer?.Dispose();
+        await OnAnswerSubmitted.InvokeAsync(answer);
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter" && userAnswer.HasValue)
+        if (e.Key == "Enter")
         {
             await SubmitAnswer();
         }
