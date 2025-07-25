@@ -21,7 +21,7 @@
                     <div class="mb-4">
                         <h2 class="display-4 mb-3">@GameSession.CurrentQuestion.QuestionText = ?</h2>
                         <div class="mb-3">
-                            <input type="number" @bind="userAnswer" @onkeypress="HandleKeyPress"
+                            <input @ref="answerInput" type="number" @bind="userAnswer" @onkeypress="HandleKeyPress"
                                    class="form-control form-control-lg text-center" 
                                    placeholder="Enter your answer"
                                    style="max-width: 300px; margin: 0 auto;" />
@@ -52,12 +52,30 @@
     private double? userAnswer;
     private Timer? timer;
     private double elapsedTime;
+    private ElementReference answerInput;
 
     protected override void OnParametersSet()
     {
         userAnswer = null;
         elapsedTime = 0;
         StartTimer();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await FocusInputAsync();
+    }
+
+    private async Task FocusInputAsync()
+    {
+        try
+        {
+            await answerInput.FocusAsync();
+        }
+        catch
+        {
+            // Silently handle any focus exceptions
+        }
     }
 
     private void StartTimer()
