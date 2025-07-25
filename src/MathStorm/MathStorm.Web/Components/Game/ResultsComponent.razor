@@ -29,7 +29,7 @@
                             @foreach (var question in GameSession.Questions)
                             {
                                 <tr class="@GetRowClass(question)">
-                                    <td><span class="me-2">@GetOperationSymbol(question.Operation)</span>@question.QuestionText</td>
+                                    <td><span class="me-2 @GetOperationColorClass(question.Operation)">@GetOperationSymbol(question.Operation)</span>@question.QuestionText</td>
                                     <td class="text-end">@(question.UserAnswer.HasValue ? FormatAnswer(question.UserAnswer.Value, question.Operation) : "N/A")</td>
                                     <td class="text-end">@FormatAnswer(question.CorrectAnswer, question.Operation)</td>
                                     <td class="text-end">
@@ -100,6 +100,18 @@
             0 => "bg-success",
             <= 10 => "bg-warning",
             _ => "bg-danger"
+        };
+    }
+
+    private string GetOperationColorClass(MathOperation operation)
+    {
+        return operation switch
+        {
+            MathOperation.Addition => "text-primary",
+            MathOperation.Subtraction => "text-warning", 
+            MathOperation.Multiplication => "text-success",
+            MathOperation.Division => "text-info",
+            _ => "text-muted"
         };
     }
 
