@@ -47,8 +47,12 @@ public class GameService : IGameService
         
         currentQuestion.PercentageDifference = Math.Min(100, (int)percentageDifference);
         
-        // Calculate score (time * percentage difference)
-        currentQuestion.Score = Math.Round(currentQuestion.TimeInSeconds * currentQuestion.PercentageDifference, 1);
+        // Calculate score using new formula: (Percentage difference * Time) + (Time * Time_Factor)
+        // where Time_Factor = 10
+        const double timeFactor = 10.0;
+        currentQuestion.Score = Math.Round(
+            (currentQuestion.PercentageDifference * currentQuestion.TimeInSeconds) + 
+            (currentQuestion.TimeInSeconds * timeFactor), 1);
     }
     
     public void NextQuestion(GameSession gameSession)
