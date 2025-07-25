@@ -18,11 +18,11 @@
                         <thead class="table-dark">
                             <tr>
                                 <th>Question</th>
-                                <th>Your Answer</th>
-                                <th>Correct Answer</th>
-                                <th>Error %</th>
-                                <th>Time (s)</th>
-                                <th>Score</th>
+                                <th class="text-end">Your Answer</th>
+                                <th class="text-end">Correct Answer</th>
+                                <th class="text-end">Error %</th>
+                                <th class="text-end">Time (s)</th>
+                                <th class="text-end">Score</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -30,22 +30,22 @@
                             {
                                 <tr class="@GetRowClass(question)">
                                     <td>@question.QuestionText</td>
-                                    <td>@(question.UserAnswer?.ToString("F1") ?? "N/A")</td>
-                                    <td>@question.CorrectAnswer.ToString("F1")</td>
-                                    <td>
+                                    <td class="text-end">@(question.UserAnswer?.ToString("F1") ?? "N/A")</td>
+                                    <td class="text-end">@question.CorrectAnswer.ToString("F1")</td>
+                                    <td class="text-end">
                                         <span class="badge @GetErrorBadgeClass(question.PercentageDifference)">
                                             @question.PercentageDifference%
                                         </span>
                                     </td>
-                                    <td>@question.TimeInSeconds.ToString("F1")</td>
-                                    <td>@question.Score.ToString("F1")</td>
+                                    <td class="text-end">@question.TimeInSeconds.ToString("F1")</td>
+                                    <td class="text-end">@question.Score.ToString("F1")</td>
                                 </tr>
                             }
                         </tbody>
                         <tfoot class="table-dark">
                             <tr>
                                 <td colspan="5"><strong>Total Score:</strong></td>
-                                <td><strong>@GameSession.TotalScore.ToString("F1")</strong></td>
+                                <td class="text-end"><strong>@GameSession.TotalScore.ToString("F1")</strong></td>
                             </tr>
                         </tfoot>
                     </table>
