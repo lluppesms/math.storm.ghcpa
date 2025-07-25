@@ -56,7 +56,7 @@
         StateHasChanged();
     }
 
-    private void HandleAnswerSubmitted(double userAnswer)
+    private async Task HandleAnswerSubmitted(double userAnswer)
     {
         GameService.SubmitAnswer(gameSession, userAnswer);
         
@@ -71,6 +71,9 @@
         }
         
         StateHasChanged();
+        
+        // Small delay to ensure state has updated before next question renders
+        await Task.Delay(50);
     }
 
     private void RestartGame()

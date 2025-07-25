@@ -21,10 +21,12 @@
                     <div class="mb-4">
                         <h2 class="display-4 mb-3">@GameSession.CurrentQuestion.QuestionText = ?</h2>
                         <div class="mb-3">
-                            <input @ref="answerInput" type="number" @bind="userAnswer" @onkeypress="HandleKeyPress"
+                            <input @ref="answerInput" type="number" @bind="userAnswer" 
+                                   @onkeypress="HandleKeyPress" @onkeydown="HandleKeyDown"
                                    class="form-control form-control-lg text-center" 
                                    placeholder="Enter your answer"
-                                   style="max-width: 300px; margin: 0 auto;" />
+                                   style="max-width: 300px; margin: 0 auto; border: 2px solid #007bff;"
+                                   autocomplete="off" />
                         </div>
                         <button class="btn btn-success btn-lg" @onclick="SubmitAnswer" disabled="@(!userAnswer.HasValue)">
                             <i class="fas fa-check"></i> Submit Answer
@@ -53,6 +55,7 @@
     private Timer? timer;
     private double elapsedTime;
     private ElementReference answerInput;
+    private int currentQuestionIndex = -1;
 
     protected override void OnParametersSet()
     {
@@ -63,18 +66,34 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await FocusInputAsync();
+        // Always focus when component renders or when we have a new question
+        if (firstRender || currentQuestionIndex != GameSession.CurrentQuestionIndex)
+        {
+            currentQuestionIndex = GameSession.CurrentQuestionIndex;
+            await FocusInputAsync();
+        }
     }
 
     private async Task FocusInputAsync()
     {
         try
         {
+            // Use a small delay to ensure the DOM is fully rendered
+            await Task.Delay(50);
             await answerInput.FocusAsync();
         }
         catch
         {
-            // Silently handle any focus exceptions
+            // If focus fails, try again after a longer delay
+            try
+            {
+                await Task.Delay(200);
+                await answerInput.FocusAsync();
+            }
+            catch
+            {
+                // Silently handle any focus exceptions
+            }
         }
     }
 
@@ -103,6 +122,14 @@
     }
 
     private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && userAnswer.HasValue)
+        {
+            await SubmitAnswer();
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter" && userAnswer.HasValue)
         {
