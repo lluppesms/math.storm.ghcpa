@@ -17,8 +17,8 @@ on:
         type: boolean
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
 
   schedule:
     # temporarily -- run this every weekday at 3am even if no pushes or PRs
