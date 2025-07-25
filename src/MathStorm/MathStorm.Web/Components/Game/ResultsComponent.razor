@@ -29,7 +29,7 @@
                             @foreach (var question in GameSession.Questions)
                             {
                                 <tr class="@GetRowClass(question)">
-                                    <td>@question.QuestionText</td>
+                                    <td><span class="me-2">@GetOperationSymbol(question.Operation)</span>@question.QuestionText</td>
                                     <td class="text-end">@(question.UserAnswer?.ToString("F1") ?? "N/A")</td>
                                     <td class="text-end">@question.CorrectAnswer.ToString("F1")</td>
                                     <td class="text-end">
@@ -100,6 +100,30 @@
             0 => "bg-success",
             <= 10 => "bg-warning",
             _ => "bg-danger"
+        };
+    }
+
+    private string GetOperationIcon(MathOperation operation)
+    {
+        return operation switch
+        {
+            MathOperation.Addition => "fas fa-plus text-primary",
+            MathOperation.Subtraction => "fas fa-minus text-warning", 
+            MathOperation.Multiplication => "fas fa-times text-success",
+            MathOperation.Division => "fas fa-divide text-info",
+            _ => "fas fa-question text-muted"
+        };
+    }
+
+    private string GetOperationSymbol(MathOperation operation)
+    {
+        return operation switch
+        {
+            MathOperation.Addition => "➕",
+            MathOperation.Subtraction => "➖", 
+            MathOperation.Multiplication => "✖️",
+            MathOperation.Division => "➗",
+            _ => "❓"
         };
     }
 }
