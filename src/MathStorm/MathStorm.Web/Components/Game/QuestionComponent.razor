@@ -22,7 +22,7 @@
                         <h2 class="display-4 mb-3">@GameSession.CurrentQuestion.QuestionText = ?</h2>
                         <div class="mb-3">
                             <input @ref="answerInput" type="number" @bind="userAnswer" 
-                                   @onkeypress="HandleKeyPress" @onkeydown="HandleKeyDown"
+                                   @onkeydown="HandleKeyDown"
                                    class="form-control form-control-lg text-center" 
                                    placeholder="Enter your answer"
                                    style="max-width: 300px; margin: 0 auto; border: 2px solid #007bff;"
@@ -118,14 +118,6 @@
         {
             timer?.Dispose();
             await OnAnswerSubmitted.InvokeAsync(userAnswer.Value);
-        }
-    }
-
-    private async Task HandleKeyPress(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter" && userAnswer.HasValue)
-        {
-            await SubmitAnswer();
         }
     }
 

@@ -1,53 +1,10 @@
-﻿@page "/"
-
-<PageTitle>Math Storm - Home</PageTitle>
-
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header text-center">
-                    <h1 class="display-4"><i class="fas fa-calculator text-primary"></i> Math Storm</h1>
-                    <p class="lead">Test your mathematical skills with our lightning-fast math game!</p>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h3><i class="fas fa-gamepad"></i> How to Play</h3>
-                            <ul class="list-unstyled">
-                                <li><i class="fas fa-check text-success"></i> Answer 10 random math questions</li>
-                                <li><i class="fas fa-clock text-info"></i> Questions are timed to the tenth of a second</li>
-                                <li><i class="fas fa-calculator text-warning"></i> Covers addition, subtraction, multiplication, and division</li>
-                                <li><i class="fas fa-trophy text-primary"></i> Score based on speed and accuracy</li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <h3><i class="fas fa-chart-line"></i> Scoring</h3>
-                            <ul class="list-unstyled">
-                                <li><i class="fas fa-bullseye text-success"></i> Perfect accuracy = Lower score</li>
-                                <li><i class="fas fa-tachometer-alt text-info"></i> Faster answers = Lower score</li>
-                                <li><i class="fas fa-medal text-warning"></i> Lower total scores are better!</li>
-                                <li><i class="fas fa-formula text-primary"></i> Score = Time × Error Percentage</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="text-center mt-4">
-                        <button class="btn btn-primary btn-lg" @onclick="StartGame">
-                            <i class="fas fa-play"></i> Start Playing Math Storm
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+@page "/home"
 
 @code {
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
-    private void StartGame()
+    protected override void OnInitialized()
     {
-        Navigation.NavigateTo("/mathgame");
+        Navigation.NavigateTo("/", replace: true);
     }
 }
