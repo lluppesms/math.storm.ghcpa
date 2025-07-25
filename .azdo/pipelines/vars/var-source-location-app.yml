@@ -1,0 +1,27 @@
+# ----------------------------------------------------------------------------------------------------
+# Variables for location of source for app
+# ----------------------------------------------------------------------------------------------------
+variables:
+  - name: appFolderName
+    value: 'src\Dadabase'
+  - name: appSolutionName
+    value: 'DadABase.Net8.Web'
+
+  - name: appProjectFolderName
+    value: 'DadABase.Web'
+  - name: appProjectName
+    value: 'DadABase.Web'
+  - name: appProjectExtension
+    value: 'csproj'
+
+  - name: testFolderName 
+    value: 'DadABase.Tests'
+  - name: testProjectName
+    value: 'DadABase.Tests'
+
+  - name: buildPlatform
+    value: 'Any CPU'
+  - name: buildConfiguration
+    value: 'Release'
+  - name: runtime 
+    value: 'win-x64'

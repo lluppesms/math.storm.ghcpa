@@ -1,0 +1,191 @@
+﻿# ----------------------------------------------------------------------------------------------------
+# Template to deploy Azure Resources in a bicep file in one environment
+# This template is optimized for a Linux build agent -- see create-infra-win.yml for a Windows build agent
+# ----------------------------------------------------------------------------------------------------
+parameters:
+- name: environmentName
+  default: 'DEV'
+- name: templateFolderName
+  default: 'infra/Bicep'
+- name: templateFileName
+  default: 'main.bicep'
+- name: parameterFileName
+  default: 'main.bicepparam'
+- name: deploymentMode
+  default: 'Incremental'  # 'Incremental' | 'Complete' | 'Validation'
+- name: parseBicepOutputs
+  default: false
+
+# ----------------------------------------------------------------------------------------------------
+jobs:
+- deployment: CreateInfra
+  displayName: Initialize Create Infra
+  environment: ${{ parameters.environmentName }}
+
+- job: CreateInfraJob
+  displayName: Create Infrastructure
+  variables:
+    - name: environmentName
+      value: ${{ parameters.environmentName }}
+    - name: environmentNameUpper
+      value: ${{ upper(parameters.environmentName) }}
+    - name: environmentNameLower
+      value: ${{ lower(parameters.environmentName) }}
+      
+    # If you use Windows Build agents, use the \ delimiter, if Ubuntu Linux, use the / delimiter
+    - name: templateFile
+      value: '$(Pipeline.Workspace)/s/${{ parameters.templateFolderName }}/${{ parameters.templateFileName }}'
+    - name: parameterFile
+      value: '$(Pipeline.Workspace)/s/${{ parameters.templateFolderName }}/${{ parameters.parameterFileName }}'
+
+    # Bring in environment common variable file
+    - template: ../../vars/var-service-connections.yml
+    - template: ../../vars/var-common.yml
+    
+    # Bring in environment specific variable files
+    - ${{ if eq(lower(parameters.environmentName), 'dev') }}:
+      - template: ../../vars/var-dev.yml
+    - ${{ if eq(lower(parameters.environmentName), 'qa') }}:
+      - template: ../../vars/var-qa.yml
+    - ${{ if eq(lower(parameters.environmentName), 'prod') }}:
+      - template: ../../vars/var-prod.yml
+
+  # ----------------------------------------------------------------------------------------------------
+  steps:
+  - task: PowerShell@2
+    displayName: Create Variables
+    inputs:
+      targetType: 'inline'
+      script: |
+        $environmentNameLower="${{ parameters.environmentName }}".ToLower()
+        echo "##vso[task.setvariable variable=environmentNameLower]$environmentNameLower"
+
+        $appNameLower="$(appName)".ToLower()
+        echo "##vso[task.setvariable variable=appNameLower]$appNameLower"
+
+        $appNameLowerNoDashes="$(appName)".ToLower().Replace("-", "")
+        echo "##vso[task.setvariable variable=appNameLowerNoDashes]$appNameLowerNoDashes"
+
+        $resourceGroupName="$(resourceGroupPrefix)-$environmentNameLower".ToLower()
+        echo "##vso[task.setvariable variable=resourceGroupName]$resourceGroupName"
+
+        $runDateTime=(Get-Date).ToString("yyyyMMdd-HHmmss")
+        echo "##vso[task.setvariable variable=runDateTime]$runDateTime"
+        $runDateTimeZ=(Get-Date).ToString("yyyyMMddTHHmmss")+"Z"
+        echo "##vso[task.setvariable variable=runDateTimeZ]$runDateTimeZ"
+
+  - task: CmdLine@2
+    displayName: Display Variables and Files
+    continueOnError: true
+    inputs:
+      script: |
+        echo "environmentName=${{ parameters.environmentName }}"
+        echo "templateFolderName=${{ parameters.templateFolderName }}"
+        echo "templateFileName=${{ parameters.templateFileName }}"
+        echo "templateFile=$(templateFile)"
+        echo "parameterFileName=${{ parameters.parameterFileName }}"
+        echo "parameterFile=$(parameterFile)"
+        echo "deploymentMode=${{ parameters.deploymentMode }}"
+        echo "resourceGroupName=$(resourceGroupName)"
+        echo "appName=$(appName)"
+        echo "appNameLower=$(appNameLower)"
+        echo "appNameLowerNoDashes=$(appNameLowerNoDashes)"
+        echo "runDateTime=$(runDateTime)"
+        echo "runDateTimeZ=$(runDateTimeZ)"
+
+        echo "##[group]Display All Environment Variables:"
+        printenv | sort
+        echo "##[endgroup]"
+
+        echo "----------------------------------------"
+        echo "##[group]Directory of pipeline workspace:"
+        tree -L 4 $(Pipeline.Workspace)
+        echo "##[endgroup]"
+
+    # this script version also works
+    # - script: |
+    #     for var in $(compgen -e); do
+    #       echo $var ${!var};
+    #     done
+    # and this PowerShell Script works too
+    # - task: PowerShell@2
+    #   inputs:
+    #     targetType: 'inline'
+    #     script: Get-ChildItem -Path Env:\ | Format-List
+    # - bash: |
+    #     echo "Display All Environment Variables:"
+    #     printenv | sort
+    #   displayName: 'Display Variables'
+    #   continueOnError: true
+
+  - task: qetza.replacetokens.replacetokens-task.replacetokens@5
+    displayName: Update Parameter File
+    inputs:
+      targetFiles: $(parameterFile)
+      tokenPrefix: '#{'
+      tokenSuffix: '}#'
+
+  - task: CmdLine@2
+    displayName: Display Parameter File Contents
+    continueOnError: true
+    inputs:
+      script: |
+        echo "Bicep File Name: $(templateFile)"
+        echo "##[group]Contents of Parameter File  $(parameterFile)"
+        cat  $(parameterFile)
+        echo "##[endgroup]"
+
+  # in order to use multiple dynamic service connections, you can't just use a variable.
+  # they need to be defined and available at YML pre-compile time, so use this technique.
+  # this switch allows you to dynamically select a 'hard-coded' service connection
+  - ${{ if eq(variables.environmentNameUpper, 'DEV') }}:
+    - template: steps-deploy-bicep-template.yml
+      parameters:
+        serviceConnectionName: $(serviceConnectionDEV)
+        parseBicepOutputs: ${{ parameters.parseBicepOutputs }}
+  - ${{ if eq(variables.environmentNameUpper, 'QA') }}:
+    - template: steps-deploy-bicep-template.yml
+      parameters:
+        serviceConnectionName: $(serviceConnectionQA)
+        parseBicepOutputs: ${{ parameters.parseBicepOutputs }}
+  - ${{ if eq(variables.environmentNameUpper, 'PROD') }}:
+    - template: steps-deploy-bicep-template.yml
+      parameters:
+        serviceConnectionName: $(serviceConnectionPROD)
+        parseBicepOutputs: ${{ parameters.parseBicepOutputs }}
+
+  # Be sure to set the "parseBicepOutputs: true" on the template above to get the outputs
+  - task: CmdLine@2
+    displayName: Display Bicep Outputs
+    continueOnError: true
+    inputs:
+      script: |
+        echo "bicepOutputs: $(bicepOutputs)"
+        echo "bicepOutputs-SUBSCRIPTION_ID:     $(bicepOutputs-SUBSCRIPTION_ID)"
+        echo "bicepOutputs-RESOURCE_GROUP_NAME: $(bicepOutputs-RESOURCE_GROUP_NAME)"
+        echo "bicepOutputs-HOST_NAME: $(bicepOutputs-HOST_NAME)"
+
+  # creates a markdown summary that will be visible in the pipeline "Extensions" tab
+  - task: CmdLine@2
+    displayName: Create Summary File
+    continueOnError: true
+    inputs:
+      script: |
+        echo "Writing to Summary File $(System.DefaultWorkingDirectory)\bicep_deploy_summary.md"
+        echo Deployed Bicep File:        ${{ parameters.templateFolderName }}/${{ parameters.templateFileName }}  >> $(System.DefaultWorkingDirectory)\bicep_deploy_summary.md
+        echo With Parameter File:        ${{ parameters.templateFolderName }}/${{ parameters.parameterFileName }} >> $(System.DefaultWorkingDirectory)\bicep_deploy_summary.md
+        echo Deployed to Environment:    $(environmentName)                                                       >> $(System.DefaultWorkingDirectory)\bicep_deploy_summary.md
+        echo Deployed In Subscription:   $(bicepOutputs-SUBSCRIPTION_ID)                                          >> $(System.DefaultWorkingDirectory)\bicep_deploy_summary.md
+        echo Deployed To Resource Group: $(bicepOutputs-RESOURCE_GROUP_NAME)                                      >> $(System.DefaultWorkingDirectory)\bicep_deploy_summary.md
+        echo Created Website:            [https://$(bicepOutputs-HOST_NAME)](https://$(bicepOutputs-HOST_NAME))   >> $(System.DefaultWorkingDirectory)\bicep_deploy_summary.md
+
+        echo "Publishing Summary File: $(System.DefaultWorkingDirectory)\bicep_deploy_summary.md"
+        echo ##vso[task.uploadsummary]$(System.DefaultWorkingDirectory)\bicep_deploy_summary.md
+
+  - task: CmdLine@2
+    displayName: 'Wipe Parameter File'
+    condition: always()
+    continueOnError: true
+    inputs:
+      script: |
+        echo "WIPED!" > $(parameterFile)

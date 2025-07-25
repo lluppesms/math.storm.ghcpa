@@ -1,0 +1,62 @@
+# ----------------------------------------------------------------------------------------------------
+# Variables common to all environments
+# ----------------------------------------------------------------------------------------------------
+variables:
+  # - name: appName
+  #   value: 'this is unique to you - define in a variable group or on the pipeline variables!'
+  # - name: serviceConnectionName
+  #   value: 'this is unique to you - define in a variable group or on the pipeline variables!'
+
+  - name: resourceGroupPrefix
+    value: 'rg_dadabase_web'
+  - name: applicationTitle
+    value: 'Dadabase Demo'
+  - name: location
+    value: 'eastus'
+
+  - name: webSiteSku 
+    value: 'B1'
+  - name: storageSku 
+    value: 'Standard_LRS'
+
+  - name: appFolderName
+    value: 'src\Dadabase'
+  - name: appSolutionName
+    value: 'DadABase.Net8.Web'
+
+  - name: appProjectFolderName
+    value: 'DadABase.Web'
+  - name: appProjectName
+    value: 'DadABase.Web'
+  - name: appProjectExtension
+    value: 'csproj'
+
+  - name: testFolderName 
+    value: 'DadABase.Tests'
+  - name: testProjectName
+    value: 'DadABase.Tests'
+
+  - name: buildPlatform
+    value: 'Any CPU'
+  - name: buildConfiguration
+    value: 'Release'
+  - name: runtime 
+    value: 'win-x64'
+
+  - name: workingDirectoryInfra
+    value: '\infra\bicep'
+  - name: workingDirectoryIgnore
+    value: '\Docs'
+
+  - name: playwrightUITestType
+    value: 'ui'
+  - name: playwrightUITestPath
+    value: 'playwright/ui-tests'
+
+  - name: playwrightAPITestType
+    value: 'api'
+  - name: playwrightAPITestPath
+    value: 'playwright/api-tests'
+
+  - name: playwrightWebsitePrefix
+    value: 'lci-dadabase-web'

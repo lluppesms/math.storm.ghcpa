@@ -1,0 +1,71 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# Pipeline to deploy a Website Only
+# See readme file for info about the contents of the variable group
+# ------------------------------------------------------------------------------------------------------------------------
+name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
+pool:
+  vmImage: windows-latest
+trigger:
+  # since this repo has both AzDO and GHA pipelines, nothing is run automatically...
+  - none
+  # batch: true
+  # branches:
+  #   include:
+  #     - main
+  # paths:
+  #   include:
+  #     - 'src/Dadabase.Web/*'
+  #   exclude: 
+  #     - '**/*.yml'
+  #     - '**/*.yaml'
+  #     - '**/*.bicep'
+  #     - '**/*.md'
+
+# ----------------------------------------------------------------------------------------------------
+parameters:
+  - name: deployToEnvironment
+    displayName: Deploy To
+    type: string
+    values:
+      - DEMO
+      - DEV
+      - QA
+      - PROD
+      - MULTIPLE
+    default: DEV
+  - name: runUnitTests
+    displayName: Run Unit Tests
+    type: boolean
+    default: true
+  - name: runGHASScan
+    displayName: Run GHAS Scan
+    type: boolean
+    default: false
+  - name: runMSDevSecOpsScan
+    displayName: Run MS DevSecOps Scan
+    type: boolean
+    default: false
+
+# ----------------------------------------------------------------------------------------------------
+variables:
+  - group: Dadabase.Web
+
+# ----------------------------------------------------------------------------------------------------
+stages:
+- ${{ if ne(parameters.deployToEnvironment, 'MULTIPLE') }}:
+  - template: pipes/webapi-only-pipe.yml
+    parameters:
+      environments: ['${{ parameters.deployToEnvironment }}']
+      runUnitTests: ${{ parameters.runUnitTests }}
+      runUITests: 'false'
+      runMSDevSecOpsScan: ${{ parameters.runMSDevSecOpsScan }}
+      runGHASScan: ${{ parameters.runGHASScan }}
+
+- ${{ if eq(parameters.deployToEnvironment, 'MULTIPLE') }}:
+  - template: pipes/webapi-only-pipe.yml
+    parameters:
+      environments: ['DEV','PROD']
+      runUnitTests: ${{ parameters.runUnitTests }}
+      runUITests: 'false'
+      runMSDevSecOpsScan: ${{ parameters.runMSDevSecOpsScan }}
+      runGHASScan: ${{ parameters.runGHASScan }}

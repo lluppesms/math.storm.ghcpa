@@ -1,0 +1,62 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# GHA Workflow to build and unit test WebApp only - no app or bicep deploy
+# ------------------------------------------------------------------------------------------------------------------------
+# FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
+# ------------------------------------------------------------------------------------------------------------------------
+name: 2.build.app.only
+run-name: '2 - Build App by @${{ github.actor }}'
+
+on:
+  workflow_dispatch:
+    inputs:
+      runSecurityScan:
+        description: 'Run Security Scan'
+        required: false
+        default: false
+        type: boolean
+      logLevel:
+        description: 'Log level'
+        required: false
+        default: 'warning' 
+        type: choice
+        options:
+          - info
+          - warning
+          - debug 
+# ------------------------------------------------------------------------------------------------------------------------
+permissions:
+  id-token: write
+  contents: write
+  actions: read
+  pages: write
+  security-events: write
+  checks: write
+  issues: read
+  pull-requests: read
+  packages: read
+
+# ------------------------------------------------------------------------------------------------------------------------
+jobs:
+  scan-code:
+    name: Scan Source Code
+    uses: ./.github/workflows/template-scan-code.yml
+    secrets: inherit
+    if: inputs.runSecurityScan
+    with:
+      runMSDevSecOpsScan: ${{ inputs.runSecurityScan }}
+      runGHASScan: ${{ inputs.runSecurityScan }}
+
+# ------------------------------------------------------------------------------------------------------------------------
+  build-app:
+    name: Build WebApp
+    uses: ./.github/workflows/template-webapp-build.yml
+    needs: scan-code
+    secrets: inherit
+    with:
+      envCode: 'dev'
+      rootDirectory: '${{ vars.APP_PROJECT_FOLDER_NAME }}'
+      projectName: '${{ vars.APP_PROJECT_NAME }}'
+      testDirectory: '${{ vars.APP_TEST_FOLDER_NAME }}'
+      testProjectName: '${{ vars.APP_TEST_PROJECT_NAME }}'
+      testApplication: true
+      listFilesAfterBuild: true

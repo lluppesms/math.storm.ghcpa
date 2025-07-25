@@ -1,0 +1,34 @@
+# ----------------------------------------------------------------------------------------------------
+# Pipeline to scan/build an app upon Pull Request
+# ----------------------------------------------------------------------------------------------------
+name: $(date:yyyy).$(date:MM).$(date:dd)$(rev:.r)
+pool:
+  vmImage: ubuntu-latest
+
+# ----------------------------------------------------------------------------------------------------
+# FYI -> Set a required branch policy to run this on every check to main 
+# ----------------------------------------------------------------------------------------------------
+# trigger:
+#   - none
+pr:
+- main
+
+# ----------------------------------------------------------------------------------------------------
+stages:
+- stage: ScanApplication
+  displayName: Scan Application
+  jobs:
+  - template: pipes/scan-code-pipe.yml
+    parameters:
+      runMSDevSecOpsScan: false
+      runGHASScan: true
+
+- stage: BuildApplication
+  displayName: Build Application
+  dependsOn: ScanApplication
+  jobs:
+  - template: pipes/webapi-only-pipe.yml
+    parameters:
+      environments: ['DEV']
+      runUnitTests: true
+      runUITests: false

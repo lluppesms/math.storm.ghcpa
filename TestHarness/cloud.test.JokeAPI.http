@@ -1,0 +1,14 @@
+# You can also use the Swagger UI: https://dadabase.luppes.com/api/swagger/ui
+
+@baseUrl = https://dadabase.luppes.com/api
+@APIKey = 
+
+### ---------------------------------------------------------------------------
+### Get a random joke
+GET {{baseUrl}}/joke HTTP/1.1
+APIKey: {{APIKey}}
+
+### ---------------------------------------------------------------------------
+### Get all jokes in a category
+GET {{baseUrl}}/joke/category/Thanksgiving HTTP/1.1
+APIKey: {{APIKey}}
