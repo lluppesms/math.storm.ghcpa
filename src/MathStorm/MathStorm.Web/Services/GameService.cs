@@ -75,6 +75,7 @@ public class GameService : IGameService
         };
         
         var maxValue = (int)Math.Pow(10, settings.MaxDigits) - 1;
+        var gameSession = new GameSession { Difficulty = GetDifficultyFromSettings(settings) };
         
         switch (operation)
         {
@@ -91,21 +92,63 @@ public class GameService : IGameService
                 break;
                 
             case MathOperation.Multiplication:
-                var multiplicationMax = settings.MaxDigits <= 2 ? 99 : 100;
-                question.Number1 = _random.Next(1, multiplicationMax + 1);
-                question.Number2 = _random.Next(1, multiplicationMax + 1);
+                if (GetDifficultyFromSettings(settings) == Difficulty.Novice)
+                {
+                    // For Novice: second number should be single digit, first number should be larger
+                    question.Number2 = _random.Next(1, 10); // Single digit (1-9)
+                    var minNumber1 = question.Number2 + 1; // Ensure Number1 > Number2
+                    question.Number1 = _random.Next(minNumber1, Math.Min(maxValue + 1, 100));
+                }
+                else
+                {
+                    var multiplicationMax = settings.MaxDigits <= 2 ? 99 : 100;
+                    question.Number1 = _random.Next(1, multiplicationMax + 1);
+                    question.Number2 = _random.Next(1, multiplicationMax + 1);
+                }
                 question.CorrectAnswer = question.Number1 * question.Number2;
                 break;
                 
             case MathOperation.Division:
-                var divisionMaxDividend = settings.MaxDigits <= 2 ? 99 : 1000;
-                var divisionMaxDivisor = settings.MaxDigits <= 2 ? 9 : 100;
-                question.Number1 = _random.Next(1, divisionMaxDividend + 1);
-                question.Number2 = _random.Next(1, divisionMaxDivisor + 1);
-                question.CorrectAnswer = Math.Round((double)question.Number1 / question.Number2, 1);
+                if (GetDifficultyFromSettings(settings) == Difficulty.Novice)
+                {
+                    // For Novice: ensure even division and first number > second number
+                    var divisionMaxDivisor = Math.Min(9, maxValue); // Keep divisor reasonable
+                    question.Number2 = _random.Next(2, divisionMaxDivisor + 1); // Start from 2 to avoid division by 1
+                    
+                    // Generate a multiplier to ensure even division
+                    var maxMultiplier = maxValue / question.Number2;
+                    var multiplier = _random.Next(2, Math.Min(maxMultiplier + 1, 10)); // Start from 2 to ensure Number1 > Number2
+                    question.Number1 = question.Number2 * multiplier;
+                    question.CorrectAnswer = multiplier; // Will be a whole number
+                }
+                else
+                {
+                    var divisionMaxDividend = settings.MaxDigits <= 2 ? 99 : 1000;
+                    var divisionMaxDivisor = settings.MaxDigits <= 2 ? 9 : 100;
+                    question.Number1 = _random.Next(1, divisionMaxDividend + 1);
+                    question.Number2 = _random.Next(1, divisionMaxDivisor + 1);
+                    question.CorrectAnswer = Math.Round((double)question.Number1 / question.Number2, 1);
+                }
                 break;
         }
         
         return question;
+    }
+    
+    private Difficulty GetDifficultyFromSettings(DifficultySettings settings)
+    {
+        // Determine difficulty based on settings characteristics
+        if (settings.QuestionCount == 5 && settings.MaxDigits == 2)
+        {
+            return settings.AllowedOperations.Length == 2 ? Difficulty.Beginner : Difficulty.Novice;
+        }
+        else if (settings.QuestionCount == 10 && settings.MaxDigits == 3)
+        {
+            return Difficulty.Intermediate;
+        }
+        else
+        {
+            return Difficulty.Expert;
+        }
     }
 }
