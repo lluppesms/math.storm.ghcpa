@@ -11,25 +11,19 @@ var sanitizedAppNameWithDashes = replace(replace(toLower(appName), ' ', ''), '_'
 var sanitizedAppName = replace(replace(replace(toLower(appName), ' ', ''), '-', ''), '_', '')
 
 // pull resource abbreviations from a common JSON file
-var resourceAbbreviations = loadJsonContent('./data/resourceAbbreviations.json')
+var resourceAbbreviations = loadJsonContent('./data/abbreviation.json')
 
 // --------------------------------------------------------------------------------
-output logAnalyticsWorkspaceName string = toLower('${sanitizedAppNameWithDashes}-${sanitizedEnvironment}-${resourceAbbreviations.logWorkspaceSuffix}')
 var webSiteName                         = toLower('${sanitizedAppNameWithDashes}-${sanitizedEnvironment}')
 output webSiteName string               = webSiteName
-output webSiteAppServicePlanName string = '${webSiteName}-${resourceAbbreviations.appServicePlanSuffix}'
-output webSiteAppInsightsName string    = '${webSiteName}-${resourceAbbreviations.appInsightsSuffix}'
-output sqlServerName string             = toLower('${sanitizedAppName}sql${sanitizedEnvironment}')
+output webSiteAppServicePlanName string = '${webSiteName}-${resourceAbbreviations.webServerFarms}'
+output webSiteAppInsightsName string    = '${webSiteName}-${resourceAbbreviations.webSitesAppService}'
 
-output userAssignedIdentityName string  = toLower('${sanitizedAppName}-app-${resourceAbbreviations.managedIdentity}')
+output logAnalyticsWorkspaceName string = toLower('${sanitizedAppNameWithDashes}-${sanitizedEnvironment}-${resourceAbbreviations.operationalInsightsWorkspaces}')
+output cosmosDatabaseName string        = toLower('${sanitizedAppName}-${resourceAbbreviations.documentDBDatabaseAccounts}-${sanitizedEnvironment}')
 
-output caManagedEnvName string          = toLower('${sanitizedAppName}-${resourceAbbreviations.containerAppEnvironment}-${sanitizedEnvironment}')
-
-// CA name must be lower case alpha or '-', must start and end with alpha, cannot have '--', length must be <= 32
-output containerAppUIName string        = take(toLower('${sanitizedAppName}-${resourceAbbreviations.containerApp}-ui-${sanitizedEnvironment}'), 32)
-
-output containerRegistryName string     = take('${sanitizedAppName}${resourceAbbreviations.containerRegistry}${sanitizedEnvironment}', 50)
+output userAssignedIdentityName string    = toLower('${sanitizedAppName}-${resourceAbbreviations.managedIdentityUserAssignedIdentities}-${sanitizedEnvironment}')
 
 // Key Vaults and Storage Accounts can only be 24 characters long
-output keyVaultName string              = take('${sanitizedAppName}${resourceAbbreviations.keyVaultAbbreviation}${sanitizedEnvironment}', 24)
-output storageAccountName string        = take('${sanitizedAppName}${resourceAbbreviations.storageAccountSuffix}${sanitizedEnvironment}', 24)
+output keyVaultName string              = take('${sanitizedAppName}${resourceAbbreviations.keyVaultVaults}${sanitizedEnvironment}', 24)
+output storageAccountName string        = take('${sanitizedAppName}${resourceAbbreviations.storageStorageAccounts}${sanitizedEnvironment}', 24)

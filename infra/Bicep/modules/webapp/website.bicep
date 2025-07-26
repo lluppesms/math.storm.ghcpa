@@ -12,7 +12,7 @@ param workspaceId string = ''
 
 @description('The Name of the service plan to deploy into.')
 param appServicePlanName string
-param webAppKind string = 'linux'
+param webAppKind string = 'windows' //  'linux'   (needs to be windows to use my shared app plan right now...)
 
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~website.bicep'}

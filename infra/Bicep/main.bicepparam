@@ -6,11 +6,12 @@ using './main.bicep'
 
 param appName = '#{appName}#'
 param environmentCode = '#{environmentNameLower}#'
-
-param adInstance = '#{adInstance}#'
-param adDomain = '#{adDomain}#'
-param adTenantId = '#{adTenantId}#'
-param adClientId = '#{adClientId}#'
-param apiKey = '#{apiKey}#'
 param location = '#{location}#'
-param servicePlanName = '#{servicePlanName}#'
+
+// param servicePlanName = '#{servicePlanName}#'
+// param webSiteSku = '#{webSiteSku}#'
+
+param deduplicateKeyVaultSecrets = false
+param principalId = '#{principalId}#'
+param myIpAddress = '#{myIpAddress}#'
+

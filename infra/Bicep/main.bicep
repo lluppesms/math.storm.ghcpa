@@ -9,36 +9,31 @@
 param appName string = ''
 param environmentCode string = 'azd'
 param location string = resourceGroup().location
-
-param storageSku string = 'Standard_LRS'
 param webSiteSku string = 'B1'
-
-param apiKey string = ''
-
-param adInstance string = environment().authentication.loginEndpoint // 'https://login.microsoftonline.com/'
-param adDomain string = ''
-param adTenantId string = ''
-param adClientId string = ''
-param adCallbackPath string = '/signin-oidc'
-
-param appDataSource string = 'JSON'
-param appSwaggerEnabled string = 'true'
 param servicePlanName string = ''
-param webAppKind string = 'linux' // 'linux' or 'windows'
+param webAppKind string = 'windows' // 'linux' or 'windows'
 
-// @description('Admin IP Address to add to Key Vault and Container Registry?')
-// param myIpAddress string = ''
-// @description('Add Role Assignments for the user assigned identity?')
-// param addRoleAssignments bool = true
-// // --------------------------------------------------------------------------------------------------------------
-// // You may supply an existing Container Registry
-// // --------------------------------------------------------------------------------------------------------------
-// @description('Name of an existing Container Registry to use')
-// param existing_ACR_Name string = ''
-// @description('Name of ResourceGroup for an existing Container Registry')
-// param existing_ACR_ResourceGroupName string = ''
-// param deployContainerAppEnvironment bool = false
+// --------------------------------------------------------------------------------------------------------------
+// Run Settings Parameters
+// --------------------------------------------------------------------------------------------------------------
+@description('Should we run a script to dedupe the KeyVault secrets? (this fails on private networks right now)')
+param deduplicateKeyVaultSecrets bool = false
+@description('Add Role Assignments for the user assigned identity?')
+param addRoleAssignments bool = true
+@description('Should resources be created with public access?')
+param publicAccessEnabled bool = true
 
+// --------------------------------------------------------------------------------------------------------------
+// Personal info Parameters
+// --------------------------------------------------------------------------------------------------------------
+@description('My IP address for network access')
+param myIpAddress string = ''
+@description('Id of the user executing the deployment')
+param principalId string = ''
+
+// --------------------------------------------------------------------------------------------------------------
+// Misc. Parameters
+// --------------------------------------------------------------------------------------------------------------
 param runDateTime string = utcNow()
 
 // --------------------------------------------------------------------------------
@@ -51,6 +46,7 @@ var commonTags = {
 var resourceGroupName = resourceGroup().name
 // var resourceToken = toLower(uniqueString(resourceGroup().id, location))
 
+
 // --------------------------------------------------------------------------------
 module resourceNames 'resourcenames.bicep' = {
   name: 'resourcenames${deploymentSuffix}'
@@ -60,27 +56,115 @@ module resourceNames 'resourcenames.bicep' = {
   }
 }
 // --------------------------------------------------------------------------------
-module logAnalyticsWorkspaceModule 'loganalyticsworkspace.bicep' = {
+module logAnalyticsWorkspaceModule 'modules/monitor/loganalytics.bicep' = {
   name: 'logAnalytics${deploymentSuffix}'
   params: {
-    logAnalyticsWorkspaceName: resourceNames.outputs.logAnalyticsWorkspaceName
+    newLogAnalyticsName: resourceNames.outputs.logAnalyticsWorkspaceName
+    newApplicationInsightsName: resourceNames.outputs.webSiteAppInsightsName
     location: location
-    commonTags: commonTags
+    tags: commonTags
   }
 }
 
 // --------------------------------------------------------------------------------
-module storageModule 'storageaccount.bicep' = {
-  name: 'storage${deploymentSuffix}'
+var cosmosDatabaseName = 'FuncDemoDatabase'
+var cosmosContainerArray = [
+  { name: 'GameUser', partitionKey: '/userId' }
+  { name: 'Game', partitionKey: '/gameId' }
+  { name: 'LeaderboardEntry', partitionKey: '/entryId' }
+]
+module cosmosModule 'modules/database/cosmosdb.bicep' = {
+  name: 'cosmos${deploymentSuffix}'
   params: {
-    storageSku: storageSku
-    storageAccountName: resourceNames.outputs.storageAccountName
+    accountName: resourceNames.outputs.cosmosDatabaseName 
     location: location
-    commonTags: commonTags
+    tags: commonTags
+    containerArray: cosmosContainerArray
+    databaseName: cosmosDatabaseName
   }
 }
 
-module appServicePlanModule 'websiteserviceplan.bicep' = {
+// --------------------------------------------------------------------------------------------------------------
+// -- Identity and Access Resources -----------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------
+module identity './modules/iam/identity.bicep' = {
+  name: 'app-identity${deploymentSuffix}'
+  params: {
+    identityName: resourceNames.outputs.userAssignedIdentityName
+    location: location
+  }
+}
+
+module appIdentityRoleAssignments './modules/iam/role-assignments.bicep' = if (addRoleAssignments) {
+  name: 'identity-roles${deploymentSuffix}'
+  params: {
+    identityPrincipalId: identity.outputs.managedIdentityPrincipalId
+    principalType: 'ServicePrincipal'
+    cosmosName: cosmosModule.outputs.name
+    keyVaultName: keyVaultModule.outputs.name
+  }
+}
+
+module adminUserRoleAssignments './modules/iam/role-assignments.bicep' = if (addRoleAssignments && !empty(principalId)) {
+  name: 'user-roles${deploymentSuffix}'
+  params: {
+    identityPrincipalId: principalId
+    principalType: 'User'
+    cosmosName: cosmosModule.outputs.name
+    keyVaultName: keyVaultModule.outputs.name
+  }
+}
+
+// --------------------------------------------------------------------------------
+module keyVaultModule './modules/security/keyvault.bicep' = {
+  name: 'keyvault${deploymentSuffix}'
+  params: {
+    location: location
+    commonTags: commonTags
+    keyVaultName: resourceNames.outputs.keyVaultName
+    keyVaultOwnerUserId: principalId
+    adminUserObjectIds: [identity.outputs.managedIdentityPrincipalId]
+    publicNetworkAccess: publicAccessEnabled ? 'Enabled' : 'Disabled'
+    keyVaultOwnerIpAddress: myIpAddress
+    createUserAssignedIdentity: false
+  }
+}
+module keyVaultSecretList './modules/security/keyvault-list-secret-names.bicep' = if (deduplicateKeyVaultSecrets) {
+  name: 'keyVault-Secret-List-Names${deploymentSuffix}'
+  params: {
+    keyVaultName: keyVaultModule.outputs.name
+    location: location
+    userManagedIdentityId: identity.outputs.managedIdentityId
+  }
+}
+
+
+module keyVaultSecretAppInsights './modules/security/keyvault-secret.bicep' = {
+  name: 'keyVaultSecretAppInsights${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, webSiteModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.name
+    secretName: 'appInsightsInstrumentationKey'
+    secretValue: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
+    existingSecretNames: deduplicateKeyVaultSecrets ? keyVaultSecretList!.outputs.secretNameList : ''
+  }
+}  
+
+module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = {
+  name: 'keyVaultSecretCosmos${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, cosmosModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.name
+    secretName: 'cosmosConnectionString'
+    cosmosAccountName: cosmosModule.outputs.name
+    existingSecretNames: deduplicateKeyVaultSecrets ? keyVaultSecretList!.outputs.secretNameList : ''
+  }
+}
+
+
+
+// --------------------------------------------------------------------------------
+module appServicePlanModule './modules/webapp/websiteserviceplan.bicep' = {
   name: 'appService${deploymentSuffix}'
   params: {
     location: location
@@ -93,8 +177,7 @@ module appServicePlanModule 'websiteserviceplan.bicep' = {
   }
 }
 
-
-module webSiteModule 'website.bicep' = {
+module webSiteModule './modules/webapp/website.bicep' = {
   name: 'webSite${deploymentSuffix}'
   params: {
     webSiteName: resourceNames.outputs.webSiteName
@@ -103,7 +186,7 @@ module webSiteModule 'website.bicep' = {
     commonTags: commonTags
     environmentCode: environmentCode
     webAppKind: webAppKind
-    workspaceId: logAnalyticsWorkspaceModule.outputs.id
+    workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
     appServicePlanName: appServicePlanModule.outputs.name
   }
 }
@@ -112,7 +195,7 @@ module webSiteModule 'website.bicep' = {
 // configured in App Service as AppSettings__MyKey for the key name. 
 // In other words, any : should be replaced by __ (double underscore).
 // NOTE: See https://learn.microsoft.com/en-us/azure/app-service/configure-common?tabs=portal  
-module webSiteAppSettingsModule 'websiteappsettings.bicep' = {
+module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
   name: 'webSiteAppSettings${deploymentSuffix}'
   params: {
     webAppName: webSiteModule.outputs.name
@@ -120,100 +203,18 @@ module webSiteAppSettingsModule 'websiteappsettings.bicep' = {
     customAppSettings: {
       AppSettings__AppInsights_InstrumentationKey: webSiteModule.outputs.appInsightsKey
       AppSettings__EnvironmentName: environmentCode
-      AppSettings__EnableSwagger: appSwaggerEnabled
-      AppSettings__DataSource: appDataSource
-      AppSettings__ApiKey: apiKey
-      AzureAD__Instance: adInstance
-      AzureAD__Domain: adDomain
-      AzureAD__TenantId: adTenantId
-      AzureAD__ClientId: adClientId
-      AzureAD__CallbackPath: adCallbackPath
     }
   }
 }
 
-// module identity 'identity.bicep' = if (deployContainerAppEnvironment) {
-//   name: 'app-identity${deploymentSuffix}'
-//   params: {
-//     identityName: resourceNames.outputs.userAssignedIdentityName
-//     location: location
-//   }
-// }
-// module roleAssignments 'role-assignments.bicep' = if (deployContainerAppEnvironment && addRoleAssignments) {
-//   name: 'identity-access${deploymentSuffix}'
-//   params: {
-//     registryName: containerRegistry.outputs.name
-//     storageAccountName: storageModule.outputs.name
-//     identityPrincipalId: identity.outputs.managedIdentityPrincipalId
-//   }
-// }
-
-// // --------------------------------------------------------------------------------------------------------------
-// // -- Container Registry ----------------------------------------------------------------------------------------
-// // --------------------------------------------------------------------------------------------------------------
-// module containerRegistry 'containerRegistry.bicep' = if (deployContainerAppEnvironment) {
-//   name: 'containerregistry${deploymentSuffix}'
-//   params: {
-//     existingRegistryName: existing_ACR_Name
-//     existing_ACR_ResourceGroupName: existing_ACR_ResourceGroupName
-//     newRegistryName: resourceNames.outputs.containerRegistryName
-//     location: location
-//     acrSku: 'Premium'
-//     tags: commonTags
-//     publicAccessEnabled: true // publicAccessEnabled
-//     myIpAddress: myIpAddress
-//   }
-// }
-// // --------------------------------------------------------------------------------------------------------------
-// // -- Container App Environment ---------------------------------------------------------------------------------
-// // --------------------------------------------------------------------------------------------------------------
-// module managedEnvironment 'containerAppEnvironment.bicep' = if (deployContainerAppEnvironment) {
-//   name: 'cae${deploymentSuffix}'
-//   params: {
-//     newEnvironmentName: resourceNames.outputs.caManagedEnvName
-//     location: location
-//     logAnalyticsWorkspaceName: logAnalyticsWorkspaceModule.outputs.name
-//     logAnalyticsRgName: resourceGroupName
-//     tags: commonTags
-//     publicAccessEnabled: true // publicAccessEnabled
-//   }
-// }
-
-// // --------------------------------------------------------------------------------------------------------------
-// // -- UI Application Definition ---------------------------------------------------------------------------------
-// // --------------------------------------------------------------------------------------------------------------
-// module app 'containerApp.bicep' = if (deployContainerAppEnvironment) {
-//   name: 'ui-app${deploymentSuffix}'
-//   params: {
-//     name: resourceNames.outputs.containerAppUIName
-//     location: location
-//     tags: commonTags
-//     applicationInsightsName: webSiteModule.outputs.appInsightsName
-//     managedEnvironmentName: managedEnvironment.outputs.name
-//     managedEnvironmentRg: managedEnvironment.outputs.resourceGroupName
-//     containerRegistryName: containerRegistry.outputs.name
-//     imageName: resourceNames.outputs.containerAppUIName
-//     exists: false
-//     identityName: identity.outputs.managedIdentityName
-//     deploymentSuffix: deploymentSuffix
-//     env: [
-//       { name: 'AzureStorageAccountEndPoint', value: 'https://${storageModule.outputs.name}.blob.${environment().suffixes.storage}' }
-//       { name: 'AzureStorageUserUploadContainer', value: 'content' }
-//       { name: 'UserAssignedManagedIdentityClientId', value: identity.outputs.managedIdentityClientId }
-//       { name: 'AZURE_CLIENT_ID', value: identity.outputs.managedIdentityClientId }
-//     ]
-//     port: 8080
-//     secrets: {}
-//     // secrets: {
-//     //   cosmos: 'https://${keyVault.outputs.name}${environment().suffixes.keyvaultDns}/secrets/${cosmos.outputs.connectionStringSecretName}'
-//     //   aikey: 'https://${keyVault.outputs.name}${environment().suffixes.keyvaultDns}/secrets/${azureOpenAi.outputs.cognitiveServicesKeySecretName}'
-//     //   searchkey: 'https://${keyVault.outputs.name}${environment().suffixes.keyvaultDns}/secrets/${searchService.outputs.searchKeySecretName}'
-//     //   docintellikey: 'https://${keyVault.outputs.name}${environment().suffixes.keyvaultDns}/secrets/${documentIntelligence.outputs.keyVaultSecretName}'
-//     //   apikey: 'https://${keyVault.outputs.name}${environment().suffixes.keyvaultDns}/secrets/api-key'
-//     // }
-//   }
-// }
-//output ACA_HOST_NAME string = deployContainerAppEnvironment ? app.outputs.hostName : ''
+      // AppSettings__ApiKey: apiKey
+      // AppSettings__EnableSwagger: appSwaggerEnabled
+      // AppSettings__DataSource: appDataSource
+      // AzureAD__Instance: adInstance
+      // AzureAD__Domain: adDomain
+      // AzureAD__TenantId: adTenantId
+      // AzureAD__ClientId: adClientId
+      // AzureAD__CallbackPath: adCallbackPath
 
 output SUBSCRIPTION_ID string = subscription().subscriptionId
 output RESOURCE_GROUP_NAME string = resourceGroupName
