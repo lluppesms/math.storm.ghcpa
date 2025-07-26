@@ -21,19 +21,36 @@ public class MockCosmosDbService : ICosmosDbService
         // Add some sample users and leaderboard entries for testing
         var sampleUsers = new[]
         {
-            new GameUser { Id = "1", Username = "MathWiz", TotalGamesPlayed = 5 },
-            new GameUser { Id = "2", Username = "SpeedyCalc", TotalGamesPlayed = 3 },
-            new GameUser { Id = "3", Username = "NumberNinja", TotalGamesPlayed = 8 }
+            new GameUser { Id = "1", Username = "MathWiz", TotalGamesPlayed = 12 },
+            new GameUser { Id = "2", Username = "SpeedyCalc", TotalGamesPlayed = 8 },
+            new GameUser { Id = "3", Username = "NumberNinja", TotalGamesPlayed = 15 },
+            new GameUser { Id = "4", Username = "QuickMath", TotalGamesPlayed = 6 },
+            new GameUser { Id = "5", Username = "CalcMaster", TotalGamesPlayed = 9 },
+            new GameUser { Id = "6", Username = "FastFigures", TotalGamesPlayed = 7 }
         };
         _users.AddRange(sampleUsers);
 
         var sampleEntries = new[]
         {
-            new LeaderboardEntry { Id = "1", UserId = "1", Username = "MathWiz", Difficulty = "Expert", Score = 156.7, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-2) },
-            new LeaderboardEntry { Id = "2", UserId = "2", Username = "SpeedyCalc", Difficulty = "Expert", Score = 189.3, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-1) },
-            new LeaderboardEntry { Id = "3", UserId = "3", Username = "NumberNinja", Difficulty = "Expert", Score = 203.1, Rank = 3, AchievedAt = DateTime.UtcNow.AddDays(-3) },
-            new LeaderboardEntry { Id = "4", UserId = "1", Username = "MathWiz", Difficulty = "Intermediate", Score = 98.4, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-1) },
-            new LeaderboardEntry { Id = "5", UserId = "2", Username = "SpeedyCalc", Difficulty = "Intermediate", Score = 112.7, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-2) }
+            // Beginner difficulty (at least 3 entries)
+            new LeaderboardEntry { Id = "1", UserId = "1", Username = "MathWiz", Difficulty = "Beginner", Score = 45.2, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-1) },
+            new LeaderboardEntry { Id = "2", UserId = "4", Username = "QuickMath", Difficulty = "Beginner", Score = 52.7, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-2) },
+            new LeaderboardEntry { Id = "3", UserId = "5", Username = "CalcMaster", Difficulty = "Beginner", Score = 58.9, Rank = 3, AchievedAt = DateTime.UtcNow.AddDays(-3) },
+            
+            // Novice difficulty (at least 3 entries)
+            new LeaderboardEntry { Id = "4", UserId = "2", Username = "SpeedyCalc", Difficulty = "Novice", Score = 67.3, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-1) },
+            new LeaderboardEntry { Id = "5", UserId = "6", Username = "FastFigures", Difficulty = "Novice", Score = 72.1, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-2) },
+            new LeaderboardEntry { Id = "6", UserId = "3", Username = "NumberNinja", Difficulty = "Novice", Score = 78.4, Rank = 3, AchievedAt = DateTime.UtcNow.AddDays(-4) },
+            
+            // Intermediate difficulty (at least 3 entries)
+            new LeaderboardEntry { Id = "7", UserId = "1", Username = "MathWiz", Difficulty = "Intermediate", Score = 98.4, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-1) },
+            new LeaderboardEntry { Id = "8", UserId = "2", Username = "SpeedyCalc", Difficulty = "Intermediate", Score = 112.7, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-2) },
+            new LeaderboardEntry { Id = "9", UserId = "5", Username = "CalcMaster", Difficulty = "Intermediate", Score = 125.6, Rank = 3, AchievedAt = DateTime.UtcNow.AddDays(-3) },
+            
+            // Expert difficulty (at least 3 entries)
+            new LeaderboardEntry { Id = "10", UserId = "1", Username = "MathWiz", Difficulty = "Expert", Score = 156.7, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-2) },
+            new LeaderboardEntry { Id = "11", UserId = "2", Username = "SpeedyCalc", Difficulty = "Expert", Score = 189.3, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-1) },
+            new LeaderboardEntry { Id = "12", UserId = "3", Username = "NumberNinja", Difficulty = "Expert", Score = 203.1, Rank = 3, AchievedAt = DateTime.UtcNow.AddDays(-3) }
         };
         _leaderboard.AddRange(sampleEntries);
     }
