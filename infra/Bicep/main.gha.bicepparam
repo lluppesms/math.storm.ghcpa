@@ -4,14 +4,14 @@
 
 using './main.bicep'
 
-param appName = '#{appName}#'
-param environmentCode = '#{environmentNameLower}#'
-param location = '#{location}#'
+param appName = '#{APP_NAME}#'
+param environmentCode = '#{ENVCODE}#'
+param location = '#{RESOURCEGROUP_LOCATION}#'
 
 // param servicePlanName = '#{servicePlanName}#'
 // param webSiteSku = '#{webSiteSku}#'
 
 param deduplicateKeyVaultSecrets = false
-param principalId = '#{principalId}#'
-param myIpAddress = '#{myIpAddress}#'
+param principalId = '#{PRINCIPALID}#'
+param myIpAddress = '#{MYIPADDRESS}#'
 
