@@ -7,4 +7,5 @@
 !main.parameters.gha.json
 !bicepconfig.json
 !resourceAbbreviations.json
+!abbreviation.json
 !roleDefinitions.json

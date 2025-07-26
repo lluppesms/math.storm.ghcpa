@@ -26,8 +26,8 @@ This document outlines the structured approach to Infrastructure as Code (IaC) u
     │   azd-main.bicep            # Main entry point for Azure Developer CLI (azd) deployments
     │   azd-main.bicepparam       # Bicep parameters for azd deployments
     └───data/
-            resourceAbbreviations.json  # Resource abbreviation definitions
-            roleDefinitions.json        # RBAC role definitions
+            abbreviation.json     # Resource abbreviation definitions
+            roleDefinitions.json  # RBAC role definitions
 ```
 
 ### Key Components
@@ -44,7 +44,7 @@ This document outlines the structured approach to Infrastructure as Code (IaC) u
 
 - **Supporting Files**:
   - `resourcenames.bicep`: Centralized resource naming logic
-  - `data/resourceAbbreviations.json`: Resource name abbreviations
+  - `data/abbreviation.json`: Resource name abbreviations
   - `role-assignments.bicep`: RBAC role assignments - all of the security role assignments are in this file - that enables us to document the assignments and also  separate out those assignment if we do not have rights to do the security admin role in a subscription
 
 ## File Naming Conventions
@@ -64,7 +64,7 @@ Resource naming is centralized in `resourcenames.bicep` which provides consisten
 1. **Naming Pattern**: `[appName]-[environmentCode]-[resourceAbbreviation]`
    - Example: `Math.Storm-dev-appsvc` for an App Service Plan
 
-2. **Abbreviations**: Stored in `data/resourceAbbreviations.json` for consistency:
+2. **Abbreviations**: Stored in `data/abbreviation.json` for consistency:
    - `appsvc` for App Service Plans
    - `insights` for Application Insights
    - `law` for Log Analytics Workspaces
