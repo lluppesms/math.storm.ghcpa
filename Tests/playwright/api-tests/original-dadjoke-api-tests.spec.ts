@@ -1,6 +1,6 @@
 const { test, expect, request } = require('@playwright/test');
 
-test.describe('Original DadABase API  Tests', () => {
+test.describe('Original Math.Storm API  Tests', () => {
   const headers = {
     'Accept': 'application/json',
     'Content-Type': 'application/json',

@@ -5,7 +5,7 @@
 
 import { test, expect } from '@playwright/test';
 
-test.describe('PW MCP Generated DadABase Website Tests', () => {
+test.describe('PW MCP Generated Math.Storm Website Tests', () => {
   test.beforeEach(async ({ page, baseURL }) => {
     await page.goto(`${baseURL}`);
   });

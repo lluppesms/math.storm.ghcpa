@@ -5,7 +5,7 @@
 
 import { test, expect } from '@playwright/test';
 
-test.describe('PW MCP Generated DadABase API Tests', () => {
+test.describe('PW MCP Generated Math.Storm API Tests', () => {
   const headers = {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
