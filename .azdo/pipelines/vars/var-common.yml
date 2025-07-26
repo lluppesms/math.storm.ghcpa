@@ -8,9 +8,9 @@ variables:
   #   value: 'this is unique to you - define in a variable group or on the pipeline variables!'
 
   - name: resourceGroupPrefix
-    value: 'rg_dadabase_web'
+    value: 'rg_Math.Storm_web'
   - name: applicationTitle
-    value: 'Dadabase Demo'
+    value: 'Math.Storm Demo'
   - name: location
     value: 'eastus'
 
@@ -20,21 +20,21 @@ variables:
     value: 'Standard_LRS'
 
   - name: appFolderName
-    value: 'src\Dadabase'
+    value: 'src\Math.Storm'
   - name: appSolutionName
-    value: 'DadABase.Net8.Web'
+    value: 'math.storm.ghcpa'
 
   - name: appProjectFolderName
-    value: 'DadABase.Web'
+    value: 'Math.Storm.Web'
   - name: appProjectName
-    value: 'DadABase.Web'
+    value: 'Math.Storm.Web'
   - name: appProjectExtension
     value: 'csproj'
 
   - name: testFolderName 
-    value: 'DadABase.Tests'
+    value: 'Math.Storm.Tests'
   - name: testProjectName
-    value: 'DadABase.Tests'
+    value: 'Math.Storm.Tests'
 
   - name: buildPlatform
     value: 'Any CPU'
@@ -59,4 +59,4 @@ variables:
     value: 'playwright/api-tests'
 
   - name: playwrightWebsitePrefix
-    value: 'lci-dadabase-web'
+    value: 'lci-Math.Storm-web'

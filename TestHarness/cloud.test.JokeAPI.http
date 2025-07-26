@@ -1,6 +1,6 @@
-# You can also use the Swagger UI: https://dadabase.luppes.com/api/swagger/ui
+# You can also use the Swagger UI: https://Math.Storm.luppes.com/api/swagger/ui
 
-@baseUrl = https://dadabase.luppes.com/api
+@baseUrl = https://Math.Storm.luppes.com/api
 @APIKey = 
 
 ### ---------------------------------------------------------------------------

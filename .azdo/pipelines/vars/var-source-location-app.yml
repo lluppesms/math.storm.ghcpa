@@ -3,21 +3,21 @@
 # ----------------------------------------------------------------------------------------------------
 variables:
   - name: appFolderName
-    value: 'src\Dadabase'
+    value: 'src\Math.Storm'
   - name: appSolutionName
-    value: 'DadABase.Net8.Web'
+    value: 'math.storm.ghcpa'
 
   - name: appProjectFolderName
-    value: 'DadABase.Web'
+    value: 'Math.Storm.Web'
   - name: appProjectName
-    value: 'DadABase.Web'
+    value: 'Math.Storm.Web'
   - name: appProjectExtension
     value: 'csproj'
 
   - name: testFolderName 
-    value: 'DadABase.Tests'
+    value: 'Math.Storm.Tests'
   - name: testProjectName
-    value: 'DadABase.Tests'
+    value: 'Math.Storm.Tests'
 
   - name: buildPlatform
     value: 'Any CPU'

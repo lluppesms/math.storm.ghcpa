@@ -1,5 +1,5 @@
 {
-  "name": "dadabase.net8.web.azdo",
+  "name": "mathstorm.net8.web.azdo",
   "version": "1.0.0",
   "description": "This repository is simple web app that can be used as an example for CICD deploys, unit testing, Playwright UI testing, and integration of all of that into pipelines.",
   "main": "index.js",

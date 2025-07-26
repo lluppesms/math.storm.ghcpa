@@ -1,6 +1,6 @@
 # Copilot Instructions
 
-The github repo is lluppesms/dadabase.net8.web and the primary branch that I work off of is main.
+The github repo is lluppesms/math.storm.ghcpa and the primary branch that I work off of is main.
 
 ## File Organization
 - Keep related files together
@@ -81,7 +81,7 @@ The github repo is lluppesms/dadabase.net8.web and the primary branch that I wor
 - Test error scenarios
 - Mock external dependencies
 - Use MSTest for component testing
-- Create tests in the dadabase.tests project
+- Create tests in the Math.Storm.tests project
 
 ## Documentation
 - Document public APIs
@@ -99,7 +99,7 @@ The github repo is lluppesms/dadabase.net8.web and the primary branch that I wor
 
 ## C# Code Style
 - Use modern C# features (e.g., nullable reference types, async/await, expression-bodied members) where appropriate.
-- Organize code into clear namespaces reflecting folder structure (e.g., `DadABase.Web`, `DadABase.Tests`).
+- Organize code into clear namespaces reflecting folder structure (e.g., `Math.Storm.Web`, `Math.Storm.Tests`).
 - Use PascalCase for class, method, and property names; use camelCase for local variables and parameters.
 - Place using directives at the top of files, outside namespaces. Whenever a using directive is used more than once, place it into a globalUsings.cs file in the root of the project.
 - Prefer explicit access modifiers (public, private, etc.) for all members.

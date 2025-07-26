@@ -42,16 +42,16 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'https://dadabase.luppes.com',
+    baseURL: 'https://mathstorm.luppes.com',
     //baseURL: 'https://localhost:44349/',
-    //baseURL: 'http://lll-dadabase-web-demo.azurewebsites.net/',
+    //baseURL: 'http://lll-mathstorm-web-demo.azurewebsites.net/',
 
     // baseURL: process.env.CI ? 
-    //   process.env.TEST_ENVIRONMENT == 'PROD' ? 'http://lll-dadabase.azurewebsites.net' :
-    //   process.env.TEST_ENVIRONMENT == 'DEMO' ? 'http://lll-dadabase-web-demo.azurewebsites.net' :
-    //   process.env.TEST_ENVIRONMENT == 'DEV' ? 'http://lll-dadabase-web-dev.azurewebsites.net' :
-    //   process.env.TEST_ENVIRONMENT == 'QA' ? 'http://lll-dadabase-web-qa.azurewebsites.net' :
-    //   'http://lll-dadabase-web-demo.azurewebsites.net' : 'https://localhost:44349/',
+    //   process.env.TEST_ENVIRONMENT == 'PROD' ? 'http://lll-mathstorm.azurewebsites.net' :
+    //   process.env.TEST_ENVIRONMENT == 'DEMO' ? 'http://lll-mathstorm-web-demo.azurewebsites.net' :
+    //   process.env.TEST_ENVIRONMENT == 'DEV' ? 'http://lll-mathstorm-web-dev.azurewebsites.net' :
+    //   process.env.TEST_ENVIRONMENT == 'QA' ? 'http://lll-mathstorm-web-qa.azurewebsites.net' :
+    //   'http://lll-mathstorm-web-demo.azurewebsites.net' : 'https://localhost:44349/',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry'

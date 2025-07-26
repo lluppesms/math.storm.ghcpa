@@ -1,6 +1,6 @@
-# GitHub Actions YAML Pipeline Guidelines for DadABase Projects
+# GitHub Actions YAML Pipeline Guidelines for Math.Storm Projects
 
-This document outlines the structured approach to GitHub Actions workflows used in the DadABase project. Following these guidelines will help maintain consistency across future projects.
+This document outlines the structured approach to GitHub Actions workflows used in the Math.Storm project. Following these guidelines will help maintain consistency across future projects.
 
 ## Table of Contents
 1. [Workflow Structure](#workflow-structure)
@@ -338,8 +338,8 @@ jobs:
     uses: ./.github/workflows/template-webapp-build.yml
     with:
       envCode: ${{ inputs.environmentName || 'dev' }}
-      rootDirectory: 'src/Dadabase'
-      projectName: 'DadABase.Web'
+      rootDirectory: 'src/Math.Storm'
+      projectName: 'Math.Storm.Web'
     secrets: inherit
 
   deploy-application:
@@ -359,4 +359,4 @@ jobs:
 
 ---
 
-*This document was created to guide GitHub Actions workflow development for projects similar to DadABase. Follow these practices to maintain consistency and quality across CI/CD implementations.*
+*This document was created to guide GitHub Actions workflow development for projects similar to Math.Storm. Follow these practices to maintain consistency and quality across CI/CD implementations.*
