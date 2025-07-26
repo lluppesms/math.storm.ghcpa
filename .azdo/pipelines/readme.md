@@ -32,7 +32,7 @@ These Azure DevOps YML files were designed to run as multi-stage environment dep
 
 ---
 
-## 4. These pipelines needs a variable group named "DadABase.Web"
+## 4. These pipelines needs a variable group named "Math.Storm.Web"
 
 To create this variable groups, customize and run this command in the Azure Cloud Shell.
 
@@ -44,9 +44,9 @@ Alternatively, you could define these variables in the Azure DevOps Portal on ea
    az pipelines variable-group create 
      --organization=https://dev.azure.com/<yourAzDOOrg>/ 
      --project='<yourAzDOProject>' 
-     --name DadABaseDemo 
+     --name Math.StormDemo 
      --variables 
-         appName='<yourInitials>-DadABase' 
+         appName='<yourInitials>-Math.Storm' 
          apiKey='<yourapiKey>'
          adDomain='yourDomain.onmicrosoft.com'
          adTenantId='yourTenantId'
