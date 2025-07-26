@@ -8,7 +8,7 @@ variables:
   #   value: 'this is unique to you - define in a variable group or on the pipeline variables!'
 
   - name: resourceGroupPrefix
-    value: 'rg_Math.Storm_web'
+    value: 'rg_MathStorm_web'
   - name: applicationTitle
     value: 'Math.Storm Demo'
   - name: location

@@ -68,7 +68,7 @@ jobs:
     env:
       envCode: ${{ inputs.envCode }}
       generatedAppEnvName: ${{ vars.APP_NAME }}-${{ inputs.envCode }}
-      generatedResourceGroupName: ${{ vars.RESOURCE_GROUP_NAME || format('{0}-{1}', vars.RESOURCE_GROUP_PREFIX, inputs.envCode) }}
+      generatedResourceGroupName: ${{ vars.RESOURCE_GROUP_NAME || format('{0}-{1}', vars.RESOURCEGROUP_PREFIX, inputs.envCode) }}
       createResourceGroup: ${{ inputs.createResourceGroup }}
       requestorName: ${{ inputs.requestorName }}
 
@@ -137,7 +137,7 @@ jobs:
         echo "##[endgroup]"
       continue-on-error: true
       
-    - name: Azure Login (Reusable Action)
+    - name: Azure Login
       uses: ./.github/actions/login-action
       with:
         client-id: ${{ secrets.CICD_CLIENT_ID }}
