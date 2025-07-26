@@ -50,7 +50,10 @@ public class GameService : IGameService
         
         // Calculate score using new formula: (Percentage difference * Time) + (Time * Time_Factor)
         // where Time_Factor = 10
-        const double timeFactor = 10.0;
+        var timeFactor = 10.0;
+        // there should be a major penalty for very fast answers, because they are not trying to solve the question...
+        if (currentQuestion.TimeInSeconds <= 1) { timeFactor = 100.0; }
+
         currentQuestion.Score = Math.Round(
             (currentQuestion.PercentageDifference * currentQuestion.TimeInSeconds) + 
             (currentQuestion.TimeInSeconds * timeFactor), 1);
