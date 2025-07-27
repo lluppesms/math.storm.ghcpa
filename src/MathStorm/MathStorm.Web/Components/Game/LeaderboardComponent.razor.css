@@ -1,0 +1,9 @@
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.6; }
+}
+
+.user-entry {
+    animation: blink 1s ease-in-out infinite;
+    background-color: var(--bs-success-bg-subtle) !important;
+}

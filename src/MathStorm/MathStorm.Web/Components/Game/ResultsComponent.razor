@@ -1,4 +1,6 @@
 @rendermode InteractiveServer
+@inject ICosmosDbService CosmosDbService
+@using MathStorm.Web.Components.Game
 
 <div class="row">
     <div class="col">
@@ -53,6 +55,14 @@
             </div>
         </div>
 
+        @if (showLeaderboard)
+        {
+            <LeaderboardComponent LeaderboardEntries="@leaderboardEntries" 
+                                  Difficulty="@GameSession.Difficulty.ToString()" 
+                                  CurrentUserId="@currentUserId"
+                                  UserMadeLeaderboard="@userMadeLeaderboard" />
+        }
+
         <div class="text-center mt-4">
             <button class="btn btn-primary btn-lg" @onclick="RestartGame">
                 <i class="fas fa-redo"></i> Play Again
@@ -74,13 +84,114 @@
     </div>
 </div>
 
+<UsernamePromptComponent IsVisible="@showUsernamePrompt" 
+                         TotalScore="@GameSession.TotalScore" 
+                         OnSave="@HandleSaveScore" 
+                         OnSkip="@HandleSkipSave" />
+
 @code {
     [Parameter] public GameSession GameSession { get; set; } = new();
     [Parameter] public EventCallback OnRestartGame { get; set; }
 
+    private bool showUsernamePrompt = true;
+    private bool showLeaderboard = false;
+    private List<LeaderboardEntry>? leaderboardEntries;
+    private string? currentUserId;
+    private bool userMadeLeaderboard = false;
+
+    protected override void OnInitialized()
+    {
+        // Show username prompt initially
+        showUsernamePrompt = true;
+    }
+
     private async Task RestartGame()
     {
         await OnRestartGame.InvokeAsync();
+    }
+
+    private async Task HandleSaveScore(string username)
+    {
+        try
+        {
+            showUsernamePrompt = false;
+            StateHasChanged();
+
+            // Get or create user
+            var user = await CosmosDbService.GetUserByUsernameAsync(username);
+            if (user == null)
+            {
+                user = await CosmosDbService.CreateUserAsync(username);
+            }
+
+            // Update user stats
+            user.TotalGamesPlayed++;
+            var difficultyKey = GameSession.Difficulty.ToString();
+            if (!user.BestScores.ContainsKey(difficultyKey) || GameSession.TotalScore < user.BestScores[difficultyKey])
+            {
+                user.BestScores[difficultyKey] = GameSession.TotalScore;
+            }
+            await CosmosDbService.UpdateUserAsync(user);
+
+            // Create game record
+            var game = new Models.Game
+            {
+                UserId = user.Id,
+                Username = user.Username,
+                Difficulty = difficultyKey,
+                TotalScore = GameSession.TotalScore,
+                CompletedAt = DateTime.UtcNow,
+                Questions = GameSession.Questions.Select(q => new GameQuestion
+                {
+                    Id = q.Id,
+                    Number1 = q.Number1,
+                    Number2 = q.Number2,
+                    Operation = q.Operation.ToString(),
+                    CorrectAnswer = q.CorrectAnswer,
+                    UserAnswer = q.UserAnswer,
+                    TimeInSeconds = q.TimeInSeconds,
+                    PercentageDifference = q.PercentageDifference,
+                    Score = q.Score
+                }).ToList()
+            };
+            await CosmosDbService.CreateGameAsync(game);
+
+            // Try to add to leaderboard
+            var leaderboardEntry = await CosmosDbService.AddToLeaderboardAsync(
+                user.Id, user.Username, game.Id, difficultyKey, GameSession.TotalScore);
+
+            currentUserId = user.Id;
+            userMadeLeaderboard = leaderboardEntry != null;
+
+            // Get updated leaderboard
+            leaderboardEntries = await CosmosDbService.GetLeaderboardAsync(difficultyKey);
+            showLeaderboard = true;
+            StateHasChanged();
+        }
+        catch (Exception)
+        {
+            // Handle error - for now just show leaderboard without user's score
+            await HandleSkipSave();
+        }
+    }
+
+    private async Task HandleSkipSave()
+    {
+        showUsernamePrompt = false;
+        
+        // Still show leaderboard even if user skipped
+        try
+        {
+            var difficultyKey = GameSession.Difficulty.ToString();
+            leaderboardEntries = await CosmosDbService.GetLeaderboardAsync(difficultyKey);
+            showLeaderboard = true;
+        }
+        catch
+        {
+            // If we can't load leaderboard, just don't show it
+        }
+        
+        StateHasChanged();
     }
 
     private string GetRowClass(MathQuestion question)
