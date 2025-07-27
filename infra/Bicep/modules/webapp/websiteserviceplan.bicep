@@ -33,7 +33,7 @@ resource appServiceResource 'Microsoft.Web/serverfarms@2023-01-01' = if (empty(e
   }
   kind: webAppKind
   properties: {
-    reserved: true
+    reserved: webAppKind == 'linux' ? true : false
   }
 }
 output name string = empty(existingServicePlanName) ? appServiceResource.name : existingAppServiceResource.name
