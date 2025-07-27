@@ -9,8 +9,13 @@ run-name: '2 - Build App by @${{ github.actor }}'
 on:
   workflow_dispatch:
     inputs:
-      runSecurityScan:
-        description: 'Run Security Scan'
+      runMSDevSecOpsScan:
+        description: 'Run MS DevSecOps Scan'
+        required: false
+        default: false
+        type: boolean
+      runGHASScan:
+        description: 'Run GitHub Advanced Security Scan'
         required: false
         default: false
         type: boolean
@@ -41,16 +46,15 @@ jobs:
     name: Scan Source Code
     uses: ./.github/workflows/template-scan-code.yml
     secrets: inherit
-    if: inputs.runSecurityScan
+    if: inputs.runMSDevSecOpsScan || inputs.runGHASScan
     with:
-      runMSDevSecOpsScan: ${{ inputs.runSecurityScan }}
-      runGHASScan: ${{ inputs.runSecurityScan }}
+      runMSDevSecOpsScan: ${{ inputs.runMSDevSecOpsScan }}
+      runGHASScan: ${{ inputs.runGHASScan }}
 
 # ------------------------------------------------------------------------------------------------------------------------
   build-app:
     name: Build WebApp
     uses: ./.github/workflows/template-webapp-build.yml
-    needs: scan-code
     secrets: inherit
     with:
       envCode: 'dev'
