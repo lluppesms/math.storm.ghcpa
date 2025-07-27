@@ -40,7 +40,7 @@ jobs:
       uses: actions/download-artifact@v4.1.7
       with:
         name: ${{ env.artifactName }}
-        path: '${{ github.action_path }}/artifacts/${{ env.generatedAppEnvName }}'
+        path: '${{ github.action_path }}/${{ env.generatedAppEnvName }}'
 
     - name: List Files After Build
       if: inputs.listFilesBeforeDeploy == true
@@ -80,7 +80,7 @@ jobs:
       uses: Azure/webapps-deploy@v2
       with:
         app-name: ${{ env.generatedAppEnvName }}
-        package: '${{ github.action_path }}/artifacts/${{ env.generatedAppEnvName }}'
+        package: '${{ github.action_path }}/${{ env.generatedAppEnvName }}'
 
     - name: Logout and cleanup
       shell: bash
