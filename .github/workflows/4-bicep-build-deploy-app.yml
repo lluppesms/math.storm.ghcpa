@@ -114,7 +114,7 @@ jobs:
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}
-      listFilesAfterBuild: true
+      listFilesBeforeDeploy: true
       
 # ------------------------------------------------------------------------------------------------------------------------
   run-smoke-test:
