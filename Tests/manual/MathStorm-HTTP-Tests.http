@@ -1,0 +1,274 @@
+### MathStorm Application HTTP Tests
+### Use with REST Client extension in VS Code or similar tools
+
+@baseUrl = http://localhost:5000
+@prodUrl = https://mathstorm.luppes.com
+
+### Variables for testing
+@testUser = TestUser123
+@testGameId = test-game-{{$timestamp}}
+
+### ===================================================================
+### Basic Application Tests
+### ===================================================================
+
+### Test 1: Health Check / Root Endpoint
+GET {{baseUrl}}/
+Accept: text/html
+User-Agent: MathStorm-Test-Client/1.0
+
+### Test 2: Verify main page loads (should return HTML)
+GET {{baseUrl}}
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+
+### ===================================================================
+### Static Resource Tests  
+### ===================================================================
+
+### Test 3: CSS File Loading
+GET {{baseUrl}}/css/app.css
+Accept: text/css
+
+### Test 4: Bootstrap CSS (if used)
+GET {{baseUrl}}/css/bootstrap.min.css
+Accept: text/css
+
+### Test 5: JavaScript Framework Loading
+GET {{baseUrl}}/_framework/blazor.web.js
+Accept: application/javascript
+
+### Test 6: Application JS (if exists)
+GET {{baseUrl}}/js/app.js
+Accept: application/javascript
+
+### ===================================================================
+### Blazor Server Specific Tests
+### ===================================================================
+
+### Test 7: SignalR Negotiate Endpoint (Blazor Server uses SignalR)
+POST {{baseUrl}}/_blazor/negotiate?negotiateVersion=1
+Content-Type: application/json
+Accept: application/json
+
+### Test 8: Blazor App State (might return 404, that's expected)
+GET {{baseUrl}}/_blazor/disconnect
+Accept: application/json
+
+### ===================================================================
+### Favicon and Metadata Tests
+### ===================================================================
+
+### Test 9: Favicon
+GET {{baseUrl}}/favicon.ico
+Accept: image/x-icon,image/vnd.microsoft.icon
+
+### Test 10: Apple Touch Icon (if exists)
+GET {{baseUrl}}/apple-touch-icon.png
+Accept: image/png
+
+### Test 11: Manifest file (PWA support)
+GET {{baseUrl}}/manifest.json
+Accept: application/json
+
+### ===================================================================
+### Error Handling Tests
+### ===================================================================
+
+### Test 12: Non-existent page (should return 404 or redirect)
+GET {{baseUrl}}/nonexistent-page
+Accept: text/html
+
+### Test 13: Invalid route
+GET {{baseUrl}}/invalid/route/test
+Accept: text/html
+
+### ===================================================================
+### Security Tests
+### ===================================================================
+
+### Test 14: HTTPS Redirect (when testing against HTTP)
+GET http://{{prodUrl}}/
+Accept: text/html
+
+### Test 15: Security Headers Check
+GET {{baseUrl}}/
+Accept: text/html
+
+### Test 16: CORS Check (if applicable)
+OPTIONS {{baseUrl}}/
+Origin: https://example.com
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: Content-Type
+
+### ===================================================================
+### Performance Tests
+### ===================================================================
+
+### Test 17: Load main page and measure response time
+GET {{baseUrl}}/
+Accept: text/html
+Cache-Control: no-cache
+
+### Test 18: Load page with different user agents
+GET {{baseUrl}}/
+Accept: text/html
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+
+### Test 19: Mobile user agent test
+GET {{baseUrl}}/
+Accept: text/html
+User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15
+
+### ===================================================================
+### Content Type and Encoding Tests
+### ===================================================================
+
+### Test 20: Check content encoding
+GET {{baseUrl}}/
+Accept: text/html
+Accept-Encoding: gzip, deflate, br
+
+### Test 21: Check content type headers
+GET {{baseUrl}}/
+Accept: */*
+
+### ===================================================================
+### Production Environment Tests (if applicable)
+### ===================================================================
+
+### Test 22: Production Health Check
+GET {{prodUrl}}/
+Accept: text/html
+User-Agent: MathStorm-HealthCheck/1.0
+
+### Test 23: Production HTTPS Check
+GET {{prodUrl}}/
+Accept: text/html
+
+### Test 24: Production Performance Check
+GET {{prodUrl}}/
+Accept: text/html
+Cache-Control: no-cache
+
+### ===================================================================
+### Potential API Endpoints (if they exist)
+### ===================================================================
+
+### Test 25: Check for API endpoints (might return 404)
+GET {{baseUrl}}/api/health
+Accept: application/json
+
+### Test 26: Check for API documentation (Swagger)
+GET {{baseUrl}}/swagger
+Accept: text/html
+
+### Test 27: Check for API documentation (alternative)
+GET {{baseUrl}}/api/swagger/ui
+Accept: text/html
+
+### ===================================================================
+### WebSocket Tests (Blazor Server uses WebSockets)
+### ===================================================================
+
+### Note: WebSocket tests cannot be performed with HTTP REST clients
+### These would need to be tested with specialized WebSocket testing tools
+### or the browser's WebSocket API
+
+### ===================================================================
+### Load Testing Simulation
+### ===================================================================
+
+### Test 28: Simulate multiple rapid requests
+GET {{baseUrl}}/
+Accept: text/html
+
+###
+GET {{baseUrl}}/
+Accept: text/html
+
+###
+GET {{baseUrl}}/
+Accept: text/html
+
+###
+GET {{baseUrl}}/
+Accept: text/html
+
+###
+GET {{baseUrl}}/
+Accept: text/html
+
+### ===================================================================
+### Expected Results Guide
+### ===================================================================
+
+# Expected HTTP Status Codes:
+# - Test 1-2: 200 OK (HTML content)
+# - Test 3-6: 200 OK (CSS/JS content) or 404 if files don't exist
+# - Test 7: 200 OK with JSON response or 404
+# - Test 9-11: 200 OK or 404 if files don't exist
+# - Test 12-13: 404 Not Found or redirect to home
+# - Test 14: 301/302 redirect to HTTPS
+# - Test 15-16: 200 OK with appropriate headers
+# - Test 17-24: 200 OK with performance metrics
+# - Test 25-27: 200 OK if endpoints exist, 404 otherwise
+
+### ===================================================================
+### Testing Instructions
+### ===================================================================
+
+# 1. Start the MathStorm application locally:
+#    cd src/MathStorm/MathStorm.Web
+#    dotnet run --urls "http://localhost:5000"
+
+# 2. Use VS Code with REST Client extension:
+#    - Install "REST Client" extension
+#    - Open this file in VS Code
+#    - Click "Send Request" above each request
+
+# 3. Alternative tools:
+#    - Postman: Import this file or manually create requests
+#    - curl: Convert requests to curl commands
+#    - Insomnia: Import or manually create requests
+
+# 4. Monitor results:
+#    - Check response status codes
+#    - Verify response times
+#    - Check response headers
+#    - Validate content types
+
+### ===================================================================
+### Automation Script
+### ===================================================================
+
+# PowerShell script to run basic health checks:
+<#
+$baseUrl = "http://localhost:5000"
+$endpoints = @("/", "/css/app.css", "/_framework/blazor.web.js")
+
+foreach ($endpoint in $endpoints) {
+    try {
+        $response = Invoke-WebRequest -Uri "$baseUrl$endpoint" -Method GET
+        Write-Host "✓ $endpoint - Status: $($response.StatusCode)"
+    }
+    catch {
+        Write-Host "✗ $endpoint - Error: $($_.Exception.Message)"
+    }
+}
+#>
+
+# Bash script for Linux/Mac:
+<#
+#!/bin/bash
+BASE_URL="http://localhost:5000"
+ENDPOINTS=("/" "/css/app.css" "/_framework/blazor.web.js")
+
+for endpoint in "${ENDPOINTS[@]}"; do
+    response=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$endpoint")
+    if [ $response -eq 200 ]; then
+        echo "✓ $endpoint - Status: $response"
+    else
+        echo "✗ $endpoint - Status: $response"
+    fi
+done
+#>

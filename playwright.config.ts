@@ -10,7 +10,7 @@ import { defineConfig, devices } from '@playwright/test';
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './playwright',
+  testDir: './Tests/playwright',
 
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -42,7 +42,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'https://mathstorm.luppes.com',
+    baseURL: 'http://localhost:5000',
     //baseURL: 'https://localhost:44349/',
     //baseURL: 'http://lll-mathstorm-web-demo.azurewebsites.net/',
 

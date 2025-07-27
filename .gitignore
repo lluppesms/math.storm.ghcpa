@@ -368,6 +368,9 @@ infra/azdKeys.json
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+test-results-ui/
+**/test-results*/
+**/*test-results*.xml
 
 # Configuration files with secrets
 appsettings.development.json
