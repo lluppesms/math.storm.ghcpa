@@ -17,7 +17,7 @@ param webAppKind string = 'windows' // 'linux' or 'windows'
 // Run Settings Parameters
 // --------------------------------------------------------------------------------------------------------------
 @description('Should we run a script to dedupe the KeyVault secrets? (this fails on private networks right now)')
-param deduplicateKeyVaultSecrets bool = false
+param deduplicateKeyVaultSecrets bool = true
 @description('Add Role Assignments for the user assigned identity?')
 param addRoleAssignments bool = true
 @description('Should resources be created with public access?')
@@ -155,7 +155,8 @@ module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = 
   dependsOn: [ keyVaultModule, cosmosModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
-    secretName: 'cosmosConnectionString'
+    accountKeySecretName: 'cosmosAccountKey'
+    connectionStringSecretName: 'cosmosConnectionString'
     cosmosAccountName: cosmosModule.outputs.name
     existingSecretNames: deduplicateKeyVaultSecrets ? keyVaultSecretList!.outputs.secretNameList : ''
   }
@@ -203,7 +204,7 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
     customAppSettings: {
       AppSettings__AppInsights_InstrumentationKey: webSiteModule.outputs.appInsightsKey
       AppSettings__EnvironmentName: environmentCode
-      CosmosDb__ConnectionString: keyVaultSecretCosmos.outputs.secretUri
+      CosmosDb__ConnectionString: keyVaultSecretCosmos.outputs.connectionStringSecretUri
       CosmosDb__DatabaseName: 'MathStormDb'
       CosmosDb__ContainerNames__Users: 'Users'
       CosmosDb__ContainerNames__Games: 'Games'
@@ -211,14 +212,6 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
     }
   }
 }
-      // AppSettings__ApiKey: apiKey
-      // AppSettings__EnableSwagger: appSwaggerEnabled
-      // AppSettings__DataSource: appDataSource
-      // AzureAD__Instance: adInstance
-      // AzureAD__Domain: adDomain
-      // AzureAD__TenantId: adTenantId
-      // AzureAD__ClientId: adClientId
-      // AzureAD__CallbackPath: adCallbackPath
 
 output SUBSCRIPTION_ID string = subscription().subscriptionId
 output RESOURCE_GROUP_NAME string = resourceGroupName
