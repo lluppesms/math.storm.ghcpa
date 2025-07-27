@@ -203,10 +203,14 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
     customAppSettings: {
       AppSettings__AppInsights_InstrumentationKey: webSiteModule.outputs.appInsightsKey
       AppSettings__EnvironmentName: environmentCode
+      CosmosDb__ConnectionString: keyVaultSecretCosmos.outputs.secretUri
+      CosmosDb__DatabaseName: 'MathStormDb'
+      CosmosDb__ContainerNames__Users: 'Users'
+      CosmosDb__ContainerNames__Games: 'Games'
+      CosmosDb__ContainerNames__Leaderboard: 'Leaderboard'
     }
   }
 }
-
       // AppSettings__ApiKey: apiKey
       // AppSettings__EnableSwagger: appSwaggerEnabled
       // AppSettings__DataSource: appDataSource
