@@ -11,7 +11,7 @@ param environmentCode string = 'dev'
 param commonTags object = {}
 @allowed(['F1','B1','B2','S1','S2','S3'])
 param sku string = 'B1'
-param webAppKind string = 'linux'
+param webAppKind string = 'windows'  // 'linux'
 
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~website.bicep'}

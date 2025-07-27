@@ -119,7 +119,7 @@ jobs:
     inputs:
       ConnectionType: AzureRM
       azureSubscription: '$(serviceConnectionName)'
-      appType: webAppLinux
+      appType: webApp  #// webAppLinux
       WebAppName: $(fullAppName)
       Package: "$(Build.ArtifactStagingDirectory)/../$(appProjectName).zip"
       enableCustomDeployment: true
