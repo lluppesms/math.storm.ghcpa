@@ -31,11 +31,16 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
-
+      with:
+        sparse-checkout: |
+          .github/workflows/actions
+        sparse-checkout-cone-mode: false
+        
     - name: Download build artifacts
       uses: actions/download-artifact@v4.1.7
       with:
         name: ${{ env.artifactName }}
+        path: '${{ github.action_path }}/artifacts/${{ env.generatedAppEnvName }}'
 
     - name: List Files After Build
       if: inputs.listFilesBeforeDeploy == true
@@ -75,7 +80,7 @@ jobs:
       uses: Azure/webapps-deploy@v2
       with:
         app-name: ${{ env.generatedAppEnvName }}
-        package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/${{ env.generatedAppEnvName }}'
+        package: '${{ github.action_path }}/artifacts/${{ env.generatedAppEnvName }}'
 
     - name: Logout and cleanup
       shell: bash
