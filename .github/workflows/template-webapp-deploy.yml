@@ -29,13 +29,6 @@ jobs:
       generatedAppEnvName: ${{ vars.APP_NAME }}-${{ inputs.envCode }}
 
     steps:
-    # - name: Checkout Code
-    #   uses: actions/checkout@v4
-    #   with:
-    #     sparse-checkout: |
-    #       .github/workflows/actions
-    #     sparse-checkout-cone-mode: false
-        
     - name: Download build artifacts
       uses: actions/download-artifact@v4.1.7
       with:
@@ -67,15 +60,7 @@ jobs:
         echo -e -n "{\"buildDate\":\"${{ steps.vars.outputs.rundatetime }}\",\"buildNumber\":\"${{ steps.vars.outputs.rundate }}.${{ github.run_number }}\",\"buildId\":\"${{ github.run_id }}.${{ github.run_attempt }}\",\"run_id\":\"${{ github.run_id }}\",\"run_attempt\":\"${{ github.run_attempt }}\",\"run_number\":\"${{ github.run_number }}\",\"branchName\":\"${{ steps.vars.outputs.commitbranch }}\",\"commitHash\":\"${{ steps.vars.outputs.commitsha }}\"}" > ${{ github.action_path }}buildinfo.json
       continue-on-error: true
 
-    # - name: Azure Login (Reusable Action)
-    #   uses: ./.github/actions/login-action
-    #   with:
-    #     client-id: ${{ secrets.CICD_CLIENT_ID }}
-    #     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-    #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    #     client-secret: ${{ secrets.CICD_CLIENT_SECRET }}
     - name: Login to Azure using OIDC
-      if: ${{ steps.auth-check.outputs.auth-method == 'oidc' }}
       uses: azure/login@v2
       with:
         client-id: ${{ secrets.CICD_CLIENT_ID }}
