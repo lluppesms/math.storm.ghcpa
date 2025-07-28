@@ -106,7 +106,7 @@
                     }
                     else if (!gameSession.IsGameComplete)
                     {
-                        <QuestionComponent GameSession="@gameSession" OnAnswerSubmitted="HandleAnswerSubmitted" />
+                        <QuestionComponent GameSession="@gameSession" OnAnswerSubmitted="HandleAnswerSubmitted" OnGameCancelled="HandleGameCancelled" />
                     }
                     else
                     {
@@ -163,6 +163,12 @@
     }
 
     private void RestartGame()
+    {
+        gameSession = GameService.CreateNewGame(selectedDifficulty);
+        StateHasChanged();
+    }
+
+    private void HandleGameCancelled()
     {
         gameSession = GameService.CreateNewGame(selectedDifficulty);
         StateHasChanged();

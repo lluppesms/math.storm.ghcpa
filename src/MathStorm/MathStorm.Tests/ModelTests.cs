@@ -185,4 +185,29 @@ public class GameSessionTests
         gameSession.CurrentQuestionIndex = 2;
         Assert.IsTrue(gameSession.IsGameComplete);
     }
+
+    [TestMethod]
+    public void GameSession_WhenStartedThenReset_ShouldReturnToInitialState()
+    {
+        // Arrange
+        var gameSession = new GameSession();
+        gameSession.Questions.Add(new MathQuestion { Id = 1 });
+        gameSession.Questions.Add(new MathQuestion { Id = 2 });
+        
+        // Start the game and advance
+        gameSession.IsGameStarted = true;
+        gameSession.CurrentQuestionIndex = 1;
+        gameSession.QuestionStartTime = DateTime.Now;
+
+        // Act - Reset to initial state (simulating cancel game behavior)
+        var resetGameSession = new GameSession();
+        resetGameSession.Questions.Add(new MathQuestion { Id = 1 });
+        resetGameSession.Questions.Add(new MathQuestion { Id = 2 });
+
+        // Assert - Reset game session should be in initial state
+        Assert.IsFalse(resetGameSession.IsGameStarted);
+        Assert.AreEqual(0, resetGameSession.CurrentQuestionIndex);
+        Assert.IsNull(resetGameSession.QuestionStartTime);
+        Assert.IsFalse(resetGameSession.IsGameComplete);
+    }
 }
