@@ -26,7 +26,7 @@ jobs:
       name: ${{ inputs.envCode }}
     env:
       artifactName: webapp
-      generatedAppEnvName: ${{ vars.APP_NAME }}-${{ inputs.envCode }}
+      generatedAppEnvName: ${{ inputs.envCode == 'prod' && vars.APP_NAME || format('{0}-{1}', vars.APP_NAME, inputs.envCode) }}
 
     steps:
     - name: Download build artifacts

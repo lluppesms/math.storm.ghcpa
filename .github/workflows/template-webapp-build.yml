@@ -82,7 +82,8 @@ jobs:
       run: dotnet restore "${{ inputs.rootDirectory }}"
 
     - name: Build Application
-      run: dotnet build "${{ inputs.rootDirectory }}/${{ inputs.projectName }}.csproj" --configuration Release --no-restore /p:Platform=x64
+      run: dotnet build "${{ inputs.rootDirectory }}/${{ inputs.projectName }}.csproj" --configuration Release --no-restore
+      #  for Windows: build...?  /p:Platform=x64
 
     - name: Test Application
       if: inputs.testApplication == true
