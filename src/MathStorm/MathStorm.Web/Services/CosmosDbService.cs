@@ -142,6 +142,37 @@ public class CosmosDbService : ICosmosDbService
         }
     }
 
+    public async Task<List<LeaderboardEntry>> GetGlobalLeaderboardAsync(int topCount = 10)
+    {
+        try
+        {
+            var query = new QueryDefinition("SELECT * FROM c ORDER BY c.score ASC OFFSET 0 LIMIT @topCount")
+                .WithParameter("@topCount", topCount);
+                
+            var iterator = _leaderboardContainer.GetItemQueryIterator<LeaderboardEntry>(query);
+            var results = new List<LeaderboardEntry>();
+            
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response);
+            }
+            
+            // Update ranks
+            for (int i = 0; i < results.Count; i++)
+            {
+                results[i].Rank = i + 1;
+            }
+            
+            return results;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting global leaderboard");
+            throw;
+        }
+    }
+
     public async Task<LeaderboardEntry?> AddToLeaderboardAsync(string userId, string username, string gameId, string difficulty, double score)
     {
         try

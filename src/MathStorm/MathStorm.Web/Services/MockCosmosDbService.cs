@@ -117,6 +117,23 @@ public class MockCosmosDbService : ICosmosDbService
         return entries;
     }
 
+    public async Task<List<LeaderboardEntry>> GetGlobalLeaderboardAsync(int topCount = 10)
+    {
+        await Task.Delay(50);
+        var entries = _leaderboard
+            .OrderBy(e => e.Score)
+            .Take(topCount)
+            .ToList();
+            
+        // Update ranks
+        for (int i = 0; i < entries.Count; i++)
+        {
+            entries[i].Rank = i + 1;
+        }
+        
+        return entries;
+    }
+
     public async Task<LeaderboardEntry?> AddToLeaderboardAsync(string userId, string username, string gameId, string difficulty, double score)
     {
         await Task.Delay(50);

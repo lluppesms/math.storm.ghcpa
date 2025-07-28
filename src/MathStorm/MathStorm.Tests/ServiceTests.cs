@@ -87,6 +87,35 @@ public class MockCosmosDbServiceTests
         // MockCosmosDbService seeds with sample data, so should have entries
         Assert.IsTrue(leaderboard.Count > 0);
     }
+
+    [TestMethod]
+    public async Task GetGlobalLeaderboardAsync_ShouldReturnAllLevelsLeaderboard()
+    {
+        // Act
+        var globalLeaderboard = await _cosmosDbService.GetGlobalLeaderboardAsync(10);
+
+        // Assert
+        Assert.IsNotNull(globalLeaderboard);
+        // MockCosmosDbService seeds with sample data across all difficulties, so should have entries
+        Assert.IsTrue(globalLeaderboard.Count > 0);
+        
+        // Should contain entries from multiple difficulty levels
+        var difficulties = globalLeaderboard.Select(e => e.Difficulty).Distinct().ToList();
+        Assert.IsTrue(difficulties.Count > 1, "Global leaderboard should contain entries from multiple difficulty levels");
+        
+        // Should be sorted by score (ascending - lower is better)
+        for (int i = 1; i < globalLeaderboard.Count; i++)
+        {
+            Assert.IsTrue(globalLeaderboard[i].Score >= globalLeaderboard[i - 1].Score, 
+                "Global leaderboard should be sorted by score in ascending order");
+        }
+        
+        // Should have correct ranks
+        for (int i = 0; i < globalLeaderboard.Count; i++)
+        {
+            Assert.AreEqual(i + 1, globalLeaderboard[i].Rank, "Rank should be sequential starting from 1");
+        }
+    }
 }
 
 [TestClass]
