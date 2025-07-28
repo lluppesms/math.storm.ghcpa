@@ -1,0 +1,195 @@
+@page "/leaderboard"
+@rendermode InteractiveServer
+@inject ICosmosDbService CosmosDbService
+@using MathStorm.Web.Models
+@using MathStorm.Web.Services
+
+<PageTitle>Leaderboard - Math Storm</PageTitle>
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h1 class="display-4"><i class="fas fa-trophy text-warning"></i> Leaderboard</h1>
+                    <p class="lead">See the top performers for each difficulty level!</p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <h3><i class="fas fa-cog"></i> Select Difficulty Level</h3>
+                            <div class="row">
+                                <div class="col-md-6 col-lg-3 mb-3">
+                                    <div class="card @(selectedDifficulty == Difficulty.Beginner ? "border-primary bg-light" : "") difficulty-card" 
+                                         @onclick="() => SelectDifficulty(Difficulty.Beginner)" style="cursor: pointer;">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title text-success">🌱 Beginner</h5>
+                                            <p class="card-text small">
+                                                5 questions<br>
+                                                2-digit numbers<br>
+                                                Addition & Subtraction only
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 mb-3">
+                                    <div class="card @(selectedDifficulty == Difficulty.Novice ? "border-primary bg-light" : "") difficulty-card" 
+                                         @onclick="() => SelectDifficulty(Difficulty.Novice)" style="cursor: pointer;">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title text-info">🚀 Novice</h5>
+                                            <p class="card-text small">
+                                                5 questions<br>
+                                                2-digit numbers<br>
+                                                All operations
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 mb-3">
+                                    <div class="card @(selectedDifficulty == Difficulty.Intermediate ? "border-primary bg-light" : "") difficulty-card" 
+                                         @onclick="() => SelectDifficulty(Difficulty.Intermediate)" style="cursor: pointer;">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title text-warning">⚡ Intermediate</h5>
+                                            <p class="card-text small">
+                                                10 questions<br>
+                                                3-digit numbers<br>
+                                                All operations
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 mb-3">
+                                    <div class="card @(selectedDifficulty == Difficulty.Expert ? "border-primary bg-light" : "") difficulty-card" 
+                                         @onclick="() => SelectDifficulty(Difficulty.Expert)" style="cursor: pointer;">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title text-danger">🔥 Expert</h5>
+                                            <p class="card-text small">
+                                                10 questions<br>
+                                                4-digit numbers<br>
+                                                All operations
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h3><i class="fas fa-medal"></i> Top 10 - @selectedDifficulty Level</h3>
+                            @if (isLoading)
+                            {
+                                <div class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2">Loading leaderboard...</p>
+                                </div>
+                            }
+                            else if (leaderboardEntries != null && leaderboardEntries.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th scope="col">Rank</th>
+                                                <th scope="col">Player</th>
+                                                <th scope="col">Score</th>
+                                                <th scope="col">Date Achieved</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var entry in leaderboardEntries)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        @if (entry.Rank == 1)
+                                                        {
+                                                            <span class="badge bg-warning text-dark">🥇 #@entry.Rank</span>
+                                                        }
+                                                        else if (entry.Rank == 2)
+                                                        {
+                                                            <span class="badge bg-secondary">🥈 #@entry.Rank</span>
+                                                        }
+                                                        else if (entry.Rank == 3)
+                                                        {
+                                                            <span class="badge bg-warning">🥉 #@entry.Rank</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-primary">#@entry.Rank</span>
+                                                        }
+                                                    </td>
+                                                    <td>@entry.Username</td>
+                                                    <td><strong>@entry.Score.ToString("F2")</strong></td>
+                                                    <td>@entry.AchievedAt.ToString("MMM d, yyyy")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center">
+                                    <i class="fas fa-exclamation-circle text-muted fa-3x"></i>
+                                    <p class="text-muted mt-2">No scores recorded for @selectedDifficulty level yet.</p>
+                                    <p class="text-muted">Be the first to set a record!</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-12 text-center">
+                            <p class="text-muted">
+                                <i class="fas fa-info-circle"></i> 
+                                Remember: Lower scores are better! Score = (Error% × Time) + (Time × 10)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Difficulty selectedDifficulty = Difficulty.Intermediate;
+    private List<LeaderboardEntry>? leaderboardEntries;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLeaderboard();
+    }
+
+    private async Task SelectDifficulty(Difficulty difficulty)
+    {
+        selectedDifficulty = difficulty;
+        await LoadLeaderboard();
+        StateHasChanged();
+    }
+
+    private async Task LoadLeaderboard()
+    {
+        isLoading = true;
+        StateHasChanged();
+        
+        try
+        {
+            leaderboardEntries = await CosmosDbService.GetLeaderboardAsync(selectedDifficulty.ToString(), 10);
+        }
+        catch
+        {
+            // Handle error gracefully - could add error message display
+            leaderboardEntries = new List<LeaderboardEntry>();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}
