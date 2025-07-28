@@ -34,7 +34,7 @@ Deployment Options include:
 
 [![azd Compatible](/Docs/images/AZD_Compatible.png)](/.azure/readme.md)
 
-[![deploy.infra.and.website](https://github.com/lluppesms/math.storm.ghcpa/actions/workflows/4-bicep-build-deploy-app/badge.svg)](https://github.com/lluppesms/math.storm.ghcpa/actions/workflows/4-bicep-build-deploy-app.yml)
+[![4.bicep.build.deploy.app](https://github.com/lluppesms/math.storm.ghcpa/actions/workflows/4-bicep-build-deploy-app.yml/badge.svg)](https://github.com/lluppesms/math.storm.ghcpa/actions/workflows/4-bicep-build-deploy-app.yml)
 
 ---
 
