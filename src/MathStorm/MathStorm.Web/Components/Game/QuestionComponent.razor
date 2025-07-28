@@ -28,8 +28,11 @@
                                    style="max-width: 300px; margin: 0 auto; border: 2px solid #007bff;"
                                    autocomplete="off" />
                         </div>
-                        <button class="btn btn-success btn-lg" @onclick="SubmitAnswer" disabled="@(!userAnswer.HasValue)">
+                        <button class="btn btn-success btn-lg me-3" @onclick="SubmitAnswer" disabled="@(!userAnswer.HasValue)">
                             <i class="fas fa-check"></i> Submit Answer
+                        </button>
+                        <button class="btn btn-outline-secondary btn-lg" @onclick="CancelGame">
+                            <i class="fas fa-times"></i> Cancel Game
                         </button>
                     </div>
                     
@@ -50,6 +53,7 @@
 @code {
     [Parameter] public GameSession GameSession { get; set; } = new();
     [Parameter] public EventCallback<double> OnAnswerSubmitted { get; set; }
+    [Parameter] public EventCallback OnGameCancelled { get; set; }
 
     private double? userAnswer;
     private Timer? timer;
@@ -126,6 +130,12 @@
         {
             await SubmitAnswer();
         }
+    }
+
+    private async Task CancelGame()
+    {
+        timer?.Dispose();
+        await OnGameCancelled.InvokeAsync();
     }
 
     public void Dispose()
