@@ -54,6 +54,64 @@ public class GameServiceTests
     }
 
     [TestMethod]
+    public void CreateNewGame_BeginnerDifficulty_Addition_ShouldHaveOneDigitAndTwoDigitNumbers()
+    {
+        // Arrange
+        var difficulty = Difficulty.Beginner;
+
+        // Act - Generate multiple games to test randomness
+        for (int i = 0; i < 10; i++)
+        {
+            var gameSession = _gameService.CreateNewGame(difficulty);
+            
+            // Check all addition questions
+            var additionQuestions = gameSession.Questions.Where(q => q.Operation == MathOperation.Addition);
+            
+            foreach (var question in additionQuestions)
+            {
+                // One number should be single digit (1-9), the other should be two digits (10-99)
+                var number1IsOneDigit = question.Number1 >= 1 && question.Number1 <= 9;
+                var number1IsTwoDigit = question.Number1 >= 10 && question.Number1 <= 99;
+                var number2IsOneDigit = question.Number2 >= 1 && question.Number2 <= 9;
+                var number2IsTwoDigit = question.Number2 >= 10 && question.Number2 <= 99;
+                
+                // Assert that we have exactly one single digit and one two digit number
+                Assert.IsTrue((number1IsOneDigit && number2IsTwoDigit) || (number1IsTwoDigit && number2IsOneDigit),
+                    $"Addition question should have one single-digit and one two-digit number. Got {question.Number1} and {question.Number2}");
+            }
+        }
+    }
+
+    [TestMethod]
+    public void CreateNewGame_BeginnerDifficulty_Subtraction_ShouldHaveTwoDigitFirstAndOneDigitSecond()
+    {
+        // Arrange
+        var difficulty = Difficulty.Beginner;
+
+        // Act - Generate multiple games to test randomness
+        for (int i = 0; i < 10; i++)
+        {
+            var gameSession = _gameService.CreateNewGame(difficulty);
+            
+            // Check all subtraction questions
+            var subtractionQuestions = gameSession.Questions.Where(q => q.Operation == MathOperation.Subtraction);
+            
+            foreach (var question in subtractionQuestions)
+            {
+                // First number should be two digits (10-99), second should be single digit (1-9)
+                Assert.IsTrue(question.Number1 >= 10 && question.Number1 <= 99,
+                    $"First number in subtraction should be two digits (10-99). Got {question.Number1}");
+                Assert.IsTrue(question.Number2 >= 1 && question.Number2 <= 9,
+                    $"Second number in subtraction should be single digit (1-9). Got {question.Number2}");
+                
+                // Ensure result is positive
+                Assert.IsTrue(question.Number1 > question.Number2,
+                    $"First number should be larger than second. Got {question.Number1} - {question.Number2}");
+            }
+        }
+    }
+
+    [TestMethod]
     public void CreateNewGame_NoviceDifficulty_ShouldGenerateCorrectSettings()
     {
         // Arrange
