@@ -80,14 +80,40 @@ public class GameService : IGameService
         switch (operation)
         {
             case MathOperation.Addition:
-                question.Number1 = _random.Next(1, maxValue + 1);
-                question.Number2 = _random.Next(1, maxValue + 1);
+                if (GetDifficultyFromSettings(settings) == Difficulty.Beginner)
+                {
+                    // For Beginner: one number should be single digit (1-9), the other should be two digits (10-99)
+                    if (_random.Next(0, 2) == 0)
+                    {
+                        question.Number1 = _random.Next(1, 10); // Single digit (1-9)
+                        question.Number2 = _random.Next(10, 100); // Two digits (10-99)
+                    }
+                    else
+                    {
+                        question.Number1 = _random.Next(10, 100); // Two digits (10-99)
+                        question.Number2 = _random.Next(1, 10); // Single digit (1-9)
+                    }
+                }
+                else
+                {
+                    question.Number1 = _random.Next(1, maxValue + 1);
+                    question.Number2 = _random.Next(1, maxValue + 1);
+                }
                 question.CorrectAnswer = question.Number1 + question.Number2;
                 break;
                 
             case MathOperation.Subtraction:
-                question.Number1 = _random.Next(1, maxValue + 1);
-                question.Number2 = _random.Next(1, Math.Min(question.Number1, maxValue) + 1);
+                if (GetDifficultyFromSettings(settings) == Difficulty.Beginner)
+                {
+                    // For Beginner: first number should be two digits (10-99), second should be single digit (1-9)
+                    question.Number1 = _random.Next(10, 100); // Two digits (10-99)
+                    question.Number2 = _random.Next(1, 10); // Single digit (1-9)
+                }
+                else
+                {
+                    question.Number1 = _random.Next(1, maxValue + 1);
+                    question.Number2 = _random.Next(1, Math.Min(question.Number1, maxValue) + 1);
+                }
                 question.CorrectAnswer = question.Number1 - question.Number2;
                 break;
                 
