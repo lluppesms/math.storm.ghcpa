@@ -11,7 +11,7 @@ param environmentCode string = 'azd'
 param location string = resourceGroup().location
 param webSiteSku string = 'B1'
 param servicePlanName string = ''
-param webAppKind string = 'windows' // 'linux' or 'windows'
+param webAppKind string = 'linux' // 'linux' or 'windows'
 
 // --------------------------------------------------------------------------------------------------------------
 // Run Settings Parameters

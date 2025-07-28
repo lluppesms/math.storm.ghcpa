@@ -22,8 +22,7 @@ else
     builder.Services.AddSingleton<CosmosClient>(provider =>
     {
         var configuration = provider.GetService<IConfiguration>();
-        var connectionString = configuration.GetConnectionString("CosmosDb") ?? 
-                              configuration["CosmosDb:ConnectionString"];
+        var connectionString = configuration.GetConnectionString("CosmosDb") ?? configuration["CosmosDb:ConnectionString"];
         return new CosmosClient(connectionString);
     });
 
@@ -44,12 +43,12 @@ if (!app.Environment.IsDevelopment())
 }
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
+// if (!app.Environment.IsDevelopment())
+// {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
-}
+//}
 
 app.UseHttpsRedirection();
 
