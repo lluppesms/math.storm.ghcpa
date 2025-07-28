@@ -123,7 +123,7 @@ module keyVaultModule './modules/security/keyvault.bicep' = {
     commonTags: commonTags
     keyVaultName: resourceNames.outputs.keyVaultName
     keyVaultOwnerUserId: principalId
-    adminUserObjectIds: [identity.outputs.managedIdentityPrincipalId]
+    adminUserObjectIds: [identity.outputs.managedIdentityPrincipalId, webSiteModule.outputs.principalId]
     publicNetworkAccess: publicAccessEnabled ? 'Enabled' : 'Disabled'
     keyVaultOwnerIpAddress: myIpAddress
     createUserAssignedIdentity: false
