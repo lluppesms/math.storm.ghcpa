@@ -1,7 +1,6 @@
 using MathStorm.Web.Components;
 using MathStorm.Web.Services;
 using MathStorm.Shared.Services;
-using Microsoft.Azure.Cosmos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,36 +21,10 @@ builder.Services.AddScoped<MathStorm.Shared.Services.IGameService, MathStorm.Sha
 // Add function service
 builder.Services.AddScoped<IMathStormFunctionService, MathStormFunctionService>();
 
-// Add Cosmos DB services
-if (builder.Environment.IsDevelopment())
-{
-    // Use mock service in development
-    builder.Services.AddScoped<MathStorm.Shared.Services.ICosmosDbService, MathStorm.Shared.Services.MockCosmosDbService>();
-}
-else
-{
-    builder.Services.AddSingleton<CosmosClient>(provider =>
-    {
-        var configuration = provider.GetService<IConfiguration>();
-        var connectionString = configuration.GetConnectionString("CosmosDb") ?? configuration["CosmosDb:ConnectionString"];
-        return new CosmosClient(connectionString);
-    });
-
-    builder.Services.AddScoped<MathStorm.Shared.Services.ICosmosDbService, CosmosDbService>();
-    builder.Services.AddScoped<CosmosDbInitializationService>();
-}
+// Add mock cosmos service for development (functions handle real DB access)
+builder.Services.AddScoped<MathStorm.Shared.Services.ICosmosDbService, MathStorm.Shared.Services.MockCosmosDbService>();
 
 var app = builder.Build();
-
-// Initialize Cosmos DB (only in production)
-if (!app.Environment.IsDevelopment())
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var cosmosDbInit = scope.ServiceProvider.GetRequiredService<CosmosDbInitializationService>();
-        await cosmosDbInit.InitializeAsync();
-    }
-}
 
 // Configure the HTTP request pipeline.
 // if (!app.Environment.IsDevelopment())

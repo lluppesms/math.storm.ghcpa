@@ -1,6 +1,7 @@
 @rendermode InteractiveServer
-@inject MathStorm.Shared.Services.ICosmosDbService CosmosDbService
+@inject MathStorm.Web.Services.IMathStormFunctionService FunctionService
 @using MathStorm.Web.Components.Game
+@using MathStorm.Shared.DTOs
 
 <div class="row">
     <div class="col">
@@ -117,56 +118,63 @@
             showUsernamePrompt = false;
             StateHasChanged();
 
-            // Get or create user
-            var user = await CosmosDbService.GetUserByUsernameAsync(username);
-            if (user == null)
+            // Create request DTO
+            var request = new GameResultsRequestDto
             {
-                user = await CosmosDbService.CreateUserAsync(username);
-            }
-
-            // Update user stats
-            user.GamesPlayed++;
-            if (user.BestScore == 0 || GameSession.TotalScore < user.BestScore)
-            {
-                user.BestScore = GameSession.TotalScore;
-            }
-            user.TotalScore += GameSession.TotalScore;
-            await CosmosDbService.UpdateUserAsync(user);
-
-            // Create game record
-            var game = new Game
-            {
-                UserId = user.Id,
-                Username = user.Username,
+                GameId = Guid.NewGuid().ToString(),
+                Username = username,
                 Difficulty = GameSession.Difficulty.ToString(),
-                TotalScore = GameSession.TotalScore,
-                CompletedAt = DateTime.UtcNow,
-                Questions = GameSession.Questions.Select(q => new GameQuestion
+                Questions = GameSession.Questions.Select(q => new QuestionResultDto
                 {
                     Id = q.Id,
                     Number1 = q.Number1,
                     Number2 = q.Number2,
                     Operation = q.Operation.ToString(),
                     CorrectAnswer = q.CorrectAnswer,
-                    UserAnswer = q.UserAnswer,
+                    UserAnswer = q.UserAnswer ?? 0,
                     TimeInSeconds = q.TimeInSeconds,
                     PercentageDifference = q.PercentageDifference,
                     Score = q.Score
                 }).ToList()
             };
-            await CosmosDbService.CreateGameAsync(game);
 
-            // Try to add to leaderboard
-            var leaderboardEntry = await CosmosDbService.AddToLeaderboardAsync(
-                user.Id, user.Username, game.Id, GameSession.Difficulty.ToString(), GameSession.TotalScore);
+            // Submit game results to Function API
+            var response = await FunctionService.SubmitGameResultsAsync(request);
+            
+            if (response != null)
+            {
+                currentUserId = request.Username; // Use username as ID for display
+                userMadeLeaderboard = response.AddedToLeaderboard;
 
-            currentUserId = user.Id;
-            userMadeLeaderboard = leaderboardEntry != null;
-
-            // Get updated leaderboard
-            leaderboardEntries = await CosmosDbService.GetLeaderboardAsync(GameSession.Difficulty.ToString());
-            showLeaderboard = true;
-            StateHasChanged();
+                // Get updated leaderboard
+                var leaderboardResponse = await FunctionService.GetLeaderboardAsync(GameSession.Difficulty.ToString());
+                if (leaderboardResponse?.Entries != null)
+                {
+                    leaderboardEntries = leaderboardResponse.Entries.Select(e => new LeaderboardEntry
+                    {
+                        Id = e.Id,
+                        UserId = e.UserId,
+                        Username = e.Username,
+                        GameId = e.GameId,
+                        Difficulty = e.Difficulty,
+                        Score = e.Score,
+                        AchievedAt = e.AchievedAt,
+                        Rank = e.Rank
+                    }).ToList();
+                }
+                else
+                {
+                    leaderboardEntries = new List<LeaderboardEntry>();
+                }
+                
+                showLeaderboard = true;
+                StateHasChanged();
+            }
+            else
+            {
+                // Handle error - show leaderboard without user's score
+                await HandleSkipSave();
+            }
         }
         catch (Exception)
         {
@@ -183,7 +191,25 @@
         try
         {
             var difficultyKey = GameSession.Difficulty.ToString();
-            leaderboardEntries = await CosmosDbService.GetLeaderboardAsync(difficultyKey);
+            var leaderboardResponse = await FunctionService.GetLeaderboardAsync(difficultyKey);
+            if (leaderboardResponse?.Entries != null)
+            {
+                leaderboardEntries = leaderboardResponse.Entries.Select(e => new LeaderboardEntry
+                {
+                    Id = e.Id,
+                    UserId = e.UserId,
+                    Username = e.Username,
+                    GameId = e.GameId,
+                    Difficulty = e.Difficulty,
+                    Score = e.Score,
+                    AchievedAt = e.AchievedAt,
+                    Rank = e.Rank
+                }).ToList();
+            }
+            else
+            {
+                leaderboardEntries = new List<LeaderboardEntry>();
+            }
             showLeaderboard = true;
         }
         catch

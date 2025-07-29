@@ -1,8 +1,10 @@
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MathStorm.Shared.Models;
 using MathStorm.Shared.Services;
 
-namespace MathStorm.Web.Services;
+namespace MathStorm.Functions.Services;
 
 public class CosmosDbService : ICosmosDbService
 {
@@ -13,12 +15,16 @@ public class CosmosDbService : ICosmosDbService
 
     public CosmosDbService(CosmosClient cosmosClient, IConfiguration configuration, ILogger<CosmosDbService> logger)
     {
-        var databaseName = configuration["CosmosDb:DatabaseName"];
+        var databaseName = configuration["CosmosDb:DatabaseName"] ?? Environment.GetEnvironmentVariable("CosmosDb__DatabaseName");
         var database = cosmosClient.GetDatabase(databaseName);
         
-        _usersContainer = database.GetContainer(configuration["CosmosDb:ContainerNames:Users"]);
-        _gamesContainer = database.GetContainer(configuration["CosmosDb:ContainerNames:Games"]);
-        _leaderboardContainer = database.GetContainer(configuration["CosmosDb:ContainerNames:Leaderboard"]);
+        var usersContainer = configuration["CosmosDb:ContainerNames:Users"] ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Users");
+        var gamesContainer = configuration["CosmosDb:ContainerNames:Games"] ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Games");
+        var leaderboardContainer = configuration["CosmosDb:ContainerNames:Leaderboard"] ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Leaderboard");
+        
+        _usersContainer = database.GetContainer(usersContainer);
+        _gamesContainer = database.GetContainer(gamesContainer);
+        _leaderboardContainer = database.GetContainer(leaderboardContainer);
         _logger = logger;
     }
 

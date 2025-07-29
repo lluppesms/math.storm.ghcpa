@@ -1,9 +1,10 @@
 @page "/"
 @rendermode InteractiveServer
 @inject MathStorm.Shared.Services.IGameService GameService
-@inject MathStorm.Shared.Services.ICosmosDbService CosmosDbService
+@inject MathStorm.Web.Services.IMathStormFunctionService FunctionService
 @using MathStorm.Web.Components.Game
 @using MathStorm.Web.Services
+@using MathStorm.Shared.DTOs
 @implements IDisposable
 
 <PageTitle>Math Storm</PageTitle>
@@ -163,7 +164,25 @@
         
         try
         {
-            globalLeaderboardEntries = await CosmosDbService.GetGlobalLeaderboardAsync(10);
+            var response = await FunctionService.GetLeaderboardAsync(null, 10);
+            if (response?.Entries != null)
+            {
+                globalLeaderboardEntries = response.Entries.Select(e => new LeaderboardEntry
+                {
+                    Id = e.Id,
+                    UserId = e.UserId,
+                    Username = e.Username,
+                    GameId = e.GameId,
+                    Difficulty = e.Difficulty,
+                    Score = e.Score,
+                    AchievedAt = e.AchievedAt,
+                    Rank = e.Rank
+                }).ToList();
+            }
+            else
+            {
+                globalLeaderboardEntries = new List<LeaderboardEntry>();
+            }
         }
         catch
         {
