@@ -115,6 +115,16 @@ module adminUserRoleAssignments './modules/iam/role-assignments.bicep' = if (add
   }
 }
 
+module functionAppRoleAssignments './modules/iam/role-assignments.bicep' = if (addRoleAssignments) {
+  name: 'function-roles${deploymentSuffix}'
+  params: {
+    identityPrincipalId: functionAppModule.outputs.functionAppPrincipalId
+    principalType: 'ServicePrincipal'
+    cosmosName: cosmosModule.outputs.name
+    keyVaultName: keyVaultModule.outputs.name
+  }
+}
+
 // --------------------------------------------------------------------------------
 module keyVaultModule './modules/security/keyvault.bicep' = {
   name: 'keyvault${deploymentSuffix}'
