@@ -1,6 +1,8 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 using System.Net;
 using System.Text.Json;
 using MathStorm.Shared.Services;
@@ -21,6 +23,11 @@ public class GameResultsFunctions
     }
 
     [Function("SubmitGameResults")]
+    [OpenApiOperation(operationId: "SubmitGameResults", tags: new[] { "Game" }, Summary = "Submit game results", Description = "Processes completed game results, saves scores, and updates the leaderboard.")]
+    [OpenApiRequestBody(contentType: "application/json", bodyType: typeof(GameResultsRequestDto), Required = true, Description = "Game results including player answers and scores")]
+    [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(GameResultsResponseDto), Summary = "Results submitted successfully", Description = "Returns the processed game results including total score and leaderboard information.")]
+    [OpenApiResponseWithBody(statusCode: HttpStatusCode.BadRequest, contentType: "text/plain", bodyType: typeof(string), Summary = "Bad request", Description = "Invalid request body or missing required fields.")]
+    [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while processing the game results.")]
     public async Task<HttpResponseData> SubmitGameResults([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "game/results")] HttpRequestData req)
     {
         _logger.LogInformation("SubmitGameResults function triggered.");

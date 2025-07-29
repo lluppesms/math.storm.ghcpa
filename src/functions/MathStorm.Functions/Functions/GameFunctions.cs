@@ -1,6 +1,8 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 using System.Net;
 using System.Text.Json;
 using MathStorm.Shared.Services;
@@ -21,6 +23,10 @@ public class GameFunctions
     }
 
     [Function("GetGame")]
+    [OpenApiOperation(operationId: "GetGame", tags: new[] { "Game" }, Summary = "Generate a new math game", Description = "Creates a new game session with questions based on the specified difficulty level.")]
+    [OpenApiParameter(name: "difficulty", In = ParameterLocation.Query, Required = false, Type = typeof(string), Summary = "Difficulty level", Description = "The difficulty level for the game (Beginner, Novice, Intermediate, Expert). Defaults to Expert if not specified.")]
+    [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(GameResponseDto), Summary = "Game created successfully", Description = "Returns a new game session with questions for the specified difficulty level.")]
+    [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while creating the game.")]
     public async Task<HttpResponseData> GetGame([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "game")] HttpRequestData req)
     {
         _logger.LogInformation("GetGame function triggered.");
