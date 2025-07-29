@@ -15,8 +15,8 @@ builder.Services.AddHttpClient<IMathStormFunctionService, MathStormFunctionServi
     client.BaseAddress = new Uri("http://localhost:7071");
 });
 
-// Add game service (use shared implementation)
-builder.Services.AddScoped<MathStorm.Shared.Services.IGameService, MathStorm.Shared.Services.GameService>();
+// Add function-based game service (calls Azure Functions for all game operations)
+builder.Services.AddScoped<MathStorm.Shared.Services.IGameService, MathStorm.Web.Services.FunctionBasedGameService>();
 
 // Add function service
 builder.Services.AddScoped<IMathStormFunctionService, MathStormFunctionService>();
