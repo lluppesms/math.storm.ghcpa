@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Web", "MathStorm.Web\MathStorm.Web.csproj", "{C52BC286-99A5-4D70-AA05-2A9571F9B970}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Web.Tests", "MathStorm.Web.Tests\MathStorm.Web.Tests.csproj", "{C873D8FA-7771-46C0-800B-EA43C2934FC5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C52BC286-99A5-4D70-AA05-2A9571F9B970}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C52BC286-99A5-4D70-AA05-2A9571F9B970}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C52BC286-99A5-4D70-AA05-2A9571F9B970}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C52BC286-99A5-4D70-AA05-2A9571F9B970}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C873D8FA-7771-46C0-800B-EA43C2934FC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C873D8FA-7771-46C0-800B-EA43C2934FC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C873D8FA-7771-46C0-800B-EA43C2934FC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C873D8FA-7771-46C0-800B-EA43C2934FC5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
