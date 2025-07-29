@@ -1,0 +1,89 @@
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Logging;
+using System.Net;
+using System.Text.Json;
+using MathStorm.Shared.Services;
+using MathStorm.Shared.Models;
+using MathStorm.Shared.DTOs;
+
+namespace MathStorm.Functions.Functions;
+
+public class GameFunctions
+{
+    private readonly ILogger _logger;
+    private readonly IGameService _gameService;
+
+    public GameFunctions(ILoggerFactory loggerFactory, IGameService gameService)
+    {
+        _logger = loggerFactory.CreateLogger<GameFunctions>();
+        _gameService = gameService;
+    }
+
+    [Function("GetGame")]
+    public async Task<HttpResponseData> GetGame([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "game")] HttpRequestData req)
+    {
+        _logger.LogInformation("GetGame function triggered.");
+
+        try
+        {
+            // Parse query parameters
+            var query = req.Url.Query;
+            var difficultyParam = "Expert";
+            
+            if (!string.IsNullOrEmpty(query))
+            {
+                var queryDict = query.TrimStart('?')
+                    .Split('&')
+                    .Select(q => q.Split('='))
+                    .Where(kvp => kvp.Length == 2)
+                    .ToDictionary(kvp => kvp[0], kvp => Uri.UnescapeDataString(kvp[1]));
+                
+                queryDict.TryGetValue("difficulty", out difficultyParam);
+                difficultyParam ??= "Expert";
+            }
+
+            if (!Enum.TryParse<Difficulty>(difficultyParam, ignoreCase: true, out var difficulty))
+            {
+                difficulty = Difficulty.Expert;
+            }
+
+            // Create new game session
+            var gameSession = _gameService.CreateNewGame(difficulty);
+
+            // Convert to DTO
+            var response = new GameResponseDto
+            {
+                GameId = Guid.NewGuid().ToString(), // Generate unique game ID for this session
+                Difficulty = difficulty.ToString(),
+                Questions = gameSession.Questions.Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    Number1 = q.Number1,
+                    Number2 = q.Number2,
+                    Operation = q.Operation.ToString(),
+                    CorrectAnswer = q.CorrectAnswer,
+                    QuestionText = q.QuestionText
+                }).ToList()
+            };
+
+            var httpResponse = req.CreateResponse(HttpStatusCode.OK);
+            httpResponse.Headers.Add("Content-Type", "application/json");
+            
+            var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+            
+            await httpResponse.WriteStringAsync(jsonResponse);
+            return httpResponse;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in GetGame function");
+            var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse.WriteStringAsync($"Error: {ex.Message}");
+            return errorResponse;
+        }
+    }
+}
