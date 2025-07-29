@@ -20,21 +20,21 @@ variables:
     value: 'Standard_LRS'
 
   - name: appFolderName
-    value: 'src\Math.Storm'
+    value: 'src\web\MathStorm\'
   - name: appSolutionName
-    value: 'math.storm.ghcpa'
+    value: 'MathStorm.Web'
 
   - name: appProjectFolderName
-    value: 'Math.Storm.Web'
+    value: 'MathStorm.Web'
   - name: appProjectName
-    value: 'Math.Storm.Web'
+    value: 'MathStorm.Web'
   - name: appProjectExtension
     value: 'csproj'
 
   - name: testFolderName 
-    value: 'Math.Storm.Tests'
+    value: 'MathStorm.Web.Tests'
   - name: testProjectName
-    value: 'Math.Storm.Tests'
+    value: 'MathStorm.Web.Tests'
 
   - name: buildPlatform
     value: 'Any CPU'

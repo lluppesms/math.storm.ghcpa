@@ -43,10 +43,10 @@ gh secret set LOGIN_DOMAIN -b "<yourdomain>.onmicrosoft.com"
 gh secret set LOGIN_INSTANCEENDPOINT -b "https://login.microsoftonline.com/"
 gh secret set LOGIN_TENANTID -b "<yourTenantId>"
 
-gh variable set APP_PROJECT_FOLDER_NAME -b "src\MathStorm\MathStorm.Web"
+gh variable set APP_PROJECT_FOLDER_NAME -b "src\web\MathStorm\MathStorm.Web"
 gh variable set APP_PROJECT_NAME -b "MathStorm.Web"
-gh variable set APP_TEST_FOLDER_NAME -b "src\MathStorm\MathStorm.Tests"
-gh variable set APP_TEST_PROJECT_NAME -b "MathStorm.Tests"
+gh variable set APP_TEST_FOLDER_NAME -b "src\web\MathStorm.Web.Tests\MathStorm.Web.Tests"
+gh variable set APP_TEST_PROJECT_NAME -b "MathStorm.Web.Tests"
 ```
 
 ---
