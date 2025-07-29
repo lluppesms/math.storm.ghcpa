@@ -1,4 +1,4 @@
-using MathStorm.Web.Models;
+using MathStorm.Shared.Models;
 
 namespace MathStorm.Tests;
 

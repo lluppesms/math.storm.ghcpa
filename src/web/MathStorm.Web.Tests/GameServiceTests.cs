@@ -1,5 +1,5 @@
-using MathStorm.Web.Models;
-using MathStorm.Web.Services;
+using MathStorm.Shared.Models;
+using MathStorm.Shared.Services;
 
 namespace MathStorm.Tests;
 

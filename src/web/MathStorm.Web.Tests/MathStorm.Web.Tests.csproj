@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MathStorm.Web\MathStorm.Web.csproj" />
+    <ProjectReference Include="..\..\shared\MathStorm.Shared\MathStorm.Shared.csproj" />
   </ItemGroup>
 
 </Project>

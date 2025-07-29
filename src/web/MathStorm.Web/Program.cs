@@ -1,5 +1,6 @@
 using MathStorm.Web.Components;
 using MathStorm.Web.Services;
+using MathStorm.Shared.Services;
 using Microsoft.Azure.Cosmos;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,14 +9,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Add game service
-builder.Services.AddScoped<IGameService, GameService>();
+// Add HTTP client for function service
+builder.Services.AddHttpClient<IMathStormFunctionService, MathStormFunctionService>(client =>
+{
+    // For development, point to local function app
+    client.BaseAddress = new Uri("http://localhost:7071");
+});
+
+// Add game service (use shared implementation)
+builder.Services.AddScoped<MathStorm.Shared.Services.IGameService, MathStorm.Shared.Services.GameService>();
+
+// Add function service
+builder.Services.AddScoped<IMathStormFunctionService, MathStormFunctionService>();
 
 // Add Cosmos DB services
 if (builder.Environment.IsDevelopment())
 {
     // Use mock service in development
-    builder.Services.AddScoped<ICosmosDbService, MockCosmosDbService>();
+    builder.Services.AddScoped<MathStorm.Shared.Services.ICosmosDbService, MathStorm.Shared.Services.MockCosmosDbService>();
 }
 else
 {
@@ -26,7 +37,7 @@ else
         return new CosmosClient(connectionString);
     });
 
-    builder.Services.AddScoped<ICosmosDbService, CosmosDbService>();
+    builder.Services.AddScoped<MathStorm.Shared.Services.ICosmosDbService, CosmosDbService>();
     builder.Services.AddScoped<CosmosDbInitializationService>();
 }
 

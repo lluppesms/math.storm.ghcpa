@@ -1,5 +1,5 @@
 @rendermode InteractiveServer
-@inject ICosmosDbService CosmosDbService
+@inject MathStorm.Shared.Services.ICosmosDbService CosmosDbService
 @using MathStorm.Web.Components.Game
 
 <div class="row">
@@ -125,20 +125,20 @@
             }
 
             // Update user stats
-            user.TotalGamesPlayed++;
-            var difficultyKey = GameSession.Difficulty.ToString();
-            if (!user.BestScores.ContainsKey(difficultyKey) || GameSession.TotalScore < user.BestScores[difficultyKey])
+            user.GamesPlayed++;
+            if (user.BestScore == 0 || GameSession.TotalScore < user.BestScore)
             {
-                user.BestScores[difficultyKey] = GameSession.TotalScore;
+                user.BestScore = GameSession.TotalScore;
             }
+            user.TotalScore += GameSession.TotalScore;
             await CosmosDbService.UpdateUserAsync(user);
 
             // Create game record
-            var game = new Models.Game
+            var game = new Game
             {
                 UserId = user.Id,
                 Username = user.Username,
-                Difficulty = difficultyKey,
+                Difficulty = GameSession.Difficulty.ToString(),
                 TotalScore = GameSession.TotalScore,
                 CompletedAt = DateTime.UtcNow,
                 Questions = GameSession.Questions.Select(q => new GameQuestion
@@ -158,13 +158,13 @@
 
             // Try to add to leaderboard
             var leaderboardEntry = await CosmosDbService.AddToLeaderboardAsync(
-                user.Id, user.Username, game.Id, difficultyKey, GameSession.TotalScore);
+                user.Id, user.Username, game.Id, GameSession.Difficulty.ToString(), GameSession.TotalScore);
 
             currentUserId = user.Id;
             userMadeLeaderboard = leaderboardEntry != null;
 
             // Get updated leaderboard
-            leaderboardEntries = await CosmosDbService.GetLeaderboardAsync(difficultyKey);
+            leaderboardEntries = await CosmosDbService.GetLeaderboardAsync(GameSession.Difficulty.ToString());
             showLeaderboard = true;
             StateHasChanged();
         }

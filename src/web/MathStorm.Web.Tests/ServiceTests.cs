@@ -1,6 +1,5 @@
-using MathStorm.Web.Models;
-using MathStorm.Web.Services;
-using Microsoft.Extensions.Logging;
+using MathStorm.Shared.Models;
+using MathStorm.Shared.Services;
 
 namespace MathStorm.Tests;
 
@@ -8,13 +7,11 @@ namespace MathStorm.Tests;
 public class MockCosmosDbServiceTests
 {
     private ICosmosDbService _cosmosDbService = default!;
-    private ILogger<MockCosmosDbService> _logger = default!;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        _logger = Microsoft.Extensions.Logging.Abstractions.NullLogger<MockCosmosDbService>.Instance;
-        _cosmosDbService = new MockCosmosDbService(_logger);
+        _cosmosDbService = new MockCosmosDbService();
     }
 
     [TestMethod]
@@ -79,24 +76,31 @@ public class MockCosmosDbServiceTests
     [TestMethod]
     public async Task GetLeaderboardAsync_ShouldReturnLeaderboard()
     {
+        // Arrange - Add test data first
+        var user = await _cosmosDbService.CreateUserAsync("TestUser");
+        await _cosmosDbService.AddToLeaderboardAsync(user.Id, user.Username, "game1", "Expert", 100.0);
+        
         // Act
         var leaderboard = await _cosmosDbService.GetLeaderboardAsync("Expert", 10);
 
         // Assert
         Assert.IsNotNull(leaderboard);
-        // MockCosmosDbService seeds with sample data, so should have entries
         Assert.IsTrue(leaderboard.Count > 0);
     }
 
     [TestMethod]
     public async Task GetGlobalLeaderboardAsync_ShouldReturnAllLevelsLeaderboard()
     {
+        // Arrange - Add test data first
+        var user = await _cosmosDbService.CreateUserAsync("TestUser");
+        await _cosmosDbService.AddToLeaderboardAsync(user.Id, user.Username, "game1", "Expert", 100.0);
+        await _cosmosDbService.AddToLeaderboardAsync(user.Id, user.Username, "game2", "Beginner", 50.0);
+        
         // Act
         var globalLeaderboard = await _cosmosDbService.GetGlobalLeaderboardAsync(10);
 
         // Assert
         Assert.IsNotNull(globalLeaderboard);
-        // MockCosmosDbService seeds with sample data across all difficulties, so should have entries
         Assert.IsTrue(globalLeaderboard.Count > 0);
         
         // Should contain entries from multiple difficulty levels

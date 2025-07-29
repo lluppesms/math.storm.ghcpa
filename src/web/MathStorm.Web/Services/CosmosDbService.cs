@@ -1,5 +1,6 @@
 using Microsoft.Azure.Cosmos;
-using MathStorm.Web.Models;
+using MathStorm.Shared.Models;
+using MathStorm.Shared.Services;
 
 namespace MathStorm.Web.Services;
 
