@@ -1,15 +1,9 @@
-using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using MathStorm.Shared.Models;
-using MathStorm.Shared.Services;
-
 namespace MathStorm.Functions.Services;
 
 public class CosmosDbService : ICosmosDbService
 {
     private readonly Container _usersContainer;
-    private readonly Container _gamesContainer; 
+    private readonly Container _gamesContainer;
     private readonly Container _leaderboardContainer;
     private readonly ILogger<CosmosDbService> _logger;
 
@@ -17,11 +11,11 @@ public class CosmosDbService : ICosmosDbService
     {
         var databaseName = configuration["CosmosDb:DatabaseName"] ?? Environment.GetEnvironmentVariable("CosmosDb__DatabaseName");
         var database = cosmosClient.GetDatabase(databaseName);
-        
+
         var usersContainer = configuration["CosmosDb:ContainerNames:Users"] ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Users");
         var gamesContainer = configuration["CosmosDb:ContainerNames:Games"] ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Games");
         var leaderboardContainer = configuration["CosmosDb:ContainerNames:Leaderboard"] ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Leaderboard");
-        
+
         _usersContainer = database.GetContainer(usersContainer);
         _gamesContainer = database.GetContainer(gamesContainer);
         _leaderboardContainer = database.GetContainer(leaderboardContainer);
@@ -34,10 +28,10 @@ public class CosmosDbService : ICosmosDbService
         {
             var query = new QueryDefinition("SELECT * FROM c WHERE c.username = @username")
                 .WithParameter("@username", username);
-                
+
             var iterator = _usersContainer.GetItemQueryIterator<GameUser>(query);
             var response = await iterator.ReadNextAsync();
-            
+
             return response.FirstOrDefault();
         }
         catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -60,7 +54,7 @@ public class CosmosDbService : ICosmosDbService
                 Username = username,
                 CreatedAt = DateTime.UtcNow
             };
-            
+
             var response = await _usersContainer.CreateItemAsync(user);
             return response.Resource;
         }
@@ -124,22 +118,22 @@ public class CosmosDbService : ICosmosDbService
             var query = new QueryDefinition("SELECT * FROM c WHERE c.difficulty = @difficulty ORDER BY c.score ASC OFFSET 0 LIMIT @topCount")
                 .WithParameter("@difficulty", difficulty)
                 .WithParameter("@topCount", topCount);
-                
+
             var iterator = _leaderboardContainer.GetItemQueryIterator<LeaderboardEntry>(query);
             var results = new List<LeaderboardEntry>();
-            
+
             while (iterator.HasMoreResults)
             {
                 var response = await iterator.ReadNextAsync();
                 results.AddRange(response);
             }
-            
+
             // Update ranks
             for (int i = 0; i < results.Count; i++)
             {
                 results[i].Rank = i + 1;
             }
-            
+
             return results;
         }
         catch (Exception ex)
@@ -155,22 +149,22 @@ public class CosmosDbService : ICosmosDbService
         {
             var query = new QueryDefinition("SELECT * FROM c ORDER BY c.score ASC OFFSET 0 LIMIT @topCount")
                 .WithParameter("@topCount", topCount);
-                
+
             var iterator = _leaderboardContainer.GetItemQueryIterator<LeaderboardEntry>(query);
             var results = new List<LeaderboardEntry>();
-            
+
             while (iterator.HasMoreResults)
             {
                 var response = await iterator.ReadNextAsync();
                 results.AddRange(response);
             }
-            
+
             // Update ranks
             for (int i = 0; i < results.Count; i++)
             {
                 results[i].Rank = i + 1;
             }
-            
+
             return results;
         }
         catch (Exception ex)
@@ -186,7 +180,7 @@ public class CosmosDbService : ICosmosDbService
         {
             // Check if this score qualifies for top 10
             var currentLeaderboard = await GetLeaderboardAsync(difficulty, 10);
-            
+
             // If leaderboard has less than 10 entries or this score is better than the worst score
             if (currentLeaderboard.Count < 10 || score < currentLeaderboard.Last().Score)
             {
@@ -199,9 +193,9 @@ public class CosmosDbService : ICosmosDbService
                     Score = score,
                     AchievedAt = DateTime.UtcNow
                 };
-                
+
                 var response = await _leaderboardContainer.CreateItemAsync(entry);
-                
+
                 // If we now have more than 10 entries, remove the worst one
                 if (currentLeaderboard.Count >= 10)
                 {
@@ -212,11 +206,11 @@ public class CosmosDbService : ICosmosDbService
                         await _leaderboardContainer.DeleteItemAsync<LeaderboardEntry>(worstEntry.Id, new PartitionKey(worstEntry.Id));
                     }
                 }
-                
+
                 await UpdateLeaderboardRankingsAsync(difficulty);
                 return response.Resource;
             }
-            
+
             return null;
         }
         catch (Exception ex)
@@ -231,7 +225,7 @@ public class CosmosDbService : ICosmosDbService
         try
         {
             var leaderboard = await GetLeaderboardAsync(difficulty, 10);
-            
+
             for (int i = 0; i < leaderboard.Count; i++)
             {
                 if (leaderboard[i].Rank != i + 1)

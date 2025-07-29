@@ -30,7 +30,7 @@ public class GameFunctions
             // Parse query parameters
             var query = req.Url.Query;
             var difficultyParam = "Expert";
-            
+
             if (!string.IsNullOrEmpty(query))
             {
                 var queryDict = query.TrimStart('?')
@@ -38,7 +38,7 @@ public class GameFunctions
                     .Select(q => q.Split('='))
                     .Where(kvp => kvp.Length == 2)
                     .ToDictionary(kvp => kvp[0], kvp => Uri.UnescapeDataString(kvp[1]));
-                
+
                 queryDict.TryGetValue("difficulty", out difficultyParam);
                 difficultyParam ??= "Expert";
             }
@@ -69,12 +69,12 @@ public class GameFunctions
 
             var httpResponse = req.CreateResponse(HttpStatusCode.OK);
             httpResponse.Headers.Add("Content-Type", "application/json");
-            
+
             var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
-            
+
             await httpResponse.WriteStringAsync(jsonResponse);
             return httpResponse;
         }
