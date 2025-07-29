@@ -6,23 +6,12 @@
 version: 2
 updates:
   - package-ecosystem: "nuget"
-    directory: "/src/Math.Storm"
+    directory: "/src"
     schedule:
       interval: "weekly"
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-
-      # - dependency-name: "Microsoft.EntityFrameworkCore.InMemory"
-      #   versions: [ ">=9.0.0" ]
-      # - dependency-name: "Microsoft.EntityFrameworkCore.Tools"
-      #   versions: [ ">=9.0.0" ]
-      # - dependency-name: "Microsoft.EntityFrameworkCore.Tools"
-      #   versions: [ ">=9.0.0" ]
-      # - dependency-name: "Swashbuckle.AspNetCore"
-      #   versions: [ ">=9.0.0" ]
-      # - dependency-name: "Swashbuckle.AspNetCore.Filters"
-      #   versions: [ ">=9.0.0" ]
 
   - package-ecosystem: "github-actions"
     directory: "/.github"
