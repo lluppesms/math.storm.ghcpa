@@ -15,8 +15,10 @@ on:
         description: Run GitHub Advanced Security Scan
         default: true
         type: boolean
-  push:
-    branches: [ "main" ]
+
+  # Note: this scan gets done whenever there is a PR, so you don't really need it on a push
+  # push:
+  #   branches: [ "main" ]
   # pull_request:
   #   branches: [ "main" ]
 
