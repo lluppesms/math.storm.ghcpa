@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
-using MathStorm.Shared.Services;
-using MathStorm.Shared.Models;
+using MathStorm.Core.Services;
+using MathStorm.Common.Models;
+using MathStorm.Common.Services;
 
 namespace MathStorm.Functions.Tests;
 

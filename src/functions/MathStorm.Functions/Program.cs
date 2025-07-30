@@ -2,7 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Cosmos;
-using MathStorm.Shared.Services;
+using MathStorm.Core.Services;
+using MathStorm.Common.Services;
+using MathStorm.Core.Services;
 using MathStorm.Functions.Services;
 
 var host = new HostBuilder()
@@ -36,7 +38,7 @@ var host = new HostBuilder()
             services.AddSingleton<MockCosmosDbService>();
         }
 
-        services.AddScoped<ICosmosDbService, MathStorm.Functions.Services.CosmosDbService>();
+        services.AddScoped<ICosmosDbService, CosmosDbService>();
     })
     .Build();
 

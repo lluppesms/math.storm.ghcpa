@@ -1,4 +1,4 @@
-namespace MathStorm.Shared.Models;
+namespace MathStorm.Common.Models;
 
 public class GameSession
 {

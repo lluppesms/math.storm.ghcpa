@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace MathStorm.Shared.Models;
+namespace MathStorm.Common.Models;
 
 public class LeaderboardEntry
 {

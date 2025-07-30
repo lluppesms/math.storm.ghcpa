@@ -18,7 +18,8 @@
 
   <ItemGroup>
     <ProjectReference Include="../MathStorm.Functions/MathStorm.Functions.csproj" />
-    <ProjectReference Include="../../shared/MathStorm.Shared/MathStorm.Shared.csproj" />
+    <ProjectReference Include="../../common/MathStorm.Common/MathStorm.Common.csproj" />
+    <ProjectReference Include="../../core/MathStorm.Core/MathStorm.Core.csproj" />
   </ItemGroup>
 
 </Project>

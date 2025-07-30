@@ -1,6 +1,6 @@
-using MathStorm.Shared.Models;
-using MathStorm.Shared.DTOs;
-using MathStorm.Shared.Services;
+using MathStorm.Common.Models;
+using MathStorm.Common.DTOs;
+using MathStorm.Common.Services;
 
 namespace MathStorm.Web.Services;
 
@@ -29,9 +29,7 @@ public class FunctionBasedGameService : IGameService
         var gameResponse = await _functionService.GetGameAsync(difficulty);
         if (gameResponse == null)
         {
-            // Fallback to local generation if function is unavailable
-            var localGameService = new GameService();
-            return localGameService.CreateNewGame(difficulty);
+            throw new InvalidOperationException("Unable to create game: Function service unavailable");
         }
 
         var gameSession = new GameSession 

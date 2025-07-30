@@ -6,6 +6,6 @@ global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
 global using Microsoft.Extensions.Logging;
-global using MathStorm.Shared.Models;
-global using MathStorm.Shared.Services;
+global using MathStorm.Common.Models;
+global using MathStorm.Core.Services;
 global using System.Net;

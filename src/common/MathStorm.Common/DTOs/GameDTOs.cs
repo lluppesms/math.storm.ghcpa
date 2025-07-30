@@ -1,4 +1,4 @@
-namespace MathStorm.Shared.DTOs;
+namespace MathStorm.Common.DTOs;
 
 public class GameRequestDto
 {

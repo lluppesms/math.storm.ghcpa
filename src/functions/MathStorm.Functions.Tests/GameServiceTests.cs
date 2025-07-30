@@ -1,5 +1,6 @@
-using MathStorm.Shared.Models;
-using MathStorm.Shared.Services;
+using MathStorm.Common.Models;
+using MathStorm.Common.Services;
+using MathStorm.Core.Services;
 
 namespace MathStorm.Tests;
 

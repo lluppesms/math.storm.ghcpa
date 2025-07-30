@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
-using MathStorm.Shared.DTOs;
-using MathStorm.Shared.Models;
+using MathStorm.Common.DTOs;
+using MathStorm.Common.Models;
 
 namespace MathStorm.Web.Services;
 

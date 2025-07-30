@@ -1,6 +1,6 @@
-using MathStorm.Shared.Models;
+using MathStorm.Common.Models;
 
-namespace MathStorm.Shared.Services;
+namespace MathStorm.Common.Services;
 
 public interface IGameService
 {

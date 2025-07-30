@@ -5,9 +5,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System.Net;
 using System.Text.Json;
-using MathStorm.Shared.Services;
-using MathStorm.Shared.Models;
-using MathStorm.Shared.DTOs;
+using MathStorm.Core.Services;
+using MathStorm.Common.Models;
+using MathStorm.Common.DTOs;
 
 namespace MathStorm.Functions.Functions;
 

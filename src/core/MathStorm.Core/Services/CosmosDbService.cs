@@ -1,4 +1,9 @@
-namespace MathStorm.Functions.Services;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using MathStorm.Common.Models;
+
+namespace MathStorm.Core.Services;
 
 public class CosmosDbService : ICosmosDbService
 {
