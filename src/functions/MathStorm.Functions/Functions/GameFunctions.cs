@@ -22,40 +22,17 @@ public class GameFunctions
 
         try
         {
-            // Parse query parameters more safely
-            var query = req.Url.Query;
+            // Parse query parameters more safely using built-in query parsing
             var difficultyParam = "Expert";
+            
+            _logger.LogInformation($"GetGame called with query: {req.Url.Query}");
 
-            if (!string.IsNullOrEmpty(query))
+            // Use Microsoft.AspNetCore.WebUtilities.QueryHelpers for safer parsing
+            var queryCollection = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(req.Url.Query);
+            
+            if (queryCollection.ContainsKey("difficulty"))
             {
-                try
-                {
-                    var queryDict = query.TrimStart('?')
-                        .Split('&')
-                        .Select(q => q.Split('=', 2))
-                        .Where(kvp => kvp.Length == 2)
-                        .ToDictionary(kvp => kvp[0], kvp =>
-                        {
-                            try
-                            {
-                                // Use HttpUtility.UrlDecode which is more robust than Uri.UnescapeDataString
-                                return HttpUtility.UrlDecode(kvp[1]);
-                            }
-                            catch
-                            {
-                                // If URL decoding fails, return the original string
-                                return kvp[1];
-                            }
-                        });
-
-                    queryDict.TryGetValue("difficulty", out difficultyParam);
-                    difficultyParam ??= "Expert";
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Error parsing query parameters: {Query}", query);
-                    // Continue with default values
-                }
+                difficultyParam = queryCollection["difficulty"].FirstOrDefault() ?? "Expert";
             }
 
             if (!Enum.TryParse<Difficulty>(difficultyParam, ignoreCase: true, out var difficulty))
@@ -63,7 +40,7 @@ public class GameFunctions
                 difficulty = Difficulty.Expert;
             }
 
-            _logger.LogInformation($"In GetLeaderboard function using difficulty {difficulty}");
+            _logger.LogInformation($"GetGame using difficulty: {difficulty}");
             // Create new game session
             var gameSession = _gameService.CreateNewGame(difficulty);
 

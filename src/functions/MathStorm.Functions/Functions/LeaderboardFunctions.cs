@@ -23,49 +23,29 @@ public class LeaderboardFunctions
 
         try
         {
-            // Parse query parameters more safely
-            var query = req.Url.Query;
+            // Parse query parameters more safely using built-in query parsing
             string? difficulty = null;
-            var topCountParam = "10";
-            _logger.LogInformation($"In GetLeaderboard function with difficulty={difficulty}");
+            var topCount = 10;
+            
+            _logger.LogInformation($"GetLeaderboard called with query: {req.Url.Query}");
 
-            if (!string.IsNullOrEmpty(query))
+            // Use Microsoft.AspNetCore.WebUtilities.QueryHelpers for safer parsing
+            var queryCollection = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(req.Url.Query);
+            
+            if (queryCollection.ContainsKey("difficulty"))
             {
-                try
+                difficulty = queryCollection["difficulty"].FirstOrDefault();
+            }
+            
+            if (queryCollection.ContainsKey("topCount"))
+            {
+                if (!int.TryParse(queryCollection["topCount"].FirstOrDefault(), out topCount))
                 {
-                    var queryDict = query.TrimStart('?')
-                        .Split('&')
-                        .Select(q => q.Split('=', 2))
-                        .Where(kvp => kvp.Length == 2)
-                        .ToDictionary(kvp => kvp[0], kvp =>
-                        {
-                            try
-                            {
-                                // Use HttpUtility.UrlDecode which is more robust than Uri.UnescapeDataString
-                                return HttpUtility.UrlDecode(kvp[1]);
-                            }
-                            catch
-                            {
-                                // If URL decoding fails, return the original string
-                                return kvp[1];
-                            }
-                        });
-
-                    queryDict.TryGetValue("difficulty", out difficulty);
-                    queryDict.TryGetValue("topCount", out topCountParam);
-                    topCountParam ??= "10";
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Error parsing query parameters: {Query}", query);
-                    // Continue with default values
+                    topCount = 10;
                 }
             }
 
-            if (!int.TryParse(topCountParam, out var topCount))
-            {
-                topCount = 10;
-            }
+            _logger.LogInformation($"Parsed parameters - difficulty: '{difficulty}', topCount: {topCount}");
 
             // Get leaderboard entries
             var entries = string.IsNullOrEmpty(difficulty)
