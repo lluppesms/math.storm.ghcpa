@@ -1,145 +1,87 @@
-param name string = ''
+// --------------------------------------------------------------------------------
+// This BICEP file will create storage account
+// FYI: To purge a storage account with soft delete enabled: > az storage account purge --name storeName
+// --------------------------------------------------------------------------------
+param storageAccountName string = 'mystorageaccountname'
 param location string = resourceGroup().location
-param tags object = {}
+param commonTags object = {}
 
-param existingStorageAccountName string = ''
+// @allowed([ 'Standard_LRS', 'Standard_GRS', 'Standard_RAGRS' ])
+param storageSku string = 'Standard_LRS'
+param storageAccessTier string = 'Hot'
+param containerNames array = ['input','output']
+@allowed(['Enabled','Disabled'])
+param publicNetworkAccess string = 'Enabled'
+@allowed(['Allow','Deny'])
+param allowNetworkAccess string = 'Deny' // except for Azure Services
 
-param publicNetworkAccess bool = false
-param privateEndpointSubnetId string = ''
-param privateEndpointBlobName string = ''
-param privateEndpointQueueName string = ''
-param privateEndpointTableName string = ''
-@description('Provide the IP address to allow access to the Azure Container Registry')
-param myIpAddress string = ''
+// --------------------------------------------------------------------------------
+var templateTag = { TemplateFile: '~storageAccount.bicep' }
+var tags = union(commonTags, templateTag)
 
-param containers string[] = []
-param resourcesWithAccess object[] = []
-param kind string = 'StorageV2'
-param minimumTlsVersion string = 'TLS1_2'
-param sku object = { name: 'Standard_LRS' }
-param allowSharedKeyAccess bool = true
-
-// --------------------------------------------------------------------------------------------------------------
-// Variables
-// --------------------------------------------------------------------------------------------------------------
-var useExistingStorageAccount = !empty(existingStorageAccountName)
-var storageAccountConnectionStringSecretName = 'storage-account-connection-string'
-
-// --------------------------------------------------------------------------------------------------------------
-// If using existing storage account, just add the missing containers
-// --------------------------------------------------------------------------------------------------------------
-resource existingStorageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' existing = if (useExistingStorageAccount) {
-  name: existingStorageAccountName
+// --------------------------------------------------------------------------------
+resource storageAccountResource 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+    name: storageAccountName
+    location: location
+    sku: {
+        name: storageSku
+    }
+    tags: tags
+    kind: 'StorageV2'
+    properties: {
+        publicNetworkAccess: publicNetworkAccess
+        networkAcls: {
+            bypass: 'AzureServices'
+            defaultAction: allowNetworkAccess
+            ipRules: []
+            virtualNetworkRules: []
+            //virtualNetworkRules: ((virtualNetworkType == 'External') ? json('[{"id": "${subscription().id}/resourceGroups/${vnetResource}/providers/Microsoft.Network/virtualNetworks/${vnetResource.name}/subnets/${subnetName}"}]') : json('[]'))
+        }
+        supportsHttpsTrafficOnly: true
+        encryption: {
+            services: {
+                file: {
+                    keyType: 'Account'
+                    enabled: true
+                }
+                blob: {
+                    keyType: 'Account'
+                    enabled: true
+                }
+            }
+            keySource: 'Microsoft.Storage'
+        }
+        accessTier: storageAccessTier
+        allowBlobPublicAccess: false
+        minimumTlsVersion: 'TLS1_2'
+    }
 }
-resource existingStorageAccountBlobServices 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' = if (useExistingStorageAccount && !empty(containers)) {
-  parent: existingStorageAccount
-  name: 'default'
+
+resource blobServiceResource 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
+    parent: storageAccountResource
+    name: 'default'
+    properties: {
+        cors: {
+            corsRules: [
+            ]
+        }
+        deleteRetentionPolicy: {
+            enabled: true
+            days: 7
+        }
+    }
 }
 
-resource storageAccountBlobContainerResource 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = [
-  for container in containers: if (useExistingStorageAccount) {
-    parent: existingStorageAccountBlobServices
-    name: container
+resource containers 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = [for containerName in containerNames: {
+    name: '${containerName}'
+    parent: blobServiceResource
     properties: {
       publicAccess: 'None'
+      metadata: {}
     }
-  }
-]
+  }]
 
-// --------------------------------------------------------------------------------------------------------------
-// If creating the storage account...
-// --------------------------------------------------------------------------------------------------------------
-resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = if (!useExistingStorageAccount) {
-  name: name
-  location: location
-  tags: tags
-  kind: kind
-  sku: sku
-  properties: {
-    minimumTlsVersion: minimumTlsVersion
-    allowBlobPublicAccess: false
-    publicNetworkAccess: publicNetworkAccess ? 'Enabled' : 'Disabled' // this needs to be 'Enabled' for 'Enabled from selected virtual networks and IP addresses'
-    supportsHttpsTrafficOnly: true
-    allowSharedKeyAccess: allowSharedKeyAccess
-    networkAcls: {
-      bypass: 'AzureServices'
-      resourceAccessRules: resourcesWithAccess
-      defaultAction: 'Deny' // publicNetworkAccess ? 'Allow' : 'Deny'
-      ipRules: empty(myIpAddress)
-        ? []
-        : [
-            {
-              value: myIpAddress
-            }
-          ]
-    }
-  }
 
-  resource blobServices 'blobServices' = if (!empty(containers)) {
-    name: 'default'
-    resource container 'containers' = [
-      for container in containers: {
-        name: container
-        properties: {
-          publicAccess: 'None'
-        }
-      }
-    ]
-  }
-}
-
-module privateEndpointBlob '../networking/private-endpoint.bicep' = if (!useExistingStorageAccount && !empty(privateEndpointSubnetId)) {
-  name: '${name}-blob-private-endpoint'
-  params: {
-    location: location
-    privateEndpointName: privateEndpointBlobName
-    groupIds: [
-      'blob'
-    ]
-    targetResourceId: storage.id
-    subnetId: privateEndpointSubnetId
-  }
-}
-
-module privateEndpointTable '../networking/private-endpoint.bicep' = if (!useExistingStorageAccount && !empty(privateEndpointSubnetId)) {
-  name: '${name}-table-private-endpoint'
-  params: {
-    location: location
-    privateEndpointName: privateEndpointTableName
-    groupIds: [
-      'table'
-    ]
-    targetResourceId: storage.id
-    subnetId: privateEndpointSubnetId
-  }
-}
-
-module privateEndpointQueue '../networking/private-endpoint.bicep' = if (!useExistingStorageAccount && !empty(privateEndpointSubnetId)) {
-  name: '${name}-queue-private-endpoint'
-  params: {
-    location: location
-    privateEndpointName: privateEndpointQueueName
-    groupIds: [
-      'queue'
-    ]
-    targetResourceId: storage.id
-    subnetId: privateEndpointSubnetId
-  }
-}
-
-// --------------------------------------------------------------------------------------------------------------
-// Outputs
-// --------------------------------------------------------------------------------------------------------------
-output name string = useExistingStorageAccount ? existingStorageAccount.name : storage.name
-output id string = useExistingStorageAccount ? existingStorageAccount.id : storage.id
-output primaryEndpoints object = useExistingStorageAccount ? existingStorageAccount.properties.primaryEndpoints : storage.properties.primaryEndpoints
-output containerNames array = [
-  for (name, i) in containers: useExistingStorageAccount ? null : {
-    name: name
-    url: useExistingStorageAccount ? '${existingStorageAccount.properties.primaryEndpoints.blob}/${name}' : '${storage.properties.primaryEndpoints.blob}/${name}'
-  }
-]
-output privateEndpointBlobName string = privateEndpointBlobName
-output privateEndpointTableName string = privateEndpointTableName
-output privateEndpointQueueName string = privateEndpointQueueName
-output storageAccountConnectionStringSecretName string = storageAccountConnectionStringSecretName
+// --------------------------------------------------------------------------------
+output id string = storageAccountResource.id
+output name string = storageAccountResource.name

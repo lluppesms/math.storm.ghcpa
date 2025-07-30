@@ -58,14 +58,19 @@ These values are used by the Bicep templates to configure the resource names tha
 These should be set at the repository level and should be the same for all environments, although you could set them up at the environment level if you want them to unique. You can customize and run the following commands (or just set it up manually by going to the Settings -> Secrets -> Actions -> Variables).  
 
 ```bash
-gh variable set APP_NAME -b <<YOUR-APP-NAME>>
-gh variable set RESOURCEGROUP_PREFIX -b rg_Math.Storm_function
-gh variable set RESOURCEGROUP_LOCATION -b eastus2
-gh variable set API_KEY -b "somesecretstring"
-gh variable set APP_PROJECT_FOLDER_NAME -b "src\web\MathStorm\MathStorm.Web"
-gh variable set APP_PROJECT_NAME -b "MathStorm.Web"
-gh variable set APP_TEST_FOLDER_NAME -b "src\web\MathStorm.Web.Tests\MathStorm.Web.Tests"
-gh variable set APP_TEST_PROJECT_NAME -b "MathStorm.Web.Tests"
+gh variable set APP_NAME -b lll-mathstorm
+gh variable set RESOURCEGROUP_LOCATION -b eastus
+gh variable set RESOURCEGROUP_PREFIX -b rg_mathstorm-webg 
+
+gh variable set APP_PROJECT_FOLDER_NAME -b src/web/MathStorm/MathStorm.Web
+gh variable set APP_PROJECT_NAME -b MathStorm.Web
+gh variable set APP_TEST_FOLDER_NAME -b src/web/MathStorm.Web.Tests/MathStorm.Web.Tests
+gh variable set APP_TEST_PROJECT_NAME -b MathStorm.Web.Tests
+
+gh variable set FUNC_PROJECT_FOLDER_NAME -b src/functions/MathStorm/MathStorm.Functions
+gh variable set FUNC_PROJECT_NAME -b MathStorm.Functions
+gh variable set FUNC_TEST_FOLDER_NAME -b src/functions/MathStorm.Functions.Tests/MathStorm.Functions.Tests
+gh variable set FUNC_TEST_PROJECT_NAME -b MathStorm.Functions.Tests
 ```
 
 ---

@@ -13,6 +13,11 @@ param webSiteSku string = 'B1'
 param servicePlanName string = ''
 param webAppKind string = 'linux' // 'linux' or 'windows'
 
+param storageSku string = 'Standard_LRS'
+param functionAppSku string = 'Y1'
+param functionAppSkuFamily string = 'Y'
+param functionAppSkuTier string = 'Dynamic'
+
 // --------------------------------------------------------------------------------------------------------------
 // Run Settings Parameters
 // --------------------------------------------------------------------------------------------------------------
@@ -226,19 +231,59 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
 // --------------------------------------------------------------------------------
 // Function App for API endpoints
 // --------------------------------------------------------------------------------
-module functionAppModule './modules/functions/functionapp.bicep' = {
-  name: 'functionApp${deploymentSuffix}'
+module functionStorageModule './modules/storage/storage-account.bicep' = {
+  name: 'functionstorage${deploymentSuffix}'
   params: {
-    baseName: appName
+    storageSku: storageSku
+    storageAccountName: resourceNames.outputs.functionStorageName
     location: location
-    environment: environmentCode
-    appInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
-    cosmosDbConnectionString: keyVaultSecretCosmos.outputs.connectionStringSecretUri
+    commonTags: commonTags
+    allowNetworkAccess: 'Allow'
+    publicNetworkAccess: 'Enabled'
+  }
+}
+
+module functionModule './modules/functions/functionapp.bicep' = {
+  name: 'function${deploymentSuffix}'
+  params: {
+    functionAppName: resourceNames.outputs.functionAppName
+    functionAppServicePlanName: resourceNames.outputs.functionAppServicePlanName
+    functionInsightsName: resourceNames.outputs.functionInsightsName
+    managedIdentityId: identity.outputs.managedIdentityId
+    keyVaultName: keyVaultModule.outputs.name
+
+    appInsightsLocation: location
+    location: location
+    commonTags: commonTags
+
+    functionKind: 'functionapp,linux'
+    functionAppSku: functionAppSku
+    functionAppSkuFamily: functionAppSkuFamily
+    functionAppSkuTier: functionAppSkuTier
+    functionStorageAccountName: functionStorageModule.outputs.name
+    workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
+  }
+}
+
+module functionAppSettingsModule './modules/functions/functionappsettings.bicep' = {
+  name: 'functionAppSettings${deploymentSuffix}'
+  params: {
+    functionAppName: functionModule.outputs.name
+    functionStorageAccountName: functionModule.outputs.storageAccountName
+    functionInsightsKey: functionModule.outputs.insightsKey
+    keyVaultName: keyVaultModule.outputs.name
+    customAppSettings: {
+      OpenApi__HideSwaggerUI: 'false'
+      OpenApi__HideDocument: 'false'
+      OpenApi__DocTitle: 'MathStorm Game APIs'
+      OpenApi__DocDescription: 'This repo is an example of a GitHub Copilot Agent Vibe Coded Game'
+      appInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
+      cosmosDbConnectionString: keyVaultSecretCosmos.outputs.connectionStringSecretUri
+    }
   }
 }
 
 output SUBSCRIPTION_ID string = subscription().subscriptionId
 output RESOURCE_GROUP_NAME string = resourceGroupName
-output HOST_NAME string = webSiteModule.outputs.hostName
-output FUNCTION_APP_NAME string = functionAppModule.outputs.functionAppName
-output FUNCTION_APP_URL string = functionAppModule.outputs.functionAppUrl
+output WEB_HOST_NAME string = webSiteModule.outputs.hostName
+output FUNCTION_HOST_NAME string = functionModule.outputs.hostname
