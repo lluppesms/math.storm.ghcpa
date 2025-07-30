@@ -208,34 +208,67 @@ Where TimeFactor = 10 (normal) or 100 (speed penalty)
 
 ## API Testing with REST Client
 
-### 7. HTTP Testing
+### 7. Azure Function API Testing
 
-Since this is a Blazor Server application, there may not be traditional REST APIs, but we can test any exposed endpoints:
+The MathStorm application now includes Azure Functions that provide REST APIs for game logic. These APIs are used by the web application and will be used by future CLI and MAUI applications.
 
-#### Test 7.1: Application Health Check
+**API Test Files Available:**
+- `Tests/API/test.http` - Comprehensive REST Client tests for VS Code
+- `Tests/API/MathStorm-API-Postman-Collection.json` - Postman collection
+- `Tests/API/README.md` - Detailed API testing documentation
+- `Tests/API/API-Quick-Reference.md` - Quick reference guide
+
+#### Test 7.1: Setup for API Testing
+
+**Prerequisites:**
+1. Start Azure Functions locally:
+   ```bash
+   cd src/functions/MathStorm.Functions
+   func start
+   ```
+2. Functions will be available at `http://localhost:7071`
+
+#### Test 7.2: Game Generation API
 ```http
-### Health Check (if implemented)
-GET http://localhost:5000/health
-Accept: application/json
-```
-
-#### Test 7.2: Static Resource Loading
-```http
-### Test CSS loading
-GET http://localhost:5000/css/app.css
-Accept: text/css
-
-### Test JavaScript loading  
-GET http://localhost:5000/_framework/blazor.web.js
-Accept: application/javascript
-```
-
-#### Test 7.3: Blazor Hub Connection
-```http
-### Test SignalR connection endpoint
-POST http://localhost:5000/_blazor/negotiate
+### Generate Expert level game
+GET http://localhost:7071/api/game?difficulty=Expert
 Content-Type: application/json
 ```
+
+#### Test 7.3: Game Results Submission API
+```http
+### Submit game results
+POST http://localhost:7071/api/game/results
+Content-Type: application/json
+
+{
+  "gameId": "test-game-001",
+  "username": "TestUser",
+  "difficulty": "Expert",
+  "questions": [
+    {
+      "id": 1,
+      "number1": 123,
+      "number2": 456,
+      "operation": "Addition",
+      "correctAnswer": 579,
+      "userAnswer": 579,
+      "timeInSeconds": 3.5,
+      "percentageDifference": 0,
+      "score": 10.5
+    }
+  ]
+}
+```
+
+#### Test 7.4: Leaderboard API
+```http
+### Get Expert leaderboard
+GET http://localhost:7071/api/leaderboard?difficulty=Expert&topCount=10
+Content-Type: application/json
+```
+
+**For comprehensive API testing, use the test files in `Tests/API/` directory.**
 
 ## Database Integration Tests (Production Mode)
 

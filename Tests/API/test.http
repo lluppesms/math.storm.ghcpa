@@ -1,14 +1,338 @@
-# You can also use the Swagger UI: https://Math.Storm.luppes.com/api/swagger/ui
+# MathStorm Azure Function API Tests
+# Use with REST Client extension in VS Code or similar tools
+# You can also use the Swagger UI when deployed: https://[your-function-app].azurewebsites.net/api/swagger/ui
 
-@baseUrl = https://Math.Storm.luppes.com/api
-@APIKey = 
+### Environment Configuration
+# Local development
+@localBaseUrl = http://localhost:7071/api
+
+# Production (update with your actual Function App URL)
+@prodBaseUrl = https://[your-function-app].azurewebsites.net/api
+
+# Use local for development, switch to prod for production testing
+@baseUrl = {{localBaseUrl}}
 
 ### ---------------------------------------------------------------------------
-### Get a random joke
-GET {{baseUrl}}/joke HTTP/1.1
-APIKey: {{APIKey}}
+### 1. GET GAME - Generate new game questions
+### ---------------------------------------------------------------------------
+
+### Get game with default difficulty (Expert)
+GET {{baseUrl}}/game HTTP/1.1
+Content-Type: application/json
+
+### Get game with Beginner difficulty
+GET {{baseUrl}}/game?difficulty=Beginner HTTP/1.1
+Content-Type: application/json
+
+### Get game with Novice difficulty
+GET {{baseUrl}}/game?difficulty=Novice HTTP/1.1
+Content-Type: application/json
+
+### Get game with Intermediate difficulty
+GET {{baseUrl}}/game?difficulty=Intermediate HTTP/1.1
+Content-Type: application/json
+
+### Get game with Expert difficulty
+GET {{baseUrl}}/game?difficulty=Expert HTTP/1.1
+Content-Type: application/json
+
+### Get game with invalid difficulty (should default to Expert)
+GET {{baseUrl}}/game?difficulty=InvalidLevel HTTP/1.1
+Content-Type: application/json
 
 ### ---------------------------------------------------------------------------
-### Get all jokes in a category
-GET {{baseUrl}}/joke/category/Thanksgiving HTTP/1.1
-APIKey: {{APIKey}}
+### 2. POST GAME RESULTS - Submit completed game results
+### ---------------------------------------------------------------------------
+
+### Submit game results - Example with Beginner level
+POST {{baseUrl}}/game/results HTTP/1.1
+Content-Type: application/json
+
+{
+  "gameId": "test-game-beginner-001",
+  "username": "TestUser1",
+  "difficulty": "Beginner",
+  "questions": [
+    {
+      "id": 1,
+      "number1": 5,
+      "number2": 3,
+      "operation": "Addition",
+      "correctAnswer": 8,
+      "userAnswer": 8,
+      "timeInSeconds": 2.5,
+      "percentageDifference": 0,
+      "score": 10.0
+    },
+    {
+      "id": 2,
+      "number1": 12,
+      "number2": 7,
+      "operation": "Subtraction",
+      "correctAnswer": 5,
+      "userAnswer": 5,
+      "timeInSeconds": 3.2,
+      "percentageDifference": 0,
+      "score": 12.0
+    },
+    {
+      "id": 3,
+      "number1": 9,
+      "number2": 4,
+      "operation": "Addition",
+      "correctAnswer": 13,
+      "userAnswer": 12,
+      "timeInSeconds": 4.1,
+      "percentageDifference": 7.69,
+      "score": 18.5
+    }
+  ]
+}
+
+### Submit game results - Example with Expert level (more complex)
+POST {{baseUrl}}/game/results HTTP/1.1
+Content-Type: application/json
+
+{
+  "gameId": "test-game-expert-001",
+  "username": "ExpertPlayer",
+  "difficulty": "Expert",
+  "questions": [
+    {
+      "id": 1,
+      "number1": 8347,
+      "number2": 2956,
+      "operation": "Addition",
+      "correctAnswer": 11303,
+      "userAnswer": 11303,
+      "timeInSeconds": 5.2,
+      "percentageDifference": 0,
+      "score": 15.8
+    },
+    {
+      "id": 2,
+      "number1": 7845,
+      "number2": 3217,
+      "operation": "Subtraction",
+      "correctAnswer": 4628,
+      "userAnswer": 4620,
+      "timeInSeconds": 7.1,
+      "percentageDifference": 0.17,
+      "score": 21.3
+    },
+    {
+      "id": 3,
+      "number1": 654,
+      "number2": 789,
+      "operation": "Multiplication",
+      "correctAnswer": 516006,
+      "userAnswer": 516000,
+      "timeInSeconds": 12.5,
+      "percentageDifference": 0.001,
+      "score": 37.5
+    },
+    {
+      "id": 4,
+      "number1": 8424,
+      "number2": 6,
+      "operation": "Division",
+      "correctAnswer": 1404,
+      "userAnswer": 1404,
+      "timeInSeconds": 8.9,
+      "percentageDifference": 0,
+      "score": 26.7
+    }
+  ]
+}
+
+### Submit game results - Wrong answers example
+POST {{baseUrl}}/game/results HTTP/1.1
+Content-Type: application/json
+
+{
+  "gameId": "test-game-wrong-answers",
+  "username": "LearningPlayer",
+  "difficulty": "Intermediate",
+  "questions": [
+    {
+      "id": 1,
+      "number1": 345,
+      "number2": 678,
+      "operation": "Addition",
+      "correctAnswer": 1023,
+      "userAnswer": 1000,
+      "timeInSeconds": 8.5,
+      "percentageDifference": 2.25,
+      "score": 25.5
+    },
+    {
+      "id": 2,
+      "number1": 567,
+      "number2": 234,
+      "operation": "Subtraction",
+      "correctAnswer": 333,
+      "userAnswer": 300,
+      "timeInSeconds": 15.2,
+      "percentageDifference": 9.91,
+      "score": 45.6
+    }
+  ]
+}
+
+### Submit invalid game results (missing required fields)
+POST {{baseUrl}}/game/results HTTP/1.1
+Content-Type: application/json
+
+{
+  "gameId": "",
+  "username": "",
+  "difficulty": "Beginner"
+}
+
+### Submit invalid game results (malformed JSON)
+POST {{baseUrl}}/game/results HTTP/1.1
+Content-Type: application/json
+
+{
+  "gameId": "test-invalid"
+  "username": "TestUser"
+  // Missing comma and invalid syntax
+}
+
+### ---------------------------------------------------------------------------
+### 3. GET LEADERBOARD - Retrieve leaderboard entries
+### ---------------------------------------------------------------------------
+
+### Get global leaderboard (default 10 entries)
+GET {{baseUrl}}/leaderboard HTTP/1.1
+Content-Type: application/json
+
+### Get global leaderboard with specific count
+GET {{baseUrl}}/leaderboard?topCount=5 HTTP/1.1
+Content-Type: application/json
+
+### Get Beginner difficulty leaderboard
+GET {{baseUrl}}/leaderboard?difficulty=Beginner HTTP/1.1
+Content-Type: application/json
+
+### Get Novice difficulty leaderboard
+GET {{baseUrl}}/leaderboard?difficulty=Novice HTTP/1.1
+Content-Type: application/json
+
+### Get Intermediate difficulty leaderboard
+GET {{baseUrl}}/leaderboard?difficulty=Intermediate HTTP/1.1
+Content-Type: application/json
+
+### Get Expert difficulty leaderboard
+GET {{baseUrl}}/leaderboard?difficulty=Expert HTTP/1.1
+Content-Type: application/json
+
+### Get Expert leaderboard with top 20 entries
+GET {{baseUrl}}/leaderboard?difficulty=Expert&topCount=20 HTTP/1.1
+Content-Type: application/json
+
+### Get leaderboard with invalid difficulty (should return global)
+GET {{baseUrl}}/leaderboard?difficulty=InvalidLevel HTTP/1.1
+Content-Type: application/json
+
+### Get leaderboard with invalid topCount (should default to 10)
+GET {{baseUrl}}/leaderboard?topCount=abc HTTP/1.1
+Content-Type: application/json
+
+### ---------------------------------------------------------------------------
+### 4. STRESS TESTING & EDGE CASES
+### ---------------------------------------------------------------------------
+
+### Test with very large topCount
+GET {{baseUrl}}/leaderboard?topCount=1000 HTTP/1.1
+Content-Type: application/json
+
+### Test with zero topCount
+GET {{baseUrl}}/leaderboard?topCount=0 HTTP/1.1
+Content-Type: application/json
+
+### Test with negative topCount
+GET {{baseUrl}}/leaderboard?topCount=-5 HTTP/1.1
+Content-Type: application/json
+
+### Submit results with very long username
+POST {{baseUrl}}/game/results HTTP/1.1
+Content-Type: application/json
+
+{
+  "gameId": "test-long-username",
+  "username": "ThisIsAVeryLongUsernameThatExceedsNormalLengthToTestSystemLimitsAndValidation",
+  "difficulty": "Beginner",
+  "questions": [
+    {
+      "id": 1,
+      "number1": 1,
+      "number2": 1,
+      "operation": "Addition",
+      "correctAnswer": 2,
+      "userAnswer": 2,
+      "timeInSeconds": 1.0,
+      "percentageDifference": 0,
+      "score": 5.0
+    }
+  ]
+}
+
+### Submit results with special characters in username
+POST {{baseUrl}}/game/results HTTP/1.1
+Content-Type: application/json
+
+{
+  "gameId": "test-special-chars",
+  "username": "User@#$%^&*()",
+  "difficulty": "Beginner",
+  "questions": [
+    {
+      "id": 1,
+      "number1": 2,
+      "number2": 2,
+      "operation": "Addition",
+      "correctAnswer": 4,
+      "userAnswer": 4,
+      "timeInSeconds": 2.0,
+      "percentageDifference": 0,
+      "score": 8.0
+    }
+  ]
+}
+
+### ---------------------------------------------------------------------------
+### 5. WORKFLOW TESTING - Complete game flow
+### ---------------------------------------------------------------------------
+
+### Step 1: Get a new game
+GET {{baseUrl}}/game?difficulty=Intermediate HTTP/1.1
+Content-Type: application/json
+
+### Step 2: Submit results for the game (use GameId from Step 1 response)
+# Note: Replace gameId with actual value from Step 1 response
+POST {{baseUrl}}/game/results HTTP/1.1
+Content-Type: application/json
+
+{
+  "gameId": "replace-with-actual-game-id",
+  "username": "WorkflowTester",
+  "difficulty": "Intermediate",
+  "questions": [
+    {
+      "id": 1,
+      "number1": 123,
+      "number2": 456,
+      "operation": "Addition",
+      "correctAnswer": 579,
+      "userAnswer": 579,
+      "timeInSeconds": 4.5,
+      "percentageDifference": 0,
+      "score": 13.5
+    }
+  ]
+}
+
+### Step 3: Check leaderboard to see if score was added
+GET {{baseUrl}}/leaderboard?difficulty=Intermediate&topCount=5 HTTP/1.1
+Content-Type: application/json
