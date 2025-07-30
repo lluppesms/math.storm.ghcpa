@@ -1,14 +1,3 @@
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
-using System.Net;
-using System.Text.Json;
-using System.Web;
-using MathStorm.Core.Services;
-using MathStorm.Common.DTOs;
-
 namespace MathStorm.Functions.Functions;
 
 public class LeaderboardFunctions
@@ -38,7 +27,8 @@ public class LeaderboardFunctions
             var query = req.Url.Query;
             string? difficulty = null;
             var topCountParam = "10";
-            
+            _logger.LogInformation($"In GetLeaderboard function with difficulty={difficulty}");
+
             if (!string.IsNullOrEmpty(query))
             {
                 try
@@ -47,7 +37,7 @@ public class LeaderboardFunctions
                         .Split('&')
                         .Select(q => q.Split('=', 2))
                         .Where(kvp => kvp.Length == 2)
-                        .ToDictionary(kvp => kvp[0], kvp => 
+                        .ToDictionary(kvp => kvp[0], kvp =>
                         {
                             try
                             {
@@ -60,7 +50,7 @@ public class LeaderboardFunctions
                                 return kvp[1];
                             }
                         });
-                    
+
                     queryDict.TryGetValue("difficulty", out difficulty);
                     queryDict.TryGetValue("topCount", out topCountParam);
                     topCountParam ??= "10";
@@ -78,7 +68,7 @@ public class LeaderboardFunctions
             }
 
             // Get leaderboard entries
-            var entries = string.IsNullOrEmpty(difficulty) 
+            var entries = string.IsNullOrEmpty(difficulty)
                 ? await _cosmosDbService.GetGlobalLeaderboardAsync(topCount)
                 : await _cosmosDbService.GetLeaderboardAsync(difficulty, topCount);
 
@@ -101,12 +91,12 @@ public class LeaderboardFunctions
 
             var httpResponse = req.CreateResponse(HttpStatusCode.OK);
             httpResponse.Headers.Add("Content-Type", "application/json");
-            
+
             var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
-            
+
             await httpResponse.WriteStringAsync(jsonResponse);
             return httpResponse;
         }

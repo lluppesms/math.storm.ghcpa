@@ -1,16 +1,3 @@
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
-using System.Net;
-using System.Text.Json;
-using System.Web;
-using MathStorm.Core.Services;
-using MathStorm.Common.Models;
-using MathStorm.Common.DTOs;
-using MathStorm.Common.Services;
-
 namespace MathStorm.Functions.Functions;
 
 public class GameFunctions
@@ -47,7 +34,7 @@ public class GameFunctions
                         .Split('&')
                         .Select(q => q.Split('=', 2))
                         .Where(kvp => kvp.Length == 2)
-                        .ToDictionary(kvp => kvp[0], kvp => 
+                        .ToDictionary(kvp => kvp[0], kvp =>
                         {
                             try
                             {
@@ -76,6 +63,7 @@ public class GameFunctions
                 difficulty = Difficulty.Expert;
             }
 
+            _logger.LogInformation($"In GetLeaderboard function using difficulty {difficulty}");
             // Create new game session
             var gameSession = _gameService.CreateNewGame(difficulty);
 

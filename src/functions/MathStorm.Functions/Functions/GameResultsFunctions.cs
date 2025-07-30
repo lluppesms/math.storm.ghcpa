@@ -1,14 +1,3 @@
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
-using System.Net;
-using System.Text.Json;
-using MathStorm.Core.Services;
-using MathStorm.Common.Models;
-using MathStorm.Common.DTOs;
-
 namespace MathStorm.Functions.Functions;
 
 public class GameResultsFunctions
@@ -109,12 +98,12 @@ public class GameResultsFunctions
 
             var httpResponse = req.CreateResponse(HttpStatusCode.OK);
             httpResponse.Headers.Add("Content-Type", "application/json");
-            
+
             var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
-            
+
             await httpResponse.WriteStringAsync(jsonResponse);
             return httpResponse;
         }

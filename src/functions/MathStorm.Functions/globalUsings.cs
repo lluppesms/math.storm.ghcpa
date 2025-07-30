@@ -2,10 +2,16 @@
 global using Microsoft.Azure.Functions.Worker;
 global using Microsoft.Azure.Functions.Worker.Http;
 global using Microsoft.Azure.Functions.Worker.Middleware;
+global using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+global using Microsoft.OpenApi.Models;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
 global using Microsoft.Extensions.Logging;
 global using MathStorm.Common.Models;
+global using MathStorm.Common.DTOs;
+global using MathStorm.Common.Services;
 global using MathStorm.Core.Services;
 global using System.Net;
+global using System.Text.Json;
+global using System.Web;
