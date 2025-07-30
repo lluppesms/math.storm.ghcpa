@@ -1,6 +1,5 @@
 using MathStorm.Web.Components;
 using MathStorm.Web.Services;
-using MathStorm.Shared.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,11 +7,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Add HTTP client for function service
-builder.Services.AddHttpClient<IMathStormFunctionService, MathStormFunctionService>(client =>
+// Read base URL from configuration
+var baseUrl = builder.Configuration.GetValue<string>("FunctionService:BaseUrl");
+// Add the HttpClient instance to the service container
+builder.Services.AddSingleton(new HttpClient
 {
-    // For development, point to local function app
-    client.BaseAddress = new Uri("http://localhost:7071");
+    BaseAddress = new Uri(baseUrl)
 });
 
 // Add function-based game service (calls Azure Functions for all game operations)
