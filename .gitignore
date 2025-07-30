@@ -374,4 +374,5 @@ test-results-ui/
 
 # Configuration files with secrets
 appsettings.development.json
+local.settings.development.json
 
