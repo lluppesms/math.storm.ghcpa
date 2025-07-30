@@ -5,11 +5,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System.Net;
 using System.Text.Json;
+using System.Web;
 using MathStorm.Core.Services;
 using MathStorm.Common.Models;
 using MathStorm.Common.DTOs;
 using MathStorm.Common.Services;
-using MathStorm.Core.Services;
 
 namespace MathStorm.Functions.Functions;
 
@@ -35,20 +35,40 @@ public class GameFunctions
 
         try
         {
-            // Parse query parameters
+            // Parse query parameters more safely
             var query = req.Url.Query;
             var difficultyParam = "Expert";
 
             if (!string.IsNullOrEmpty(query))
             {
-                var queryDict = query.TrimStart('?')
-                    .Split('&')
-                    .Select(q => q.Split('='))
-                    .Where(kvp => kvp.Length == 2)
-                    .ToDictionary(kvp => kvp[0], kvp => Uri.UnescapeDataString(kvp[1]));
+                try
+                {
+                    var queryDict = query.TrimStart('?')
+                        .Split('&')
+                        .Select(q => q.Split('=', 2))
+                        .Where(kvp => kvp.Length == 2)
+                        .ToDictionary(kvp => kvp[0], kvp => 
+                        {
+                            try
+                            {
+                                // Use HttpUtility.UrlDecode which is more robust than Uri.UnescapeDataString
+                                return HttpUtility.UrlDecode(kvp[1]);
+                            }
+                            catch
+                            {
+                                // If URL decoding fails, return the original string
+                                return kvp[1];
+                            }
+                        });
 
-                queryDict.TryGetValue("difficulty", out difficultyParam);
-                difficultyParam ??= "Expert";
+                    queryDict.TryGetValue("difficulty", out difficultyParam);
+                    difficultyParam ??= "Expert";
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error parsing query parameters: {Query}", query);
+                    // Continue with default values
+                }
             }
 
             if (!Enum.TryParse<Difficulty>(difficultyParam, ignoreCase: true, out var difficulty))

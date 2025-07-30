@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System.Net;
 using System.Text.Json;
+using System.Web;
 using MathStorm.Core.Services;
 using MathStorm.Common.DTOs;
 
@@ -33,22 +34,42 @@ public class LeaderboardFunctions
 
         try
         {
-            // Parse query parameters
+            // Parse query parameters more safely
             var query = req.Url.Query;
             string? difficulty = null;
             var topCountParam = "10";
             
             if (!string.IsNullOrEmpty(query))
             {
-                var queryDict = query.TrimStart('?')
-                    .Split('&')
-                    .Select(q => q.Split('='))
-                    .Where(kvp => kvp.Length == 2)
-                    .ToDictionary(kvp => kvp[0], kvp => Uri.UnescapeDataString(kvp[1]));
-                
-                queryDict.TryGetValue("difficulty", out difficulty);
-                queryDict.TryGetValue("topCount", out topCountParam);
-                topCountParam ??= "10";
+                try
+                {
+                    var queryDict = query.TrimStart('?')
+                        .Split('&')
+                        .Select(q => q.Split('=', 2))
+                        .Where(kvp => kvp.Length == 2)
+                        .ToDictionary(kvp => kvp[0], kvp => 
+                        {
+                            try
+                            {
+                                // Use HttpUtility.UrlDecode which is more robust than Uri.UnescapeDataString
+                                return HttpUtility.UrlDecode(kvp[1]);
+                            }
+                            catch
+                            {
+                                // If URL decoding fails, return the original string
+                                return kvp[1];
+                            }
+                        });
+                    
+                    queryDict.TryGetValue("difficulty", out difficulty);
+                    queryDict.TryGetValue("topCount", out topCountParam);
+                    topCountParam ??= "10";
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error parsing query parameters: {Query}", query);
+                    // Continue with default values
+                }
             }
 
             if (!int.TryParse(topCountParam, out var topCount))
@@ -91,9 +112,9 @@ public class LeaderboardFunctions
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in GetLeaderboard function");
+            _logger.LogError(ex, "Unexpected Error in GetLeaderboard: {ErrorMessage}", ex.Message);
             var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
-            await errorResponse.WriteStringAsync($"Error: {ex.Message}");
+            await errorResponse.WriteStringAsync($"Unexpected Error in GetLeaderboard: {ex.Message}");
             return errorResponse;
         }
     }
