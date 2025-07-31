@@ -252,7 +252,8 @@ module functionModule './modules/functions/functionapp.bicep' = {
     functionAppName: resourceNames.outputs.functionAppName
     functionAppServicePlanName: resourceNames.outputs.functionAppServicePlanName
     functionInsightsName: resourceNames.outputs.functionInsightsName
-    managedIdentityId: identity.outputs.managedIdentityPrincipalId
+    managedIdentityId: identity.outputs.managedIdentityId
+    managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
     keyVaultName: keyVaultModule.outputs.name
 
     appInsightsLocation: location

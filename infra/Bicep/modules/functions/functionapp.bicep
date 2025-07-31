@@ -12,6 +12,7 @@ param appInsightsLocation string = resourceGroup().location
 param commonTags object = {}
 
 param managedIdentityId string
+param managedIdentityPrincipalId string
 param keyVaultName string
 
 @allowed([ 'functionapp', 'functionapp,linux' ])
@@ -328,4 +329,4 @@ output name string = functionAppName
 output insightsName string = functionInsightsName
 output insightsKey string = appInsightsResource.properties.InstrumentationKey
 output storageAccountName string = functionStorageAccountName
-output functionAppPrincipalId string = managedIdentityId // functionAppResource.identity.principalId
+output functionAppPrincipalId string = managedIdentityPrincipalId
