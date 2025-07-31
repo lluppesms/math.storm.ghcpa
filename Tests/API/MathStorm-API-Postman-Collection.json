@@ -1,0 +1,282 @@
+{
+	"info": {
+		"_postman_id": "mathstorm-functions-api-tests",
+		"name": "MathStorm Azure Functions API",
+		"description": "Comprehensive API tests for MathStorm Azure Functions including game generation, results submission, and leaderboard retrieval.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:7071/api",
+			"type": "string",
+			"description": "Base URL for local development. Change to your deployed Function App URL for production testing."
+		}
+	],
+	"item": [
+		{
+			"name": "Game Generation",
+			"item": [
+				{
+					"name": "Get Game - Default Difficulty",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/game",
+							"host": ["{{baseUrl}}"],
+							"path": ["game"]
+						},
+						"description": "Generate a new game with default Expert difficulty"
+					}
+				},
+				{
+					"name": "Get Game - Beginner",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/game?difficulty=Beginner",
+							"host": ["{{baseUrl}}"],
+							"path": ["game"],
+							"query": [
+								{
+									"key": "difficulty",
+									"value": "Beginner"
+								}
+							]
+						},
+						"description": "Generate a beginner level game (5 questions, 2-digit numbers, addition/subtraction only)"
+					}
+				},
+				{
+					"name": "Get Game - Expert",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/game?difficulty=Expert",
+							"host": ["{{baseUrl}}"],
+							"path": ["game"],
+							"query": [
+								{
+									"key": "difficulty",
+									"value": "Expert"
+								}
+							]
+						},
+						"description": "Generate an expert level game (10 questions, 4-digit numbers, all operations)"
+					}
+				}
+			],
+			"description": "Tests for game generation endpoint"
+		},
+		{
+			"name": "Game Results",
+			"item": [
+				{
+					"name": "Submit Results - Perfect Score",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"gameId\": \"test-perfect-score-001\",\n  \"username\": \"PerfectPlayer\",\n  \"difficulty\": \"Beginner\",\n  \"questions\": [\n    {\n      \"id\": 1,\n      \"number1\": 5,\n      \"number2\": 3,\n      \"operation\": \"Addition\",\n      \"correctAnswer\": 8,\n      \"userAnswer\": 8,\n      \"timeInSeconds\": 2.5,\n      \"percentageDifference\": 0,\n      \"score\": 10.0\n    },\n    {\n      \"id\": 2,\n      \"number1\": 12,\n      \"number2\": 7,\n      \"operation\": \"Subtraction\",\n      \"correctAnswer\": 5,\n      \"userAnswer\": 5,\n      \"timeInSeconds\": 3.2,\n      \"percentageDifference\": 0,\n      \"score\": 12.0\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/game/results",
+							"host": ["{{baseUrl}}"],
+							"path": ["game", "results"]
+						},
+						"description": "Submit game results with perfect scores (all correct answers)"
+					}
+				},
+				{
+					"name": "Submit Results - Mixed Scores",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"gameId\": \"test-mixed-scores-001\",\n  \"username\": \"LearningPlayer\",\n  \"difficulty\": \"Intermediate\",\n  \"questions\": [\n    {\n      \"id\": 1,\n      \"number1\": 345,\n      \"number2\": 678,\n      \"operation\": \"Addition\",\n      \"correctAnswer\": 1023,\n      \"userAnswer\": 1000,\n      \"timeInSeconds\": 8.5,\n      \"percentageDifference\": 2.25,\n      \"score\": 25.5\n    },\n    {\n      \"id\": 2,\n      \"number1\": 567,\n      \"number2\": 234,\n      \"operation\": \"Subtraction\",\n      \"correctAnswer\": 333,\n      \"userAnswer\": 300,\n      \"timeInSeconds\": 15.2,\n      \"percentageDifference\": 9.91,\n      \"score\": 45.6\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/game/results",
+							"host": ["{{baseUrl}}"],
+							"path": ["game", "results"]
+						},
+						"description": "Submit game results with some wrong answers"
+					}
+				},
+				{
+					"name": "Submit Results - Invalid Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"gameId\": \"\",\n  \"username\": \"\",\n  \"difficulty\": \"Beginner\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/game/results",
+							"host": ["{{baseUrl}}"],
+							"path": ["game", "results"]
+						},
+						"description": "Test error handling with invalid request (missing required fields)"
+					}
+				}
+			],
+			"description": "Tests for game results submission endpoint"
+		},
+		{
+			"name": "Leaderboard",
+			"item": [
+				{
+					"name": "Get Global Leaderboard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/leaderboard",
+							"host": ["{{baseUrl}}"],
+							"path": ["leaderboard"]
+						},
+						"description": "Get global leaderboard with default 10 entries"
+					}
+				},
+				{
+					"name": "Get Expert Leaderboard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/leaderboard?difficulty=Expert&topCount=5",
+							"host": ["{{baseUrl}}"],
+							"path": ["leaderboard"],
+							"query": [
+								{
+									"key": "difficulty",
+									"value": "Expert"
+								},
+								{
+									"key": "topCount",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Get top 5 Expert difficulty leaderboard entries"
+					}
+				},
+				{
+					"name": "Get Beginner Leaderboard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/leaderboard?difficulty=Beginner&topCount=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["leaderboard"],
+							"query": [
+								{
+									"key": "difficulty",
+									"value": "Beginner"
+								},
+								{
+									"key": "topCount",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get top 10 Beginner difficulty leaderboard entries"
+					}
+				}
+			],
+			"description": "Tests for leaderboard retrieval endpoint"
+		},
+		{
+			"name": "Complete Workflow",
+			"item": [
+				{
+					"name": "Step 1 - Generate Game",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/game?difficulty=Intermediate",
+							"host": ["{{baseUrl}}"],
+							"path": ["game"],
+							"query": [
+								{
+									"key": "difficulty",
+									"value": "Intermediate"
+								}
+							]
+						},
+						"description": "Generate an intermediate difficulty game. Copy the gameId from response for Step 2."
+					}
+				},
+				{
+					"name": "Step 2 - Submit Results",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"gameId\": \"REPLACE-WITH-GAME-ID-FROM-STEP-1\",\n  \"username\": \"WorkflowTester\",\n  \"difficulty\": \"Intermediate\",\n  \"questions\": [\n    {\n      \"id\": 1,\n      \"number1\": 123,\n      \"number2\": 456,\n      \"operation\": \"Addition\",\n      \"correctAnswer\": 579,\n      \"userAnswer\": 579,\n      \"timeInSeconds\": 4.5,\n      \"percentageDifference\": 0,\n      \"score\": 13.5\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/game/results",
+							"host": ["{{baseUrl}}"],
+							"path": ["game", "results"]
+						},
+						"description": "Submit results for the game generated in Step 1. Replace gameId with actual value from Step 1 response."
+					}
+				},
+				{
+					"name": "Step 3 - Check Leaderboard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/leaderboard?difficulty=Intermediate&topCount=5",
+							"host": ["{{baseUrl}}"],
+							"path": ["leaderboard"],
+							"query": [
+								{
+									"key": "difficulty",
+									"value": "Intermediate"
+								},
+								{
+									"key": "topCount",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Check leaderboard to verify the score from Step 2 was added"
+					}
+				}
+			],
+			"description": "Complete game workflow testing: Generate game → Submit results → Check leaderboard"
+		}
+	]
+}

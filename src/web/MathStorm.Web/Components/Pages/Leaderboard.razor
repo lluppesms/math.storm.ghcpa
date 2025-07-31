@@ -1,9 +1,9 @@
 @page "/leaderboard"
 @rendermode InteractiveServer
-@inject ICosmosDbService CosmosDbService
-@using MathStorm.Web.Models
+@inject MathStorm.Web.Services.IMathStormFunctionService FunctionService
 @using MathStorm.Web.Services
 @using MathStorm.Web.Components.Game
+@using MathStorm.Common.DTOs
 
 <PageTitle>Leaderboard - Math Storm</PageTitle>
 
@@ -206,7 +206,25 @@
         
         try
         {
-            leaderboardEntries = await CosmosDbService.GetLeaderboardAsync(selectedDifficulty.ToString(), 10);
+            var response = await FunctionService.GetLeaderboardAsync(selectedDifficulty.ToString(), 10);
+            if (response?.Entries != null)
+            {
+                leaderboardEntries = response.Entries.Select(e => new LeaderboardEntry
+                {
+                    Id = e.Id,
+                    UserId = e.UserId,
+                    Username = e.Username,
+                    GameId = e.GameId,
+                    Difficulty = e.Difficulty,
+                    Score = e.Score,
+                    AchievedAt = e.AchievedAt,
+                    Rank = e.Rank
+                }).ToList();
+            }
+            else
+            {
+                leaderboardEntries = new List<LeaderboardEntry>();
+            }
         }
         catch
         {
@@ -227,7 +245,25 @@
         
         try
         {
-            globalLeaderboardEntries = await CosmosDbService.GetGlobalLeaderboardAsync(10);
+            var response = await FunctionService.GetLeaderboardAsync(null, 10);
+            if (response?.Entries != null)
+            {
+                globalLeaderboardEntries = response.Entries.Select(e => new LeaderboardEntry
+                {
+                    Id = e.Id,
+                    UserId = e.UserId,
+                    Username = e.Username,
+                    GameId = e.GameId,
+                    Difficulty = e.Difficulty,
+                    Score = e.Score,
+                    AchievedAt = e.AchievedAt,
+                    Rank = e.Rank
+                }).ToList();
+            }
+            else
+            {
+                globalLeaderboardEntries = new List<LeaderboardEntry>();
+            }
         }
         catch
         {

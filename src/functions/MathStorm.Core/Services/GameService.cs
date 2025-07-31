@@ -1,6 +1,7 @@
-using MathStorm.Web.Models;
+using MathStorm.Common.Models;
+using MathStorm.Common.Services;
 
-namespace MathStorm.Web.Services;
+namespace MathStorm.Core.Services;
 
 public class GameService : IGameService
 {
@@ -18,6 +19,13 @@ public class GameService : IGameService
         }
         
         return gameSession;
+    }
+
+    public async Task<GameSession> CreateNewGameAsync(Difficulty difficulty = Difficulty.Expert)
+    {
+        // For the base implementation, just return the synchronous version
+        // This is overridden in FunctionBasedGameService to call Azure Functions
+        return await Task.FromResult(CreateNewGame(difficulty));
     }
     
     public void StartQuestion(GameSession gameSession)

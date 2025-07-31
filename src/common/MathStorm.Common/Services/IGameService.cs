@@ -1,10 +1,11 @@
-using MathStorm.Web.Models;
+using MathStorm.Common.Models;
 
-namespace MathStorm.Web.Services;
+namespace MathStorm.Common.Services;
 
 public interface IGameService
 {
     GameSession CreateNewGame(Difficulty difficulty = Difficulty.Expert);
+    Task<GameSession> CreateNewGameAsync(Difficulty difficulty = Difficulty.Expert);
     void StartQuestion(GameSession gameSession);
     void SubmitAnswer(GameSession gameSession, double userAnswer);
     void NextQuestion(GameSession gameSession);

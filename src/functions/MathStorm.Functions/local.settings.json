@@ -1,0 +1,15 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "CosmosDb": {
+      "DatabaseName": "MathStormDB",
+      "ContainerNames": {
+        "Users": "GameUser",
+        "Games": "Game",
+        "Leaderboard": "LeaderboardEntry"
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
-using MathStorm.Web.Models;
+using MathStorm.Common.Models;
 
-namespace MathStorm.Web.Services;
+namespace MathStorm.Core.Services;
 
 public interface ICosmosDbService
 {

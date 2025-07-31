@@ -1,6 +1,5 @@
 using MathStorm.Web.Components;
 using MathStorm.Web.Services;
-using Microsoft.Azure.Cosmos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,39 +7,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Add game service
-builder.Services.AddScoped<IGameService, GameService>();
-
-// Add Cosmos DB services
-if (builder.Environment.IsDevelopment())
+// Read base URL from configuration
+var baseUrl = builder.Configuration.GetValue<string>("FunctionService:BaseUrl");
+// Add the HttpClient instance to the service container
+builder.Services.AddSingleton(new HttpClient
 {
-    // Use mock service in development
-    builder.Services.AddScoped<ICosmosDbService, MockCosmosDbService>();
-}
-else
-{
-    builder.Services.AddSingleton<CosmosClient>(provider =>
-    {
-        var configuration = provider.GetService<IConfiguration>();
-        var connectionString = configuration.GetConnectionString("CosmosDb") ?? configuration["CosmosDb:ConnectionString"];
-        return new CosmosClient(connectionString);
-    });
+    BaseAddress = new Uri(baseUrl)
+});
 
-    builder.Services.AddScoped<ICosmosDbService, CosmosDbService>();
-    builder.Services.AddScoped<CosmosDbInitializationService>();
-}
+// Add function-based game service (calls Azure Functions for all game operations)
+builder.Services.AddScoped<MathStorm.Common.Services.IGameService, MathStorm.Web.Services.FunctionBasedGameService>();
+
+// Add function service
+builder.Services.AddScoped<IMathStormFunctionService, MathStormFunctionService>();
 
 var app = builder.Build();
-
-// Initialize Cosmos DB (only in production)
-if (!app.Environment.IsDevelopment())
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var cosmosDbInit = scope.ServiceProvider.GetRequiredService<CosmosDbInitializationService>();
-        await cosmosDbInit.InitializeAsync();
-    }
-}
 
 // Configure the HTTP request pipeline.
 // if (!app.Environment.IsDevelopment())

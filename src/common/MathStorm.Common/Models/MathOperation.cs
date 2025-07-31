@@ -1,4 +1,4 @@
-namespace MathStorm.Web.Models;
+namespace MathStorm.Common.Models;
 
 public enum MathOperation
 {

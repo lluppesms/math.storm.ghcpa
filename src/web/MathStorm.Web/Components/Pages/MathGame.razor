@@ -1,10 +1,10 @@
 @page "/"
 @rendermode InteractiveServer
-@inject IGameService GameService
-@inject ICosmosDbService CosmosDbService
+@inject MathStorm.Common.Services.IGameService GameService
+@inject MathStorm.Web.Services.IMathStormFunctionService FunctionService
 @using MathStorm.Web.Components.Game
-@using MathStorm.Web.Models
 @using MathStorm.Web.Services
+@using MathStorm.Common.DTOs
 @implements IDisposable
 
 <PageTitle>Math Storm</PageTitle>
@@ -153,7 +153,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        gameSession = GameService.CreateNewGame(selectedDifficulty);
+        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty);
         await LoadGlobalLeaderboard();
     }
 
@@ -164,7 +164,25 @@
         
         try
         {
-            globalLeaderboardEntries = await CosmosDbService.GetGlobalLeaderboardAsync(10);
+            var response = await FunctionService.GetLeaderboardAsync(null, 10);
+            if (response?.Entries != null)
+            {
+                globalLeaderboardEntries = response.Entries.Select(e => new LeaderboardEntry
+                {
+                    Id = e.Id,
+                    UserId = e.UserId,
+                    Username = e.Username,
+                    GameId = e.GameId,
+                    Difficulty = e.Difficulty,
+                    Score = e.Score,
+                    AchievedAt = e.AchievedAt,
+                    Rank = e.Rank
+                }).ToList();
+            }
+            else
+            {
+                globalLeaderboardEntries = new List<LeaderboardEntry>();
+            }
         }
         catch
         {
@@ -178,16 +196,16 @@
         }
     }
 
-    private void SelectDifficulty(Difficulty difficulty)
+    private async Task SelectDifficulty(Difficulty difficulty)
     {
         selectedDifficulty = difficulty;
-        gameSession = GameService.CreateNewGame(selectedDifficulty);
+        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty);
         StateHasChanged();
     }
 
-    private void StartGame()
+    private async Task StartGame()
     {
-        gameSession = GameService.CreateNewGame(selectedDifficulty);
+        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty);
         gameSession.IsGameStarted = true;
         GameService.StartQuestion(gameSession);
         StateHasChanged();
@@ -213,15 +231,15 @@
         await Task.Delay(50);
     }
 
-    private void RestartGame()
+    private async Task RestartGame()
     {
-        gameSession = GameService.CreateNewGame(selectedDifficulty);
+        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty);
         StateHasChanged();
     }
 
-    private void HandleGameCancelled()
+    private async Task HandleGameCancelled()
     {
-        gameSession = GameService.CreateNewGame(selectedDifficulty);
+        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty);
         StateHasChanged();
     }
 
