@@ -67,9 +67,9 @@ gh variable set APP_PROJECT_NAME -b MathStorm.Web
 gh variable set APP_TEST_FOLDER_NAME -b src/web/MathStorm.Web.Tests/MathStorm.Web.Tests
 gh variable set APP_TEST_PROJECT_NAME -b MathStorm.Web.Tests
 
-gh variable set FUNC_PROJECT_FOLDER_NAME -b src/functions/MathStorm/MathStorm.Functions
+gh variable set FUNC_PROJECT_FOLDER_NAME -b src/functions/MathStorm.Functions
 gh variable set FUNC_PROJECT_NAME -b MathStorm.Functions
-gh variable set FUNC_TEST_FOLDER_NAME -b src/functions/MathStorm.Functions.Tests/MathStorm.Functions.Tests
+gh variable set FUNC_TEST_FOLDER_NAME -b src/functions/MathStorm.Functions.Tests
 gh variable set FUNC_TEST_PROJECT_NAME -b MathStorm.Functions.Tests
 ```
 
