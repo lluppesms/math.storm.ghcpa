@@ -23,7 +23,7 @@ output webSiteName string                = webSiteName
 output webSiteAppServicePlanName string  = '${webSiteName}-${resourceAbbreviations.webServerFarms}'
 output webSiteAppInsightsName string     = '${webSiteName}-${resourceAbbreviations.webSitesAppService}'
 
-var functionAppName = environmentSpecificFunctionName == '' ? environmentCode == 'azd' ? '${lowerAppName}function' : toLower('${lowerAppName}-${sanitizedEnvironment}') : environmentSpecificFunctionName
+var functionAppName = environmentSpecificFunctionName == '' ? environmentCode == 'azd' ? '${lowerAppName}function' : toLower('${lowerAppName}-func-${sanitizedEnvironment}') : environmentSpecificFunctionName
 output functionAppName string            = functionAppName
 output functionAppServicePlanName string = '${functionAppName}-${resourceAbbreviations.webServerFarms}'
 output functionInsightsName string       = '${functionAppName}-${resourceAbbreviations.insightsComponents}'
