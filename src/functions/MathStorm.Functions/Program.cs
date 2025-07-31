@@ -4,7 +4,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Cosmos;
 using MathStorm.Core.Services;
 using MathStorm.Common.Services;
-using MathStorm.Core.Services;
 using MathStorm.Functions.Services;
 
 var host = new HostBuilder()
@@ -14,7 +13,15 @@ var host = new HostBuilder()
           builder.UseMiddleware<MyExceptionHandler>();
       }
     )
-    .ConfigureServices(services =>
+    .ConfigureAppConfiguration((hostContext, config) =>
+     {
+         if (hostContext.HostingEnvironment.IsDevelopment())
+         {
+             config.AddJsonFile("local.settings.json");
+             config.AddUserSecrets<Program>();
+         }
+     })
+    .ConfigureServices((context, services) => // Added 'context' parameter here
     {
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
@@ -22,8 +29,9 @@ var host = new HostBuilder()
         // Add game service
         services.AddScoped<IGameService, GameService>();
 
-        var connectionString = Environment.GetEnvironmentVariable("CosmosDb__ConnectionString");
-        // Add Cosmos DB services
+        var connectionString = context.Configuration["CosmosDb:ConnectionString"];
+
+        // Add Cosmos DB services based on whether connection string exists
         if (!string.IsNullOrEmpty(connectionString))
         {
             Console.WriteLine("Using Cosmos DB connection string from environment variable.");
@@ -31,14 +39,13 @@ var host = new HostBuilder()
             {
                 return new CosmosClient(connectionString);
             });
+            services.AddScoped<ICosmosDbService, CosmosDbService>();
         }
         else
         {
             Console.WriteLine("Cosmos DB connection string not found -- using mock environment!");
-            services.AddSingleton<MockCosmosDbService>();
+            services.AddScoped<ICosmosDbService, MockCosmosDbService>();
         }
-
-        services.AddScoped<ICosmosDbService, CosmosDbService>();
     })
     .Build();
 
