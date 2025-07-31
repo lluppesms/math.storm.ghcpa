@@ -13,6 +13,11 @@ param webSiteSku string = 'B1'
 param servicePlanName string = ''
 param webAppKind string = 'linux' // 'linux' or 'windows'
 
+param storageSku string = 'Standard_LRS'
+param functionAppSku string = 'Y1'
+param functionAppSkuFamily string = 'Y'
+param functionAppSkuTier string = 'Dynamic'
+
 // --------------------------------------------------------------------------------------------------------------
 // Run Settings Parameters
 // --------------------------------------------------------------------------------------------------------------
@@ -22,6 +27,8 @@ param deduplicateKeyVaultSecrets bool = true
 param addRoleAssignments bool = true
 @description('Should resources be created with public access?')
 param publicAccessEnabled bool = true
+@description('Should we deploy Cosmos DB?')
+param deployCosmos bool = true
 
 // --------------------------------------------------------------------------------------------------------------
 // Personal info Parameters
@@ -68,12 +75,15 @@ module logAnalyticsWorkspaceModule 'modules/monitor/loganalytics.bicep' = {
 
 // --------------------------------------------------------------------------------
 var cosmosDatabaseName = 'FuncDemoDatabase'
+var gameContainerName = 'Game'
+var userContainerName = 'GameUser' 
+var leaderboardContainerName = 'LeaderboardEntry'
 var cosmosContainerArray = [
-  { name: 'GameUser', partitionKey: '/userId' }
-  { name: 'Game', partitionKey: '/gameId' }
-  { name: 'LeaderboardEntry', partitionKey: '/entryId' }
+  { name: userContainerName, partitionKey: '/userId' }
+  { name: gameContainerName, partitionKey: '/gameId' }
+  { name: leaderboardContainerName, partitionKey: '/entryId' }
 ]
-module cosmosModule 'modules/database/cosmosdb.bicep' = {
+module cosmosModule 'modules/database/cosmosdb.bicep' = if (deployCosmos) {
   name: 'cosmos${deploymentSuffix}'
   params: {
     accountName: resourceNames.outputs.cosmosDatabaseName 
@@ -100,7 +110,7 @@ module appIdentityRoleAssignments './modules/iam/role-assignments.bicep' = if (a
   params: {
     identityPrincipalId: identity.outputs.managedIdentityPrincipalId
     principalType: 'ServicePrincipal'
-    cosmosName: cosmosModule.outputs.name
+    cosmosName: deployCosmos ? cosmosModule.outputs.name : ''
     keyVaultName: keyVaultModule.outputs.name
   }
 }
@@ -110,7 +120,17 @@ module adminUserRoleAssignments './modules/iam/role-assignments.bicep' = if (add
   params: {
     identityPrincipalId: principalId
     principalType: 'User'
-    cosmosName: cosmosModule.outputs.name
+    cosmosName: deployCosmos ? cosmosModule.outputs.name : ''
+    keyVaultName: keyVaultModule.outputs.name
+  }
+}
+
+module functionAppRoleAssignments './modules/iam/role-assignments.bicep' = if (addRoleAssignments) {
+  name: 'function-roles${deploymentSuffix}'
+  params: {
+    identityPrincipalId: functionModule.outputs.functionAppPrincipalId
+    principalType: 'ServicePrincipal'
+    cosmosName: deployCosmos ? cosmosModule.outputs.name : ''
     keyVaultName: keyVaultModule.outputs.name
   }
 }
@@ -150,7 +170,7 @@ module keyVaultSecretAppInsights './modules/security/keyvault-secret.bicep' = {
   }
 }  
 
-module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = {
+module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = if (deployCosmos) {
   name: 'keyVaultSecretCosmos${deploymentSuffix}'
   dependsOn: [ keyVaultModule, cosmosModule ]
   params: {
@@ -161,8 +181,6 @@ module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = 
     existingSecretNames: deduplicateKeyVaultSecrets ? keyVaultSecretList!.outputs.secretNameList : ''
   }
 }
-
-
 
 // --------------------------------------------------------------------------------
 module appServicePlanModule './modules/webapp/websiteserviceplan.bicep' = {
@@ -204,15 +222,76 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
     customAppSettings: {
       AppSettings__AppInsights_InstrumentationKey: webSiteModule.outputs.appInsightsKey
       AppSettings__EnvironmentName: environmentCode
-      CosmosDb__ConnectionString: keyVaultSecretCosmos.outputs.connectionStringSecretUri
-      CosmosDb__DatabaseName: 'MathStormDb'
-      CosmosDb__ContainerNames__Users: 'Users'
-      CosmosDb__ContainerNames__Games: 'Games'
-      CosmosDb__ContainerNames__Leaderboard: 'Leaderboard'
+      CosmosDb__ConnectionString: deployCosmos ? keyVaultSecretCosmos.outputs.connectionStringSecretUri : ''
+      CosmosDb__DatabaseName: resourceNames.outputs.cosmosDatabaseName 
+      CosmosDb__ContainerNames__Users: userContainerName
+      CosmosDb__ContainerNames__Games: gameContainerName
+      CosmosDb__ContainerNames__Leaderboard: leaderboardContainerName
+    }
+  }
+}
+
+// --------------------------------------------------------------------------------
+// Function App for API endpoints
+// --------------------------------------------------------------------------------
+module functionStorageModule './modules/storage/storage-account.bicep' = {
+  name: 'functionstorage${deploymentSuffix}'
+  params: {
+    storageSku: storageSku
+    storageAccountName: resourceNames.outputs.functionStorageName
+    location: location
+    commonTags: commonTags
+    allowNetworkAccess: 'Allow'
+    publicNetworkAccess: 'Enabled'
+  }
+}
+
+module functionModule './modules/functions/functionapp.bicep' = {
+  name: 'function${deploymentSuffix}'
+  params: {
+    functionAppName: resourceNames.outputs.functionAppName
+    functionAppServicePlanName: resourceNames.outputs.functionAppServicePlanName
+    functionInsightsName: resourceNames.outputs.functionInsightsName
+    managedIdentityId: identity.outputs.managedIdentityId
+    keyVaultName: keyVaultModule.outputs.name
+
+    appInsightsLocation: location
+    location: location
+    commonTags: commonTags
+
+    functionKind: 'functionapp,linux'
+    functionAppSku: functionAppSku
+    functionAppSkuFamily: functionAppSkuFamily
+    functionAppSkuTier: functionAppSkuTier
+    functionStorageAccountName: functionStorageModule.outputs.name
+    workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
+  }
+}
+
+module functionAppSettingsModule './modules/functions/functionappsettings.bicep' = {
+  name: 'functionAppSettings${deploymentSuffix}'
+  params: {
+    functionAppName: functionModule.outputs.name
+    functionStorageAccountName: functionModule.outputs.storageAccountName
+    functionInsightsKey: functionModule.outputs.insightsKey
+    keyVaultName: keyVaultModule.outputs.name
+    customAppSettings: {
+      OpenApi__HideSwaggerUI: 'false'
+      OpenApi__HideDocument: 'false'
+      OpenApi__DocTitle: 'MathStorm Game APIs'
+      OpenApi__DocDescription: 'This repo is an example of a GitHub Copilot Agent Vibe Coded Game'
+      appInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
+      cosmosDbConnectionString: deployCosmos ? keyVaultSecretCosmos.outputs.connectionStringSecretUri : ''
+      CosmosDb__ConnectionString: deployCosmos ? keyVaultSecretCosmos.outputs.connectionStringSecretUri : ''
+      CosmosDb__DatabaseName: resourceNames.outputs.cosmosDatabaseName 
+      CosmosDb__ContainerNames__Users: userContainerName
+      CosmosDb__ContainerNames__Games: gameContainerName
+      CosmosDb__ContainerNames__Leaderboard: leaderboardContainerName
     }
   }
 }
 
 output SUBSCRIPTION_ID string = subscription().subscriptionId
 output RESOURCE_GROUP_NAME string = resourceGroupName
-output HOST_NAME string = webSiteModule.outputs.hostName
+output WEB_HOST_NAME string = webSiteModule.outputs.hostName
+output FUNCTION_HOST_NAME string = functionModule.outputs.hostname

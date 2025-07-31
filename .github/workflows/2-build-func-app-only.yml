@@ -1,14 +1,33 @@
 # ------------------------------------------------------------------------------------------------------------------------
-# GHA Workflow to scan and build WebApp on Pull Request - no app or bicep deploy
+# GHA Workflow to build and unit test Function App Only - no app or bicep deploy
 # ------------------------------------------------------------------------------------------------------------------------
 # FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
 # ------------------------------------------------------------------------------------------------------------------------
-name: 6.scan.build.pr
-run-name: '6 - Scan & Build PR'
+name: 2.build.func
+run-name: '2 - Build Function by @${{ github.actor }}'
 
-on: 
-  pull_request:
+on:
   workflow_dispatch:
+    inputs:
+      runMSDevSecOpsScan:
+        description: 'Run MS DevSecOps Scan'
+        required: false
+        default: false
+        type: boolean
+      runGHASScan:
+        description: 'Run GitHub Advanced Security Scan'
+        required: false
+        default: false
+        type: boolean
+      logLevel:
+        description: 'Log level'
+        required: false
+        default: 'warning' 
+        type: choice
+        options:
+          - info
+          - warning
+          - debug 
 
 # ------------------------------------------------------------------------------------------------------------------------
 permissions:
@@ -28,24 +47,10 @@ jobs:
     name: Scan Source Code
     uses: ./.github/workflows/template-scan-code.yml
     secrets: inherit
+    if: inputs.runMSDevSecOpsScan || inputs.runGHASScan
     with:
-      runMSDevSecOpsScan: true
-      runGHASScan: true
-
-# ------------------------------------------------------------------------------------------------------------------------
-  build-app:
-    name: Build WebApp
-    uses: ./.github/workflows/template-webapp-build.yml
-    needs: scan-code
-    secrets: inherit
-    with:
-      envCode: 'dev'
-      rootDirectory: '${{ vars.APP_PROJECT_FOLDER_NAME }}'
-      projectName: '${{ vars.APP_PROJECT_NAME }}'
-      testDirectory: '${{ vars.APP_TEST_FOLDER_NAME }}'
-      testProjectName: '${{ vars.APP_TEST_PROJECT_NAME }}'
-      testApplication: true
-      listFilesAfterBuild: true
+      runMSDevSecOpsScan: ${{ inputs.runMSDevSecOpsScan }}
+      runGHASScan: ${{ inputs.runGHASScan }}
 
 # ------------------------------------------------------------------------------------------------------------------------
   build-func:
