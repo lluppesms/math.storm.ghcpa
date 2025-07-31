@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------------------------------------------------
 # FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
 # ------------------------------------------------------------------------------------------------------------------------
-name: 2.build.func
+name: 2.build.function.only
 run-name: '2 - Build Function by @${{ github.actor }}'
 
 on:

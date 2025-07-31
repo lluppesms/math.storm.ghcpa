@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------------------------------------------------
 # FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
 # ------------------------------------------------------------------------------------------------------------------------
-name: 6.scan.build.pr
+name: 6.pr.scan.build
 run-name: '6 - Scan & Build PR'
 
 on: 

@@ -4,7 +4,7 @@
 # You need to set up secrets in the GitHub Secrets Repository before running these workflows.
 #   See Docs\CreateGitHubSecrets\.md for details
 # ------------------------------------------------------------------------------------------------------------------------
-name: 3.build.deploy.func
+name: 3.build.deploy.function
 run-name: '3 - Build & Deploy Function: using ENV ${{ inputs.deployEnvironment }} by @${{ github.actor }}'
 
 on:
