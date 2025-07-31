@@ -147,7 +147,6 @@ module keyVaultModule './modules/security/keyvault.bicep' = {
     publicNetworkAccess: publicAccessEnabled ? 'Enabled' : 'Disabled'
     keyVaultOwnerIpAddress: myIpAddress
     createUserAssignedIdentity: false
-    enablePurgeProtection: false // so I delete this easily during testing
   }
 }
 module keyVaultSecretList './modules/security/keyvault-list-secret-names.bicep' = if (deduplicateKeyVaultSecrets) {
