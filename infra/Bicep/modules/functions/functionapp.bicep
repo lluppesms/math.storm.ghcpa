@@ -96,8 +96,12 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
   location: location
   kind: functionKind
   tags: functionTags
+  // identity: {
+  //   type: 'SystemAssigned'
+  // }
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: { '${managedIdentityId}': {} }
   }
   // identity: {
   //   //disable-next-line BCP036
@@ -324,4 +328,4 @@ output name string = functionAppName
 output insightsName string = functionInsightsName
 output insightsKey string = appInsightsResource.properties.InstrumentationKey
 output storageAccountName string = functionStorageAccountName
-output functionAppPrincipalId string = functionAppResource.identity.principalId
+output functionAppPrincipalId string = managedIdentityId // functionAppResource.identity.principalId
