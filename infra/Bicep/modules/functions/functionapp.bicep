@@ -97,11 +97,14 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
   kind: functionKind
   tags: functionTags
   identity: {
-    //disable-next-line BCP036
-    type: 'SystemAssigned, UserAssigned'
-    //disable-next-line BCP036
-    userAssignedIdentities: { '${managedIdentityId}': {} }
+    type: 'SystemAssigned'
   }
+  // identity: {
+  //   //disable-next-line BCP036
+  //   type: 'SystemAssigned, UserAssigned'
+  //   //disable-next-line BCP036
+  //   userAssignedIdentities: { '${managedIdentityId}': {} }
+  // }
   properties: {
     enabled: true
     serverFarmId: appServiceResource.id
@@ -321,3 +324,4 @@ output name string = functionAppName
 output insightsName string = functionInsightsName
 output insightsKey string = appInsightsResource.properties.InstrumentationKey
 output storageAccountName string = functionStorageAccountName
+output functionAppPrincipalId string = functionAppResource.identity.principalId

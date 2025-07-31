@@ -123,7 +123,7 @@ module adminUserRoleAssignments './modules/iam/role-assignments.bicep' = if (add
 module functionAppRoleAssignments './modules/iam/role-assignments.bicep' = if (addRoleAssignments) {
   name: 'function-roles${deploymentSuffix}'
   params: {
-    identityPrincipalId: functionAppModule.outputs.functionAppPrincipalId
+    identityPrincipalId: functionModule.outputs.functionAppPrincipalId
     principalType: 'ServicePrincipal'
     cosmosName: cosmosModule.outputs.name
     keyVaultName: keyVaultModule.outputs.name
