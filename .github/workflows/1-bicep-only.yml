@@ -29,6 +29,10 @@ on:
         description: Run Security Scan
         type: boolean
         default: false
+      deployCosmos:
+        description: Deploy Cosmos DB
+        type: boolean
+        default: true
 
 # ------------------------------------------------------------------------------------------------------------------------
 permissions:
@@ -67,3 +71,4 @@ jobs:
       requestorName: ${{ github.actor }}
       createResourceGroup: ${{ inputs.createResourceGroup }}
       bicepDeploymentMode: ${{ inputs.bicepDeploymentMode }}
+      deployCosmos: ${{ inputs.deployCosmos }}
