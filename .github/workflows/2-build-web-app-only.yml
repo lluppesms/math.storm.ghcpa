@@ -52,7 +52,7 @@ jobs:
       runGHASScan: ${{ inputs.runGHASScan }}
 
 # ------------------------------------------------------------------------------------------------------------------------
-  build-app:
+  build-webapp:
     name: Build WebApp
     uses: ./.github/workflows/template-webapp-build.yml
     secrets: inherit
