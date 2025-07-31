@@ -14,8 +14,8 @@ param servicePlanName string = ''
 param webAppKind string = 'linux' // 'linux' or 'windows'
 
 param storageSku string = 'Standard_LRS'
-param functionAppSku string = 'Y1'
-param functionAppSkuFamily string = 'Y'
+param functionAppSku string = 'B1'
+param functionAppSkuFamily string = 'B'
 param functionAppSkuTier string = 'Dynamic'
 
 // --------------------------------------------------------------------------------------------------------------

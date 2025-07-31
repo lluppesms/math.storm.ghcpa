@@ -13,6 +13,6 @@ pipeline:
 
 services:
   web:
-    project: ./src/mathstorm/mathstorm.Web/
+    project: ./src/web/mathstorm.Web/
     language: csharp
     host: appservice

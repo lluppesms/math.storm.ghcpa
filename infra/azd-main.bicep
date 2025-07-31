@@ -11,11 +11,6 @@ param name string
 param location string
 param runDateTime string = utcNow()
 
-// CUSTOM PARAMETERS: ---------------------------------------------------------------------------------
-param adDomain string = ''
-param adTenantId string = ''
-param adClientId string = ''
-
 // --------------------------------------------------------------------------------
 targetScope = 'subscription'
 
@@ -38,11 +33,8 @@ module resources './Bicep/main.bicep' = {
     name: 'resources-${deploymentSuffix}'
     scope: resourceGroup
     params: {
-        location: location
         appName: name
         environmentCode: 'azd'
-        adDomain: adDomain
-        adTenantId: adTenantId
-        adClientId: adClientId
+        location: location
     }
 }

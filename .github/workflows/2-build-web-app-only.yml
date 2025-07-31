@@ -4,7 +4,7 @@
 # FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
 # ------------------------------------------------------------------------------------------------------------------------
 name: 2.build.app.only
-run-name: '2 - Build App by @${{ github.actor }}'
+run-name: '2 - Build WebApp by @${{ github.actor }}'
 
 on:
   workflow_dispatch:
