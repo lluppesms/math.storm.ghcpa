@@ -1,0 +1,96 @@
+@rendermode InteractiveServer
+
+<div class="modal @(IsVisible ? "d-block" : "d-none")" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">🎉 Game Complete!</h5>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Great job! Your total score is <strong>@TotalScore.ToString("F1")</strong>.</p>
+                <p class="mb-3">Would you like to save your score to the leaderboard?</p>
+                
+                <div class="mb-3">
+                    <label for="username" class="form-label">Enter your username:</label>
+                    <input type="text" class="form-control" id="username" @bind="username" 
+                           @onkeypress="@(async (e) => { if (e.Key == "Enter") await SaveScore(); })"
+                           placeholder="Your username" maxlength="20" />
+                </div>
+                
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @errorMessage
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Skip">
+                    <i class="fas fa-times"></i> Skip
+                </button>
+                <button type="button" class="btn btn-primary" @onclick="SaveScore" disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    <i class="fas fa-save"></i> Save Score
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public double TotalScore { get; set; }
+    [Parameter] public EventCallback<string> OnSave { get; set; }
+    [Parameter] public EventCallback OnSkip { get; set; }
+
+    private string username = string.Empty;
+    private string errorMessage = string.Empty;
+    private bool isSaving = false;
+
+    private async Task SaveScore()
+    {
+        errorMessage = string.Empty;
+        
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            errorMessage = "Please enter a username.";
+            return;
+        }
+        
+        if (username.Length < 2)
+        {
+            errorMessage = "Username must be at least 2 characters long.";
+            return;
+        }
+        
+        if (username.Length > 20)
+        {
+            errorMessage = "Username must be 20 characters or less.";
+            return;
+        }
+
+        isSaving = true;
+        StateHasChanged();
+        
+        try
+        {
+            await OnSave.InvokeAsync(username.Trim());
+        }
+        finally
+        {
+            isSaving = false;
+            username = string.Empty;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Skip()
+    {
+        username = string.Empty;
+        errorMessage = string.Empty;
+        await OnSkip.InvokeAsync();
+    }
+}

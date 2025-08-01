@@ -1,0 +1,149 @@
+@rendermode InteractiveServer
+@using MathStorm.Web.Models
+
+@if (LeaderboardEntries != null && LeaderboardEntries.Any())
+{
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5><i class="fas fa-globe text-primary"></i> Global Leaderboard - All Levels</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="text-center">Rank</th>
+                            <th>Username</th>
+                            <th class="text-center">Level</th>
+                            <th class="text-end">Score</th>
+                            <th class="text-end">Achieved</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var entry in LeaderboardEntries)
+                        {
+                            <tr class="@GetRowClass(entry)" id="global-leaderboard-row-@entry.Rank">
+                                <td class="text-center">
+                                    @if (entry.Rank <= 3)
+                                    {
+                                        <span class="@GetRankBadgeClass(entry.Rank)">
+                                            @GetRankIcon(entry.Rank) @entry.Rank
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@entry.Rank</span>
+                                    }
+                                </td>
+                                <td>
+                                    <strong>@entry.Username</strong>
+                                    @if (IsCurrentUserEntry(entry))
+                                    {
+                                        <span class="badge bg-success ms-2">You!</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge @GetDifficultyBadgeClass(entry.Difficulty)">
+                                        @GetDifficultyIcon(entry.Difficulty) @entry.Difficulty
+                                    </span>
+                                </td>
+                                <td class="text-end">@entry.Score.ToString("F1")</td>
+                                <td class="text-end">@entry.AchievedAt.ToString("MMM dd, yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            @if (UserMadeLeaderboard)
+            {
+                <div class="alert alert-success text-center mt-3">
+                    <h6><i class="fas fa-star"></i> Congratulations!</h6>
+                    <p class="mb-0">You made it to the global leaderboard! 🎉</p>
+                </div>
+            }
+            
+            <div class="row mt-3">
+                <div class="col-md-12 text-center">
+                    <p class="text-muted small">
+                        <i class="fas fa-info-circle"></i> 
+                        The global leaderboard shows the top scores from all difficulty levels combined
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5><i class="fas fa-globe text-primary"></i> Global Leaderboard - All Levels</h5>
+        </div>
+        <div class="card-body text-center">
+            <p class="text-muted">No scores recorded yet. Be the first to make the global leaderboard!</p>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<LeaderboardEntry>? LeaderboardEntries { get; set; }
+    [Parameter] public string? CurrentUserId { get; set; }
+    [Parameter] public bool UserMadeLeaderboard { get; set; }
+
+    private string GetRowClass(LeaderboardEntry entry)
+    {
+        return IsCurrentUserEntry(entry) ? "user-entry" : "";
+    }
+
+    private bool IsCurrentUserEntry(LeaderboardEntry entry)
+    {
+        return !string.IsNullOrEmpty(CurrentUserId) && entry.UserId == CurrentUserId;
+    }
+
+    private string GetRankBadgeClass(int rank)
+    {
+        return rank switch
+        {
+            1 => "badge bg-warning text-dark",
+            2 => "badge bg-secondary",
+            3 => "badge bg-dark",
+            _ => "badge bg-secondary"
+        };
+    }
+
+    private string GetRankIcon(int rank)
+    {
+        return rank switch
+        {
+            1 => "🥇",
+            2 => "🥈", 
+            3 => "🥉",
+            _ => ""
+        };
+    }
+
+    private string GetDifficultyBadgeClass(string difficulty)
+    {
+        return difficulty switch
+        {
+            "Beginner" => "bg-success",
+            "Novice" => "bg-info",
+            "Intermediate" => "bg-warning text-dark",
+            "Expert" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetDifficultyIcon(string difficulty)
+    {
+        return difficulty switch
+        {
+            "Beginner" => "🌱",
+            "Novice" => "🚀",
+            "Intermediate" => "⚡",
+            "Expert" => "🔥",
+            _ => ""
+        };
+    }
+}

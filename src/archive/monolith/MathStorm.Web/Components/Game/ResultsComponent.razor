@@ -1,0 +1,261 @@
+@rendermode InteractiveServer
+@inject ICosmosDbService CosmosDbService
+@using MathStorm.Web.Components.Game
+
+<div class="row">
+    <div class="col">
+        <div class="text-center mb-4">
+            <h2><i class="fas fa-trophy"></i> Game Complete!</h2>
+            <h4 class="text-primary">Total Score: @GameSession.TotalScore.ToString("F1")</h4>
+            <p class="text-muted">Lower scores are better! (Error% × Time + Time × 10)</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line"></i> Detailed Results</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Question</th>
+                                <th class="text-end">Your Answer</th>
+                                <th class="text-end">Correct Answer</th>
+                                <th class="text-end">Error %</th>
+                                <th class="text-end">Time (s)</th>
+                                <th class="text-end">Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var question in GameSession.Questions)
+                            {
+                                <tr class="@GetRowClass(question)">
+                                    <td><span class="me-2 @GetOperationColorClass(question.Operation)">@GetOperationSymbol(question.Operation)</span>@question.QuestionText</td>
+                                    <td class="text-end">@(question.UserAnswer.HasValue ? FormatAnswer(question.UserAnswer.Value, question.Operation) : "N/A")</td>
+                                    <td class="text-end">@FormatAnswer(question.CorrectAnswer, question.Operation)</td>
+                                    <td class="text-end">
+                                        <span class="badge @GetErrorBadgeClass(question.PercentageDifference)">
+                                            @question.PercentageDifference.ToString("F1")%
+                                        </span>
+                                    </td>
+                                    <td class="text-end">@question.TimeInSeconds.ToString("F1")</td>
+                                    <td class="text-end">@question.Score.ToString("F1")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-dark">
+                            <tr>
+                                <td colspan="5"><strong>Total Score:</strong></td>
+                                <td class="text-end"><strong>@GameSession.TotalScore.ToString("F1")</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @if (showLeaderboard)
+        {
+            <LeaderboardComponent LeaderboardEntries="@leaderboardEntries" 
+                                  Difficulty="@GameSession.Difficulty.ToString()" 
+                                  CurrentUserId="@currentUserId"
+                                  UserMadeLeaderboard="@userMadeLeaderboard" />
+        }
+
+        <div class="text-center mt-4">
+            <button class="btn btn-primary btn-lg" @onclick="RestartGame">
+                <i class="fas fa-redo"></i> Play Again
+            </button>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6><i class="fas fa-info-circle"></i> Scoring Information</h6>
+                <ul class="list-unstyled mb-0">
+                    <li><i class="fas fa-check text-success"></i> <strong>Perfect answers (0% error):</strong> Score = Time × 10</li>
+                    <li><i class="fas fa-exclamation text-warning"></i> <strong>Close answers (1-10% error):</strong> Low accuracy penalty</li>
+                    <li><i class="fas fa-times text-danger"></i> <strong>Incorrect answers (>10% error):</strong> High accuracy penalty</li>
+                    <li><i class="fas fa-clock text-info"></i> <strong>Speed matters:</strong> Faster answers get lower scores</li>
+                    <li><i class="fas fa-calculator text-primary"></i> <strong>Formula:</strong> (Error% × Time) + (Time × 10)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<UsernamePromptComponent IsVisible="@showUsernamePrompt" 
+                         TotalScore="@GameSession.TotalScore" 
+                         OnSave="@HandleSaveScore" 
+                         OnSkip="@HandleSkipSave" />
+
+@code {
+    [Parameter] public GameSession GameSession { get; set; } = new();
+    [Parameter] public EventCallback OnRestartGame { get; set; }
+
+    private bool showUsernamePrompt = true;
+    private bool showLeaderboard = false;
+    private List<LeaderboardEntry>? leaderboardEntries;
+    private string? currentUserId;
+    private bool userMadeLeaderboard = false;
+
+    protected override void OnInitialized()
+    {
+        // Show username prompt initially
+        showUsernamePrompt = true;
+    }
+
+    private async Task RestartGame()
+    {
+        await OnRestartGame.InvokeAsync();
+    }
+
+    private async Task HandleSaveScore(string username)
+    {
+        try
+        {
+            showUsernamePrompt = false;
+            StateHasChanged();
+
+            // Get or create user
+            var user = await CosmosDbService.GetUserByUsernameAsync(username);
+            if (user == null)
+            {
+                user = await CosmosDbService.CreateUserAsync(username);
+            }
+
+            // Update user stats
+            user.TotalGamesPlayed++;
+            var difficultyKey = GameSession.Difficulty.ToString();
+            if (!user.BestScores.ContainsKey(difficultyKey) || GameSession.TotalScore < user.BestScores[difficultyKey])
+            {
+                user.BestScores[difficultyKey] = GameSession.TotalScore;
+            }
+            await CosmosDbService.UpdateUserAsync(user);
+
+            // Create game record
+            var game = new Models.Game
+            {
+                UserId = user.Id,
+                Username = user.Username,
+                Difficulty = difficultyKey,
+                TotalScore = GameSession.TotalScore,
+                CompletedAt = DateTime.UtcNow,
+                Questions = GameSession.Questions.Select(q => new GameQuestion
+                {
+                    Id = q.Id,
+                    Number1 = q.Number1,
+                    Number2 = q.Number2,
+                    Operation = q.Operation.ToString(),
+                    CorrectAnswer = q.CorrectAnswer,
+                    UserAnswer = q.UserAnswer,
+                    TimeInSeconds = q.TimeInSeconds,
+                    PercentageDifference = q.PercentageDifference,
+                    Score = q.Score
+                }).ToList()
+            };
+            await CosmosDbService.CreateGameAsync(game);
+
+            // Try to add to leaderboard
+            var leaderboardEntry = await CosmosDbService.AddToLeaderboardAsync(
+                user.Id, user.Username, game.Id, difficultyKey, GameSession.TotalScore);
+
+            currentUserId = user.Id;
+            userMadeLeaderboard = leaderboardEntry != null;
+
+            // Get updated leaderboard
+            leaderboardEntries = await CosmosDbService.GetLeaderboardAsync(difficultyKey);
+            showLeaderboard = true;
+            StateHasChanged();
+        }
+        catch (Exception)
+        {
+            // Handle error - for now just show leaderboard without user's score
+            await HandleSkipSave();
+        }
+    }
+
+    private async Task HandleSkipSave()
+    {
+        showUsernamePrompt = false;
+        
+        // Still show leaderboard even if user skipped
+        try
+        {
+            var difficultyKey = GameSession.Difficulty.ToString();
+            leaderboardEntries = await CosmosDbService.GetLeaderboardAsync(difficultyKey);
+            showLeaderboard = true;
+        }
+        catch
+        {
+            // If we can't load leaderboard, just don't show it
+        }
+        
+        StateHasChanged();
+    }
+
+    private string GetRowClass(MathQuestion question)
+    {
+        return question.PercentageDifference switch
+        {
+            0 => "table-success",
+            <= 10 => "table-warning",
+            _ => "table-danger"
+        };
+    }
+
+    private string GetErrorBadgeClass(double errorPercentage)
+    {
+        return errorPercentage switch
+        {
+            0 => "bg-success",
+            <= 10 => "bg-warning",
+            _ => "bg-danger"
+        };
+    }
+
+    private string GetOperationColorClass(MathOperation operation)
+    {
+        return operation switch
+        {
+            MathOperation.Addition => "text-primary",
+            MathOperation.Subtraction => "text-warning", 
+            MathOperation.Multiplication => "text-success",
+            MathOperation.Division => "text-info",
+            _ => "text-muted"
+        };
+    }
+
+    private string GetOperationIcon(MathOperation operation)
+    {
+        return operation switch
+        {
+            MathOperation.Addition => "fas fa-plus text-primary",
+            MathOperation.Subtraction => "fas fa-minus text-warning", 
+            MathOperation.Multiplication => "fas fa-times text-success",
+            MathOperation.Division => "fas fa-divide text-info",
+            _ => "fas fa-question text-muted"
+        };
+    }
+
+    private string GetOperationSymbol(MathOperation operation)
+    {
+        return operation switch
+        {
+            MathOperation.Addition => "➕",
+            MathOperation.Subtraction => "➖", 
+            MathOperation.Multiplication => "✖️",
+            MathOperation.Division => "➗",
+            _ => "❓"
+        };
+    }
+
+    private string FormatAnswer(double answer, MathOperation operation)
+    {
+        return operation switch
+        {
+            MathOperation.Division => answer.ToString("F1"),
+            _ => answer.ToString("F0")
+        };
+    }
+}
