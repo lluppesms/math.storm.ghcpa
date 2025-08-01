@@ -227,6 +227,7 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
       AppSettings__AppInsights_InstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
       AppSettings__EnvironmentName: environmentCode
       FunctionService__BaseUrl: 'https://${functionModule.outputs.hostname}/api'
+      ConnectionStrings__ApplicationInsights: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
     }
   }
 }
