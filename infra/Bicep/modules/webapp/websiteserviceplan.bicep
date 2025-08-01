@@ -15,7 +15,7 @@ param webAppKind string = 'linux'  // 'linux' or 'windows'
 
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~website.bicep'}
-var azdTag = environmentCode == 'azd' ? { 'azd-service-name': 'web' } : {}
+var azdTag = environmentCode == 'azd' ? { 'azd-service-name': 'web-plan' } : {}
 var tags = union(commonTags, templateTag, azdTag)
 
 // --------------------------------------------------------------------------------

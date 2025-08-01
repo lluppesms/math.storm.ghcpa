@@ -50,10 +50,11 @@ permissions:
   contents: write
   actions: read
   pages: write
+  security-events: write
+  checks: write
   issues: read
   pull-requests: read
-  security-events: write # needed for security scan to write to logs
-  checks: write  # needed to write test results back to the run
+  packages: read
 
 # ------------------------------------------------------------------------------------------------------------------------
 jobs:
