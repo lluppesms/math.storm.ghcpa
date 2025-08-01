@@ -3,7 +3,6 @@
 // --------------------------------------------------------------------------------
 param webSiteName string = ''
 param location string = resourceGroup().location
-param appInsightsLocation string = resourceGroup().location
 param environmentCode string = 'dev'
 param commonTags object = {}
 
@@ -14,29 +13,15 @@ param workspaceId string = ''
 param appServicePlanName string
 param webAppKind string = 'linux' //  'linux' or 'windows'  (needs to be windows to use my shared app plan right now...)
 
+@description('Shared Application Insights instrumentation key')
+param sharedAppInsightsInstrumentationKey string
+
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~website.bicep'}
 var azdTag = environmentCode == 'azd' ? { 'azd-service-name': 'web' } : {}
-var tags = union(commonTags, templateTag)
 var webSiteTags = union(commonTags, templateTag, azdTag)
 
 // --------------------------------------------------------------------------------
-var appInsightsName = toLower('${webSiteName}-insights')
-
-// --------------------------------------------------------------------------------
-resource appInsightsResource 'Microsoft.Insights/components@2020-02-02' = {
-  name: appInsightsName
-  location: appInsightsLocation
-  tags: tags
-  kind: 'web'
-  properties: {
-    Application_Type: 'web'
-    Request_Source: 'rest'
-    publicNetworkAccessForIngestion: 'Enabled'
-    publicNetworkAccessForQuery: 'Enabled'
-    WorkspaceResourceId: workspaceId
-  }
-}
 
 resource appServiceResource 'Microsoft.Web/serverfarms@2023-01-01' existing = {
   name: appServicePlanName
@@ -63,11 +48,11 @@ resource webSiteResource 'Microsoft.Web/sites@2023-01-01' = {
       appSettings: [
         { 
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appInsightsResource.properties.InstrumentationKey 
+          value: sharedAppInsightsInstrumentationKey 
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: 'InstrumentationKey=${appInsightsResource.properties.InstrumentationKey}'
+          value: 'InstrumentationKey=${sharedAppInsightsInstrumentationKey}'
         }
       ]
     }
@@ -171,7 +156,5 @@ resource appServiceMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05-
 output principalId string = webSiteResource.identity.principalId
 output name string = webSiteName
 output hostName string = webSiteResource.properties.defaultHostName
-output appInsightsName string = appInsightsName
-output appInsightsKey string = appInsightsResource.properties.InstrumentationKey
 // Note: This will give you a warning saying it's not right, but it will contain the right value!
 // output ipAddress string = webSiteResource.properties.inboundIpAddress 

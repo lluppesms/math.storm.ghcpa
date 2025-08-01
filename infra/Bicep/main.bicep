@@ -198,12 +198,12 @@ module webSiteModule './modules/webapp/website.bicep' = {
   params: {
     webSiteName: resourceNames.outputs.webSiteName
     location: location
-    appInsightsLocation: location
     commonTags: commonTags
     environmentCode: environmentCode
     webAppKind: webAppKind
     workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
     appServicePlanName: appServicePlanModule.outputs.name
+    sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
   }
 }
 
@@ -215,9 +215,9 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
   name: 'webSiteAppSettings${deploymentSuffix}'
   params: {
     webAppName: webSiteModule.outputs.name
-    appInsightsKey: webSiteModule.outputs.appInsightsKey
+    appInsightsKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
     customAppSettings: {
-      AppSettings__AppInsights_InstrumentationKey: webSiteModule.outputs.appInsightsKey
+      AppSettings__AppInsights_InstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
       AppSettings__EnvironmentName: environmentCode
       CosmosDb__ConnectionString: deployCosmos ? keyVaultSecretCosmos.outputs.connectionStringSecretUri : ''
       CosmosDb__DatabaseName: resourceNames.outputs.cosmosDatabaseName 
