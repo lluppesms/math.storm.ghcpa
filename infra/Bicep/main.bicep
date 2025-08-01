@@ -14,9 +14,6 @@ param servicePlanName string = ''
 param webAppKind string = 'linux' // 'linux' or 'windows'
 
 param storageSku string = 'Standard_LRS'
-param functionAppSku string = 'B1'
-param functionAppSkuFamily string = 'B'
-param functionAppSkuTier string = 'Dynamic'
 
 // --------------------------------------------------------------------------------------------------------------
 // Run Settings Parameters
@@ -250,20 +247,17 @@ module functionModule './modules/functions/functionapp.bicep' = {
   name: 'function${deploymentSuffix}'
   params: {
     functionAppName: resourceNames.outputs.functionAppName
-    functionAppServicePlanName: resourceNames.outputs.functionAppServicePlanName
-    functionInsightsName: resourceNames.outputs.functionInsightsName
+    sharedAppServicePlanName: appServicePlanModule.outputs.name
+    sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
+    sharedAppInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
     managedIdentityId: identity.outputs.managedIdentityId
     managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
     keyVaultName: keyVaultModule.outputs.name
 
-    appInsightsLocation: location
     location: location
     commonTags: commonTags
 
     functionKind: 'functionapp,linux'
-    functionAppSku: functionAppSku
-    functionAppSkuFamily: functionAppSkuFamily
-    functionAppSkuTier: functionAppSkuTier
     functionStorageAccountName: functionStorageModule.outputs.name
     workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
   }
@@ -274,7 +268,7 @@ module functionAppSettingsModule './modules/functions/functionappsettings.bicep'
   params: {
     functionAppName: functionModule.outputs.name
     functionStorageAccountName: functionModule.outputs.storageAccountName
-    functionInsightsKey: functionModule.outputs.insightsKey
+    functionInsightsKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
     keyVaultName: keyVaultModule.outputs.name
     customAppSettings: {
       OpenApi__HideSwaggerUI: 'false'

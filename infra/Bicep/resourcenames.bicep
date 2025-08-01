@@ -25,8 +25,6 @@ output webSiteAppInsightsName string     = '${webSiteName}-${resourceAbbreviatio
 
 var functionAppName = environmentSpecificFunctionName == '' ? environmentCode == 'azd' ? '${lowerAppName}function' : toLower('${lowerAppName}-func-${sanitizedEnvironment}') : environmentSpecificFunctionName
 output functionAppName string            = functionAppName
-output functionAppServicePlanName string = '${functionAppName}-${resourceAbbreviations.webServerFarms}'
-output functionInsightsName string       = '${functionAppName}-${resourceAbbreviations.insightsComponents}'
 
 output logAnalyticsWorkspaceName string  = toLower('${sanitizedAppNameWithDashes}-${sanitizedEnvironment}-${resourceAbbreviations.operationalInsightsWorkspaces}')
 output cosmosDatabaseName string         = toLower('${sanitizedAppName}-${resourceAbbreviations.documentDBDatabaseAccounts}-${sanitizedEnvironment}')
