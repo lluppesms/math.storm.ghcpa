@@ -77,8 +77,8 @@ jobs:
       envCode: ${{ inputs.deployEnvironment }}
       rootDirectory: 'src/archive/monolith/MathStorm.Web'
       projectName: 'MathStorm.Web'
-      testDirectory: 'src/archive/monolith/MathStorm.Web.Tests'
-      testProjectName: 'MathStorm.Web.Tests'
+      testDirectory: 'src/archive/monolith/MathStorm.Tests'
+      testProjectName: 'MathStorm.Tests'
       # rootDirectory: '${{ vars.APP_PROJECT_FOLDER_NAME }}'
       # projectName: '${{ vars.APP_PROJECT_NAME }}'
       # testDirectory: '${{ vars.APP_TEST_FOLDER_NAME }}'
