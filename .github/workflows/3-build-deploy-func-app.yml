@@ -1,8 +1,7 @@
 # ------------------------------------------------------------------------------------------------------------------------
 # GHA Workflow to deploy Function App Only
 # ------------------------------------------------------------------------------------------------------------------------
-# You need to set up secrets in the GitHub Secrets Repository before running these workflows.
-#   See Docs\CreateGitHubSecrets\.md for details
+# FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
 # ------------------------------------------------------------------------------------------------------------------------
 name: 3.build.deploy.function
 run-name: '3 - Build & Deploy Function: using ENV ${{ inputs.deployEnvironment }} by @${{ github.actor }}'
@@ -46,10 +45,11 @@ permissions:
   contents: write
   actions: read
   pages: write
+  security-events: write
+  checks: write
   issues: read
   pull-requests: read
-  security-events: write # needed for security scan to write to logs
-  checks: write  # needed to write test results back to the run
+  packages: read
 
 # ------------------------------------------------------------------------------------------------------------------------
 jobs:
