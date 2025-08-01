@@ -7,6 +7,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Add OpenTelemetry and Application Insights
+var connectionString = builder.Configuration.GetConnectionString("ApplicationInsights");
+if (!string.IsNullOrEmpty(connectionString))
+{
+    // Add Application Insights for telemetry collection
+    builder.Services.AddApplicationInsightsTelemetry(options =>
+    {
+        options.ConnectionString = connectionString;
+    });
+}
+
 // Read base URL from configuration
 var baseUrl = builder.Configuration.GetValue<string>("FunctionService:BaseUrl");
 // Add the HttpClient instance to the service container
