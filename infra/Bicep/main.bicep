@@ -226,11 +226,7 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
     customAppSettings: {
       AppSettings__AppInsights_InstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
       AppSettings__EnvironmentName: environmentCode
-      CosmosDb__ConnectionString: deployCosmos ? keyVaultSecretCosmos.outputs.connectionStringSecretUri : ''
-      CosmosDb__DatabaseName: resourceNames.outputs.cosmosDatabaseName 
-      CosmosDb__ContainerNames__Users: userContainerName
-      CosmosDb__ContainerNames__Games: gameContainerName
-      CosmosDb__ContainerNames__Leaderboard: leaderboardContainerName
+      FunctionService__BaseUrl: 'https://${functionModule.outputs.hostname}/api'
     }
   }
 }
