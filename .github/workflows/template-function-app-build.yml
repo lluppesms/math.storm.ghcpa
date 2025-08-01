@@ -60,6 +60,9 @@ jobs:
 
     # ------------------------------------------------------------------------------------------------------------------------
     steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
     - name: Display Variables and Files
       run: |-
         echo "rootDirectory=${{ inputs.rootDirectory }}"
@@ -81,9 +84,6 @@ jobs:
         tree -R ${{ github.workspace  }}
         echo "##[endgroup]"
       continue-on-error: true
-
-    - name: Checkout Code
-      uses: actions/checkout@v3
 
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
