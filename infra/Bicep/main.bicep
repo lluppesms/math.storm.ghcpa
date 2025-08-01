@@ -109,6 +109,7 @@ module appIdentityRoleAssignments './modules/iam/role-assignments.bicep' = if (a
     principalType: 'ServicePrincipal'
     cosmosName: deployCosmos ? cosmosModule.outputs.name : ''
     keyVaultName: keyVaultModule.outputs.name
+    storageAccountName: functionStorageModule.outputs.name
   }
 }
 
@@ -119,18 +120,20 @@ module adminUserRoleAssignments './modules/iam/role-assignments.bicep' = if (add
     principalType: 'User'
     cosmosName: deployCosmos ? cosmosModule.outputs.name : ''
     keyVaultName: keyVaultModule.outputs.name
+    storageAccountName: functionStorageModule.outputs.name
   }
 }
 
-module functionAppRoleAssignments './modules/iam/role-assignments.bicep' = if (addRoleAssignments) {
-  name: 'function-roles${deploymentSuffix}'
-  params: {
-    identityPrincipalId: functionModule.outputs.functionAppPrincipalId
-    principalType: 'ServicePrincipal'
-    cosmosName: deployCosmos ? cosmosModule.outputs.name : ''
-    keyVaultName: keyVaultModule.outputs.name
-  }
-}
+// module functionAppRoleAssignments './modules/iam/role-assignments.bicep' = if (addRoleAssignments) {
+//   name: 'function-roles${deploymentSuffix}'
+//   params: {
+//     identityPrincipalId: functionModule.outputs.functionAppPrincipalId
+//     principalType: 'ServicePrincipal'
+//     cosmosName: deployCosmos ? cosmosModule.outputs.name : ''
+//     keyVaultName: keyVaultModule.outputs.name
+//     storageAccountName: functionStorageModule.outputs.name
+//   }
+// }
 
 // --------------------------------------------------------------------------------
 module keyVaultModule './modules/security/keyvault.bicep' = {
@@ -140,7 +143,7 @@ module keyVaultModule './modules/security/keyvault.bicep' = {
     commonTags: commonTags
     keyVaultName: resourceNames.outputs.keyVaultName
     keyVaultOwnerUserId: principalId
-    adminUserObjectIds: [identity.outputs.managedIdentityPrincipalId, webSiteModule.outputs.principalId]
+    adminUserObjectIds: [ identity.outputs.managedIdentityPrincipalId ]
     publicNetworkAccess: publicAccessEnabled ? 'Enabled' : 'Disabled'
     keyVaultOwnerIpAddress: myIpAddress
     createUserAssignedIdentity: false
@@ -155,10 +158,9 @@ module keyVaultSecretList './modules/security/keyvault-list-secret-names.bicep' 
   }
 }
 
-
 module keyVaultSecretAppInsights './modules/security/keyvault-secret.bicep' = {
   name: 'keyVaultSecretAppInsights${deploymentSuffix}'
-  dependsOn: [ keyVaultModule, webSiteModule ]
+  dependsOn: [ keyVaultModule, logAnalyticsWorkspaceModule, webSiteModule, functionModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
     secretName: 'appInsightsInstrumentationKey'
@@ -169,7 +171,7 @@ module keyVaultSecretAppInsights './modules/security/keyvault-secret.bicep' = {
 
 module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = if (deployCosmos) {
   name: 'keyVaultSecretCosmos${deploymentSuffix}'
-  dependsOn: [ keyVaultModule, cosmosModule ]
+  dependsOn: [ keyVaultModule, cosmosModule, webSiteModule, functionModule  ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
     accountKeySecretName: 'cosmosAccountKey'
@@ -179,6 +181,8 @@ module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = 
   }
 }
 
+// --------------------------------------------------------------------------------
+// Service Plan SHARED by webapp and function app
 // --------------------------------------------------------------------------------
 module appServicePlanModule './modules/webapp/websiteserviceplan.bicep' = {
   name: 'appService${deploymentSuffix}'
@@ -193,6 +197,7 @@ module appServicePlanModule './modules/webapp/websiteserviceplan.bicep' = {
   }
 }
 
+// --------------------------------------------------------------------------------
 module webSiteModule './modules/webapp/website.bicep' = {
   name: 'webSite${deploymentSuffix}'
   params: {
@@ -204,6 +209,8 @@ module webSiteModule './modules/webapp/website.bicep' = {
     workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
     appServicePlanName: appServicePlanModule.outputs.name
     sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
+    managedIdentityId: identity.outputs.managedIdentityId
+    managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
   }
 }
 
@@ -238,8 +245,8 @@ module functionStorageModule './modules/storage/storage-account.bicep' = {
     storageAccountName: resourceNames.outputs.functionStorageName
     location: location
     commonTags: commonTags
-    allowNetworkAccess: 'Allow'
-    publicNetworkAccess: 'Enabled'
+    allowNetworkAccess: 'Deny'
+    publicNetworkAccess: 'Disabled'
   }
 }
 
@@ -276,7 +283,6 @@ module functionAppSettingsModule './modules/functions/functionappsettings.bicep'
       OpenApi__DocTitle: 'MathStorm Game APIs'
       OpenApi__DocDescription: 'This repo is an example of a GitHub Copilot Agent Vibe Coded Game'
       appInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
-      cosmosDbConnectionString: deployCosmos ? keyVaultSecretCosmos.outputs.connectionStringSecretUri : ''
       CosmosDb__ConnectionString: deployCosmos ? keyVaultSecretCosmos.outputs.connectionStringSecretUri : ''
       CosmosDb__DatabaseName: resourceNames.outputs.cosmosDatabaseName 
       CosmosDb__ContainerNames__Users: userContainerName
@@ -286,6 +292,7 @@ module functionAppSettingsModule './modules/functions/functionappsettings.bicep'
   }
 }
 
+// --------------------------------------------------------------------------------
 output SUBSCRIPTION_ID string = subscription().subscriptionId
 output RESOURCE_GROUP_NAME string = resourceGroupName
 output WEB_HOST_NAME string = webSiteModule.outputs.hostName

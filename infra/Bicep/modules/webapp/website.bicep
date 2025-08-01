@@ -16,6 +16,9 @@ param webAppKind string = 'linux' //  'linux' or 'windows'  (needs to be windows
 @description('Shared Application Insights instrumentation key')
 param sharedAppInsightsInstrumentationKey string
 
+param managedIdentityId string
+param managedIdentityPrincipalId string
+
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~website.bicep'}
 var azdTag = environmentCode == 'azd' ? { 'azd-service-name': 'web' } : {}
@@ -32,8 +35,12 @@ resource webSiteResource 'Microsoft.Web/sites@2023-01-01' = {
   location: location
   kind: 'app'
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: { '${managedIdentityId}': {} }
   }
+  // identity: {
+  //   type: 'SystemAssigned'
+  // }
   tags: webSiteTags
   properties: {
     serverFarmId: appServiceResource.id
@@ -153,8 +160,9 @@ resource appServiceMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05-
     ]
   }
 }
-output principalId string = webSiteResource.identity.principalId
+//output principalId string = webSiteResource.identity.principalId
 output name string = webSiteName
 output hostName string = webSiteResource.properties.defaultHostName
+output webappAppPrincipalId string = managedIdentityPrincipalId
 // Note: This will give you a warning saying it's not right, but it will contain the right value!
 // output ipAddress string = webSiteResource.properties.inboundIpAddress 

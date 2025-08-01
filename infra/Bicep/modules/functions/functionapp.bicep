@@ -55,13 +55,13 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
   location: location
   kind: functionKind
   tags: functionTags
-  // identity: {
-  //   type: 'SystemAssigned'
-  // }
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: { '${managedIdentityId}': {} }
   }
+  // identity: {
+  //   type: 'SystemAssigned'
+  // }
   // identity: {
   //   //disable-next-line BCP036
   //   type: 'SystemAssigned, UserAssigned'
