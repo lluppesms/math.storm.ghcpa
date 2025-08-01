@@ -14,6 +14,8 @@ param containerNames array = ['input','output']
 param publicNetworkAccess string = 'Enabled'
 @allowed(['Allow','Deny'])
 param allowNetworkAccess string = 'Deny' // except for Azure Services
+@description('Provide the IP address to allow access to the Azure Container Registry')
+param myIpAddress string = ''
 
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~storageAccount.bicep' }
@@ -33,7 +35,13 @@ resource storageAccountResource 'Microsoft.Storage/storageAccounts@2023-01-01' =
         networkAcls: {
             bypass: 'AzureServices'
             defaultAction: allowNetworkAccess
-            ipRules: []
+            ipRules: empty(myIpAddress)
+                ? []
+                : [
+                    {
+                    value: myIpAddress
+                    }
+                ]
             virtualNetworkRules: []
             //virtualNetworkRules: ((virtualNetworkType == 'External') ? json('[{"id": "${subscription().id}/resourceGroups/${vnetResource}/providers/Microsoft.Network/virtualNetworks/${vnetResource.name}/subnets/${subnetName}"}]') : json('[]'))
         }
