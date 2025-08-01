@@ -245,8 +245,8 @@ module functionStorageModule './modules/storage/storage-account.bicep' = {
     storageAccountName: resourceNames.outputs.functionStorageName
     location: location
     commonTags: commonTags
-    allowNetworkAccess: 'Deny'
-    publicNetworkAccess: 'Disabled'
+    allowNetworkAccess:  'Allow'    // 'Deny'
+    publicNetworkAccess: 'Enabled'  // 'Disabled'
   }
 }
 
