@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------------------------------
 # Pipeline used by the azd command
 # ----------------------------------------------------------------------------------------------------
-name: mathstorm.blazor.azd
+name: mathstorm-azd
 
 infra:
     provider: bicep
@@ -16,3 +16,8 @@ services:
     project: ./src/web/mathstorm.Web/
     language: csharp
     host: appservice
+
+  function:
+    project: ./src/functions/mathstorm.Functions/
+    language: csharp
+    host: function

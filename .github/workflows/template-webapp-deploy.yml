@@ -27,6 +27,7 @@ jobs:
     env:
       artifactName: webapp
       generatedAppEnvName: ${{ inputs.envCode == 'prod' && vars.APP_NAME || format('{0}-{1}', vars.APP_NAME, inputs.envCode) }}
+     # Bicep: var webSiteName = environmentCode == 'prod' ? toLower(sanitizedAppNameWithDashes) : toLower('${sanitizedAppNameWithDashes}-${sanitizedEnvironment}')
 
     steps:
     - name: Download build artifacts

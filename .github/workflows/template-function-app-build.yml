@@ -2,7 +2,9 @@
 # GHA Reusable Called Workflow to build a Function App
 # ------------------------------------------------------------------------------------------------------------------------
 # You need to set up secrets in the GitHub Secrets Repository before running these workflows.
-#   See Docs\CreateGitHubSecrets\.md for details
+#   See readme.md for details
+# ------------------------------------------------------------------------------------------------------------------------
+# You may also need to updates permissions for this template to work - see note below
 # ------------------------------------------------------------------------------------------------------------------------
 name: z_template_functionapp_build
 run-name: Build Function App
@@ -40,16 +42,24 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: ${{ inputs.envCode }}
-
     env:
       CONFIGURATION: Release
       DOTNET_CORE_VERSION: 8.0.x
       artifactName: functionapp
+      AZURE_WEBAPP_PACKAGE_PATH: ./output
 
+    # Note: Publish test results action needs permission to write a check
+    # You may have to change the default settings for the repo for this to work. You may get the error:
+    #   The nested job 'Build' is requesting 'checks: write, issues: read, pull-requests: read', but is only allowed 'checks: none, issues: none, pull-requests: none'.
+    # Go to Repo Settings -> Actions -> General -> Workflow permissions -> Check: Read and Write Permissions
+    permissions:
+      contents: write
+      issues: read
+      checks: write
+      pull-requests: read
+
+    # ------------------------------------------------------------------------------------------------------------------------
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
-
     - name: Display Variables and Files
       run: |-
         echo "rootDirectory=${{ inputs.rootDirectory }}"
@@ -58,18 +68,22 @@ jobs:
         echo "testProjectName=${{ inputs.testProjectName }}"
         echo "listFilesAfterBuild=${{ inputs.listFilesAfterBuild }}"
         echo "testApplication=${{ inputs.testApplication }}"
+        echo "GITHUB_CONTEXT=$GITHUB_CONTEXT"
+        echo "JOB_CONTEXT=$JOB_CONTEXT"
 
         echo "---------------------------------"
         echo "##[group]All Variables:"
         echo '${{ toJSON(env) }}'
         echo '${{ toJSON(vars) }}'
-        echo '${{ toJSON(secrets) }}'
         echo "##[endgroup]"
         echo "---------------------------------"
         echo "##[group]Directory of ${{ github.workspace  }}"
         tree -R ${{ github.workspace  }}
         echo "##[endgroup]"
       continue-on-error: true
+
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
@@ -80,8 +94,9 @@ jobs:
       run: dotnet restore "${{ inputs.rootDirectory }}"
 
     - name: Build Application
-      run: dotnet build --configuration ${{ env.CONFIGURATION }} --output ./output
-      working-directory: ${{ inputs.rootDirectory }}
+      run: dotnet build "${{ inputs.rootDirectory }}/${{ inputs.projectName }}.csproj" --configuration Release --no-restore
+      # run: dotnet build --configuration ${{ env.CONFIGURATION }} --output ./output
+      # working-directory: ${{ inputs.rootDirectory }}
 
     - name: Test Application
       if: inputs.testApplication == true
@@ -97,11 +112,15 @@ jobs:
           **/TestResults/**/*.trx
       continue-on-error: true
 
+    - name: Publish
+      run: dotnet publish "${{ inputs.rootDirectory }}/${{ inputs.projectName }}.csproj" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
+
     - name: Save Publish Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.artifactName }}
-        path: ${{ inputs.rootDirectory }}/output
+        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+        # path: ${{ inputs.rootDirectory }}/output
         include-hidden-files: true
 
     - name: List All Files

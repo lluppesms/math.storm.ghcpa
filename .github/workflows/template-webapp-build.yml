@@ -59,6 +59,7 @@ jobs:
       checks: write
       pull-requests: read
 
+    # ------------------------------------------------------------------------------------------------------------------------
     steps:
     - name: Display Variables
       env:
@@ -68,6 +69,16 @@ jobs:
         echo "inputs.rootDirectory=${{ inputs.rootDirectory }}"
         echo "GITHUB_CONTEXT=$GITHUB_CONTEXT"
         echo "JOB_CONTEXT=$JOB_CONTEXT"
+        echo "---------------------------------"
+        echo "##[group]All Variables:"
+        echo '${{ toJSON(env) }}'
+        echo '${{ toJSON(vars) }}'
+        echo "##[endgroup]"
+        echo "---------------------------------"
+        echo "##[group]Directory of ${{ github.workspace  }}"
+        tree -R ${{ github.workspace  }}
+        echo "##[endgroup]"
+
       continue-on-error: true
 
     - name: Checkout Code
@@ -83,7 +94,6 @@ jobs:
 
     - name: Build Application
       run: dotnet build "${{ inputs.rootDirectory }}/${{ inputs.projectName }}.csproj" --configuration Release --no-restore
-      #  for Windows: build...?  /p:Platform=x64
 
     - name: Test Application
       if: inputs.testApplication == true
@@ -106,6 +116,7 @@ jobs:
       with:
         name: ${{ env.artifactName }}
         path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+        include-hidden-files: true
 
     - name: List All Files
       if: inputs.listFilesAfterBuild == true
