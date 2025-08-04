@@ -2,7 +2,7 @@
 # GHA Reusable Called Workflow to deploy an already built Function App
 # ------------------------------------------------------------------------------------------------------------------------
 # You need to set up secrets in the GitHub Secrets Repository before running these workflows.
-#   See Docs\CreateGitHubSecrets\.md for details
+#   See readme.md for details
 # ------------------------------------------------------------------------------------------------------------------------
 name: z_template_functionapp_deploy
 run-name: Deploy Function App
@@ -15,13 +15,13 @@ on:
       listFilesBeforeDeploy:
         required: false
         type: boolean
-        default: false  
+        default: true
+
 # ------------------------------------------------------------------------------------------------------------------------
 jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    
     environment:
       name: ${{ inputs.envCode }}
     env:
@@ -73,8 +73,7 @@ jobs:
       uses: Azure/functions-action@v1
       with:
         app-name: ${{ env.generatedAppEnvName }}
-        package: .
-
+        package: '.'
         
     - name: Logout and cleanup
       shell: bash

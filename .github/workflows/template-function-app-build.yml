@@ -39,6 +39,7 @@ on:
 jobs:
   build:
     name: Build
+    # Note: Publish test results action only works on Linux build servers...
     runs-on: ubuntu-latest
     environment:
       name: ${{ inputs.envCode }}
@@ -61,11 +62,14 @@ jobs:
     # ------------------------------------------------------------------------------------------------------------------------
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
-    - name: Display Variables and Files
+    - name: Display Variables
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+        JOB_CONTEXT: ${{ toJson(job) }}
       run: |-
-        echo "rootDirectory=${{ inputs.rootDirectory }}"
+        echo "inputs.rootDirectory=${{ inputs.rootDirectory }}"
         echo "projectName=${{ inputs.projectName }}"
         echo "testDirectory=${{ inputs.testDirectory }}"
         echo "testProjectName=${{ inputs.testProjectName }}"
@@ -83,6 +87,7 @@ jobs:
         echo "##[group]Directory of ${{ github.workspace  }}"
         tree -R ${{ github.workspace  }}
         echo "##[endgroup]"
+
       continue-on-error: true
 
     - name: Setup .NET Core
@@ -94,9 +99,8 @@ jobs:
       run: dotnet restore "${{ inputs.rootDirectory }}"
 
     - name: Build Application
-      run: dotnet build "${{ inputs.rootDirectory }}/${{ inputs.projectName }}.csproj" --configuration Release --no-restore
-      # run: dotnet build --configuration ${{ env.CONFIGURATION }} --output ./output
-      # working-directory: ${{ inputs.rootDirectory }}
+      run: dotnet build --configuration ${{ env.CONFIGURATION }} --output ./output
+      working-directory: ${{ inputs.rootDirectory }}
 
     - name: Test Application
       if: inputs.testApplication == true
@@ -112,15 +116,14 @@ jobs:
           **/TestResults/**/*.trx
       continue-on-error: true
 
-    - name: Publish
-      run: dotnet publish "${{ inputs.rootDirectory }}/${{ inputs.projectName }}.csproj" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
+    #- name: Publish
+    #  run: dotnet publish "${{ inputs.rootDirectory }}/${{ inputs.projectName }}.csproj" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
 
     - name: Save Publish Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.artifactName }}
-        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-        # path: ${{ inputs.rootDirectory }}/output
+        path: ${{ inputs.rootDirectory }}/output
         include-hidden-files: true
 
     - name: List All Files

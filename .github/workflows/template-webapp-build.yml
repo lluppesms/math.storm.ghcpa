@@ -70,8 +70,14 @@ jobs:
         JOB_CONTEXT: ${{ toJson(job) }}
       run: |-
         echo "inputs.rootDirectory=${{ inputs.rootDirectory }}"
+        echo "projectName=${{ inputs.projectName }}"
+        echo "testDirectory=${{ inputs.testDirectory }}"
+        echo "testProjectName=${{ inputs.testProjectName }}"
+        echo "listFilesAfterBuild=${{ inputs.listFilesAfterBuild }}"
+        echo "testApplication=${{ inputs.testApplication }}"
         echo "GITHUB_CONTEXT=$GITHUB_CONTEXT"
         echo "JOB_CONTEXT=$JOB_CONTEXT"
+
         echo "---------------------------------"
         echo "##[group]All Variables:"
         echo '${{ toJSON(env) }}'

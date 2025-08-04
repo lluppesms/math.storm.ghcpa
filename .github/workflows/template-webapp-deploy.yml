@@ -16,7 +16,7 @@ on:
         required: false
         type: boolean
         default: true
-  
+
 # ------------------------------------------------------------------------------------------------------------------------
 jobs:
   deploy:
@@ -35,7 +35,7 @@ jobs:
       with:
         name: ${{ env.artifactName }}
 
-    - name: List Files After Build
+    - name: List Files Before Deploy
       if: inputs.listFilesBeforeDeploy == true
       run: 
         tree ${{ github.action_path }}
