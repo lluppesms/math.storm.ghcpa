@@ -139,7 +139,8 @@ jobs:
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}
-         
+      listFilesBeforeDeploy: true
+     
 # ------------------------------------------------------------------------------------------------------------------------
   run-smoke-test:
     name: Smoke Test ${{ inputs.deployEnvironment }}
