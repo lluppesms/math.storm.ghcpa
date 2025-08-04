@@ -99,7 +99,9 @@ jobs:
       run: dotnet restore "${{ inputs.rootDirectory }}"
 
     - name: Build Application
-      run: dotnet build --configuration ${{ env.CONFIGURATION }} --output ./output
+      #run: dotnet build --configuration ${{ env.CONFIGURATION }} --output ./output
+      #dotnet build  --configuration release /p:PackageLocation=./package /p:OutDir=./output  /p:DesktopBuildPackageLocation="./package/package.zip" /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true
+      run: dotnet build  --configuration ${{ env.CONFIGURATION }} /p:PackageLocation=./package /p:OutDir=./output  /p:DesktopBuildPackageLocation="./package/package.zip" /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true
       working-directory: ${{ inputs.rootDirectory }}
 
     - name: Test Application
