@@ -73,7 +73,7 @@ jobs:
       uses: Azure/functions-action@v1
       with:
         app-name: ${{ env.generatedAppEnvName }}
-        package: '.'
+        package: './${{ env.artifactName }}.zip'
         
     - name: Logout and cleanup
       shell: bash
