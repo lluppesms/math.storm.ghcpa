@@ -24,21 +24,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in with Azure
+      - name: Login to Azure using OIDC
         uses: azure/login@v2
         with:
-          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+          client-id: ${{ secrets.CICD_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   
       - name: Azure Dev Provision
         run: azd provision --no-prompt
         env:
-          AZURE_ENV_NAME: ${{ secrets.AZURE_ENV_NAME }}
-          RESOURCEGROUP_LOCATION: ${{ secrets.RESOURCEGROUP_LOCATION }}
+          AZURE_ENV_NAME: ${{ vars.AZD_NAME }}
+          RESOURCEGROUP_LOCATION: ${{ vars.RESOURCEGROUP_LOCATION }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Azure Dev Deploy
         run: azd deploy --no-prompt
         env:
-          AZURE_ENV_NAME: ${{ secrets.AZURE_ENV_NAME }}
-          RESOURCEGROUP_LOCATION: ${{ secrets.RESOURCEGROUP_LOCATION }}
+          AZURE_ENV_NAME: ${{ vars.AZD_NAME }}
+          RESOURCEGROUP_LOCATION: ${{ vars.RESOURCEGROUP_LOCATION }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
