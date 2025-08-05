@@ -1,8 +1,3 @@
-using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using MathStorm.Common.Models;
-
 namespace MathStorm.Core.Services;
 
 public class CosmosDbService : ICosmosDbService
@@ -14,17 +9,35 @@ public class CosmosDbService : ICosmosDbService
 
     public CosmosDbService(CosmosClient cosmosClient, IConfiguration configuration, ILogger<CosmosDbService> logger)
     {
-        var databaseName = configuration["CosmosDb:DatabaseName"] ?? Environment.GetEnvironmentVariable("CosmosDb__DatabaseName");
-        var database = cosmosClient.GetDatabase(databaseName);
+        _logger = logger;
+        _logger.Log(LogLevel.Information, "CosmosDbService.Init: Starting");
 
+        var endpoint = configuration["CosmosDb:Endpoint"];
+        var connectionString = configuration["CosmosDb:ConnectionString"];
+        var accountName = connectionString?[..connectionString.IndexOf("AccountKey")].Replace("AccountEndpoint=https://", "").Replace(".documents.azure.com:443/;", "").Replace("/;", "");
+        var databaseName = configuration["CosmosDb:DatabaseName"] ?? Environment.GetEnvironmentVariable("CosmosDb__DatabaseName");
         var usersContainer = configuration["CosmosDb:ContainerNames:Users"] ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Users");
         var gamesContainer = configuration["CosmosDb:ContainerNames:Games"] ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Games");
         var leaderboardContainer = configuration["CosmosDb:ContainerNames:Leaderboard"] ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Leaderboard");
 
+        _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Account: {accountName}");
+        _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Endpoint: {endpoint}");
+        _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Database: {databaseName}");
+        _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Containers: Users={usersContainer}, Games={gamesContainer}, Leaderboard={leaderboardContainer}");
+
+        cosmosClient.CreateDatabaseIfNotExistsAsync(databaseName).GetAwaiter().GetResult();
+        var database = cosmosClient.GetDatabase(databaseName);
+
+        database.CreateContainerIfNotExistsAsync(usersContainer, "/id").GetAwaiter().GetResult();
         _usersContainer = database.GetContainer(usersContainer);
+
+        database.CreateContainerIfNotExistsAsync(gamesContainer, "/id").GetAwaiter().GetResult();
         _gamesContainer = database.GetContainer(gamesContainer);
+
+        database.CreateContainerIfNotExistsAsync(leaderboardContainer, "/id").GetAwaiter().GetResult();
         _leaderboardContainer = database.GetContainer(leaderboardContainer);
-        _logger = logger;
+
+        _logger.Log(LogLevel.Information, "CosmosDbService.Init: Complete!");
     }
 
     public async Task<GameUser?> GetUserByUsernameAsync(string username)
@@ -56,6 +69,7 @@ public class CosmosDbService : ICosmosDbService
         {
             var user = new GameUser
             {
+                //Id = Guid.NewGuid().ToString(),
                 Username = username,
                 CreatedAt = DateTime.UtcNow
             };

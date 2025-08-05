@@ -71,7 +71,7 @@ module logAnalyticsWorkspaceModule 'modules/monitor/loganalytics.bicep' = {
 }
 
 // --------------------------------------------------------------------------------
-var cosmosDatabaseName = 'FuncDemoDatabase'
+var cosmosDatabaseName = 'MathStormData-${environmentCode}'
 var gameContainerName = 'Game'
 var userContainerName = 'GameUser' 
 var leaderboardContainerName = 'LeaderboardEntry'
@@ -281,7 +281,8 @@ module functionAppSettingsModule './modules/functions/functionappsettings.bicep'
       OpenApi__DocDescription: 'This repo is an example of a GitHub Copilot Agent Vibe Coded Game'
       appInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
       CosmosDb__ConnectionString: deployCosmos ? keyVaultSecretCosmos.outputs.connectionStringSecretUri : ''
-      CosmosDb__DatabaseName: resourceNames.outputs.cosmosDatabaseName 
+      CosmosDb__Endpoint: deployCosmos ? cosmosModule.outputs.endpoint : ''
+      CosmosDb__DatabaseName: cosmosDatabaseName 
       CosmosDb__ContainerNames__Users: userContainerName
       CosmosDb__ContainerNames__Games: gameContainerName
       CosmosDb__ContainerNames__Leaderboard: leaderboardContainerName

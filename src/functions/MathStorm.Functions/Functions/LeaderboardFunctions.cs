@@ -2,13 +2,20 @@ namespace MathStorm.Functions.Functions;
 
 public class LeaderboardFunctions
 {
-    private readonly ILogger _logger;
+    private readonly ILogger<LeaderboardFunctions> _logger;
     private readonly ICosmosDbService _cosmosDbService;
 
-    public LeaderboardFunctions(ILoggerFactory loggerFactory, ICosmosDbService cosmosDbService)
+    public LeaderboardFunctions(ILogger<LeaderboardFunctions> logger, ICosmosDbService cosmosDbService)
     {
-        _logger = loggerFactory.CreateLogger<LeaderboardFunctions>();
+        _logger = logger;
         _cosmosDbService = cosmosDbService;
+    }
+
+    [Function("HelloLeaders")]
+    public IActionResult HelloLeaders([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
+    {
+        _logger.LogInformation("C# HTTP trigger function LeaderboardFunctions.Hello");
+        return new OkObjectResult("Welcome to LeaderboardFunctions.Hello!");
     }
 
     [Function("GetLeaderboard")]
@@ -26,17 +33,17 @@ public class LeaderboardFunctions
             // Parse query parameters more safely using built-in query parsing
             string? difficulty = null;
             var topCount = 10;
-            
+
             _logger.LogInformation($"GetLeaderboard called with query: {req.Url.Query}");
 
             // Use Microsoft.AspNetCore.WebUtilities.QueryHelpers for safer parsing
             var queryCollection = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(req.Url.Query);
-            
+
             if (queryCollection.ContainsKey("difficulty"))
             {
                 difficulty = queryCollection["difficulty"].FirstOrDefault();
             }
-            
+
             if (queryCollection.ContainsKey("topCount"))
             {
                 if (!int.TryParse(queryCollection["topCount"].FirstOrDefault(), out topCount))
@@ -72,10 +79,7 @@ public class LeaderboardFunctions
             var httpResponse = req.CreateResponse(HttpStatusCode.OK);
             httpResponse.Headers.Add("Content-Type", "application/json");
 
-            var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
+            var jsonResponse = JsonConvert.SerializeObject(response);
 
             await httpResponse.WriteStringAsync(jsonResponse);
             return httpResponse;

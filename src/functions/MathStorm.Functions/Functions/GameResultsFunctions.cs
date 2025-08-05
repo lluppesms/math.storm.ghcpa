@@ -25,10 +25,7 @@ public class GameResultsFunctions
         {
             // Parse request body
             var body = await new StreamReader(req.Body).ReadToEndAsync();
-            var request = JsonSerializer.Deserialize<GameResultsRequestDto>(body, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
+            var request = JsonConvert.DeserializeObject<GameResultsRequestDto>(body);
 
             if (request == null)
             {
@@ -99,10 +96,7 @@ public class GameResultsFunctions
             var httpResponse = req.CreateResponse(HttpStatusCode.OK);
             httpResponse.Headers.Add("Content-Type", "application/json");
 
-            var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
+            var jsonResponse = JsonConvert.SerializeObject(response);
 
             await httpResponse.WriteStringAsync(jsonResponse);
             return httpResponse;

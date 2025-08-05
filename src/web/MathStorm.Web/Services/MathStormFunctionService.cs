@@ -16,16 +16,11 @@ public class MathStormFunctionService : IMathStormFunctionService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<MathStormFunctionService> _logger;
-    private readonly JsonSerializerOptions _jsonOptions;
 
     public MathStormFunctionService(HttpClient httpClient, ILogger<MathStormFunctionService> logger)
     {
         _httpClient = httpClient;
         _logger = logger;
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
     }
 
     public async Task<GameResponseDto?> GetGameAsync(Difficulty difficulty)
@@ -34,9 +29,10 @@ public class MathStormFunctionService : IMathStormFunctionService
         {
             var response = await _httpClient.GetAsync($"/api/game?difficulty={difficulty}");
             response.EnsureSuccessStatusCode();
-            
+
             var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<GameResponseDto>(content, _jsonOptions);
+            var game = JsonSerializer.Deserialize<GameResponseDto>(content);
+            return game;
         }
         catch (Exception ex)
         {
@@ -49,14 +45,14 @@ public class MathStormFunctionService : IMathStormFunctionService
     {
         try
         {
-            var json = JsonSerializer.Serialize(request, _jsonOptions);
+            var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            
+
             var response = await _httpClient.PostAsync("/api/game/results", content);
             response.EnsureSuccessStatusCode();
-            
+
             var responseContent = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<GameResultsResponseDto>(responseContent, _jsonOptions);
+            return JsonSerializer.Deserialize<GameResultsResponseDto>(responseContent);
         }
         catch (Exception ex)
         {
@@ -74,12 +70,12 @@ public class MathStormFunctionService : IMathStormFunctionService
             {
                 url += $"&difficulty={difficulty}";
             }
-            
+
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
-            
+
             var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<LeaderboardResponseDto>(content, _jsonOptions);
+            return JsonSerializer.Deserialize<LeaderboardResponseDto>(content);
         }
         catch (Exception ex)
         {
