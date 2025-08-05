@@ -18,6 +18,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment:
+      name: 'dev'
     container:
       image: mcr.microsoft.com/azure-dev-cli-apps:latest
     steps:
