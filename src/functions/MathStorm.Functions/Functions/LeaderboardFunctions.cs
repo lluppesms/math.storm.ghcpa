@@ -31,7 +31,7 @@ public class LeaderboardFunctions
         try
         {
             // Parse query parameters more safely using built-in query parsing
-            string? difficulty = "Expert";
+            string? difficulty = null;
             var topCount = 10;
 
             _logger.LogInformation($"GetLeaderboard called with query: {req.Url.Query}");
