@@ -5,24 +5,24 @@ namespace MathStorm.Common.Models;
 
 public class GameUser
 {
-    [JsonPropertyName("id")]
+    [JsonProperty("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
-    [JsonPropertyName("username")]
+    [JsonProperty("username")]
     public string Username { get; set; } = string.Empty;
 
-    [JsonPropertyName("gamesPlayed")]
+    [JsonProperty("gamesPlayed")]
     public int GamesPlayed { get; set; }
 
-    [JsonPropertyName("totalScore")]
+    [JsonProperty("totalScore")]
     public double TotalScore { get; set; }
 
-    [JsonPropertyName("bestScore")]
+    [JsonProperty("bestScore")]
     public double BestScore { get; set; }
 
-    [JsonPropertyName("createdAt")]
+    [JsonProperty("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    [JsonPropertyName("lastPlayedAt")]
+    [JsonProperty("lastPlayedAt")]
     public DateTime LastPlayedAt { get; set; } = DateTime.UtcNow;
 }

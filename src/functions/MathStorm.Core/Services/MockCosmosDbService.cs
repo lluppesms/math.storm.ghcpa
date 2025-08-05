@@ -1,5 +1,3 @@
-using MathStorm.Common.Models;
-
 namespace MathStorm.Core.Services;
 
 public class MockCosmosDbService : ICosmosDbService
@@ -64,13 +62,13 @@ public class MockCosmosDbService : ICosmosDbService
             .OrderBy(l => l.Score)
             .Take(topCount)
             .ToList();
-        
+
         // Update ranks
         for (int i = 0; i < entries.Count; i++)
         {
             entries[i].Rank = i + 1;
         }
-        
+
         return Task.FromResult(entries);
     }
 
@@ -80,13 +78,13 @@ public class MockCosmosDbService : ICosmosDbService
             .OrderBy(l => l.Score)
             .Take(topCount)
             .ToList();
-        
+
         // Update ranks
         for (int i = 0; i < entries.Count; i++)
         {
             entries[i].Rank = i + 1;
         }
-        
+
         return Task.FromResult(entries);
     }
 
@@ -103,7 +101,7 @@ public class MockCosmosDbService : ICosmosDbService
             AchievedAt = DateTime.UtcNow,
             Rank = 1 // Will be updated when rankings are calculated
         };
-        
+
         _leaderboard.Add(entry);
         return Task.FromResult<LeaderboardEntry?>(entry);
     }
@@ -114,12 +112,12 @@ public class MockCosmosDbService : ICosmosDbService
             .Where(l => l.Difficulty.Equals(difficulty, StringComparison.OrdinalIgnoreCase))
             .OrderBy(l => l.Score)
             .ToList();
-        
+
         for (int i = 0; i < entries.Count; i++)
         {
             entries[i].Rank = i + 1;
         }
-        
+
         return Task.CompletedTask;
     }
 }

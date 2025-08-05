@@ -288,5 +288,5 @@ output containerNames array = [
     name: name
   }
 ]
-//output endpoint string = useExistingAccount ? existingCosmosAccount.properties.documentEndpoint : cosmosAccount.properties.documentEndpoint
+output endpoint string = useExistingAccount ? existingCosmosAccount.properties.documentEndpoint : cosmosAccount.properties.documentEndpoint
 //output privateEndpointName string = privateEndpointName

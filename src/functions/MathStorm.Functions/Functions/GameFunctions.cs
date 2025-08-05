@@ -2,13 +2,20 @@ namespace MathStorm.Functions.Functions;
 
 public class GameFunctions
 {
-    private readonly ILogger _logger;
+    private readonly ILogger<GameFunctions> _logger;
     private readonly IGameService _gameService;
 
-    public GameFunctions(ILoggerFactory loggerFactory, IGameService gameService)
+    public GameFunctions(ILogger<GameFunctions> logger, IGameService gameService)
     {
-        _logger = loggerFactory.CreateLogger<GameFunctions>();
+        _logger = logger;
         _gameService = gameService;
+    }
+
+    [Function("HelloGame")]
+    public IActionResult HelloGame([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
+    {
+        _logger.LogInformation("C# HTTP trigger function GameFunctions.Hello");
+        return new OkObjectResult("Welcome to GameFunctions.Hello!");
     }
 
     [Function("GetGame")]
@@ -63,10 +70,7 @@ public class GameFunctions
             var httpResponse = req.CreateResponse(HttpStatusCode.OK);
             httpResponse.Headers.Add("Content-Type", "application/json");
 
-            var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
+            var jsonResponse = JsonConvert.SerializeObject(response);
 
             await httpResponse.WriteStringAsync(jsonResponse);
             return httpResponse;

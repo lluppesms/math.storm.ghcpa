@@ -1,23 +1,20 @@
-using MathStorm.Common.Models;
-using MathStorm.Common.Services;
-
 namespace MathStorm.Core.Services;
 
 public class GameService : IGameService
 {
     private readonly Random _random = new();
-    
+
     public GameSession CreateNewGame(Difficulty difficulty = Difficulty.Expert)
     {
         var gameSession = new GameSession { Difficulty = difficulty };
         var settings = DifficultySettings.GetSettings(difficulty);
-        
+
         // Generate questions based on difficulty settings
         for (int i = 0; i < settings.QuestionCount; i++)
         {
             gameSession.Questions.Add(GenerateRandomQuestion(i + 1, settings));
         }
-        
+
         return gameSession;
     }
 
@@ -27,35 +24,35 @@ public class GameService : IGameService
         // This is overridden in FunctionBasedGameService to call Azure Functions
         return await Task.FromResult(CreateNewGame(difficulty));
     }
-    
+
     public void StartQuestion(GameSession gameSession)
     {
         gameSession.QuestionStartTime = DateTime.Now;
         gameSession.IsGameStarted = true;
     }
-    
+
     public void SubmitAnswer(GameSession gameSession, double userAnswer)
     {
         var currentQuestion = gameSession.CurrentQuestion;
         if (currentQuestion == null || gameSession.QuestionStartTime == null)
             return;
-            
+
         // Calculate time taken
         var timeElapsed = DateTime.Now - gameSession.QuestionStartTime.Value;
         currentQuestion.TimeInSeconds = Math.Round(timeElapsed.TotalSeconds, 1);
-        
+
         // Store user answer
         currentQuestion.UserAnswer = userAnswer;
-        
+
         // Calculate percentage difference
         var correctAnswer = currentQuestion.CorrectAnswer;
         var difference = Math.Abs(correctAnswer - userAnswer);
-        var percentageDifference = correctAnswer == 0 ? 
-            (userAnswer == 0 ? 0 : Math.Abs(userAnswer) * 100) : 
+        var percentageDifference = correctAnswer == 0 ?
+            (userAnswer == 0 ? 0 : Math.Abs(userAnswer) * 100) :
             Math.Round((difference / Math.Abs(correctAnswer)) * 100, 1);
-        
+
         currentQuestion.PercentageDifference = percentageDifference;
-        
+
         // Calculate score using new formula: (Percentage difference * Time) + (Time * Time_Factor)
         // where Time_Factor = 10
         var timeFactor = 10.0;
@@ -63,16 +60,16 @@ public class GameService : IGameService
         if (currentQuestion.TimeInSeconds <= 1) { timeFactor = 100.0; }
 
         currentQuestion.Score = Math.Round(
-            (currentQuestion.PercentageDifference * currentQuestion.TimeInSeconds) + 
+            (currentQuestion.PercentageDifference * currentQuestion.TimeInSeconds) +
             (currentQuestion.TimeInSeconds * timeFactor), 1);
     }
-    
+
     public void NextQuestion(GameSession gameSession)
     {
         gameSession.CurrentQuestionIndex++;
         gameSession.QuestionStartTime = null;
     }
-    
+
     private MathQuestion GenerateRandomQuestion(int id, DifficultySettings settings)
     {
         var operation = settings.AllowedOperations[_random.Next(0, settings.AllowedOperations.Length)];
@@ -81,10 +78,10 @@ public class GameService : IGameService
             Id = id,
             Operation = operation
         };
-        
+
         var maxValue = (int)Math.Pow(10, settings.MaxDigits) - 1;
         var gameSession = new GameSession { Difficulty = GetDifficultyFromSettings(settings) };
-        
+
         switch (operation)
         {
             case MathOperation.Addition:
@@ -109,7 +106,7 @@ public class GameService : IGameService
                 }
                 question.CorrectAnswer = question.Number1 + question.Number2;
                 break;
-                
+
             case MathOperation.Subtraction:
                 if (GetDifficultyFromSettings(settings) == Difficulty.Beginner)
                 {
@@ -124,7 +121,7 @@ public class GameService : IGameService
                 }
                 question.CorrectAnswer = question.Number1 - question.Number2;
                 break;
-                
+
             case MathOperation.Multiplication:
                 if (GetDifficultyFromSettings(settings) == Difficulty.Novice)
                 {
@@ -141,14 +138,14 @@ public class GameService : IGameService
                 }
                 question.CorrectAnswer = question.Number1 * question.Number2;
                 break;
-                
+
             case MathOperation.Division:
                 if (GetDifficultyFromSettings(settings) == Difficulty.Novice)
                 {
                     // For Novice: ensure even division and first number > second number
                     var divisionMaxDivisor = Math.Min(9, maxValue); // Keep divisor reasonable
                     question.Number2 = _random.Next(2, divisionMaxDivisor + 1); // Start from 2 to avoid division by 1
-                    
+
                     // Generate a multiplier to ensure even division
                     var maxMultiplier = maxValue / question.Number2;
                     var multiplier = _random.Next(2, Math.Min(maxMultiplier + 1, 10)); // Start from 2 to ensure Number1 > Number2
@@ -165,10 +162,10 @@ public class GameService : IGameService
                 }
                 break;
         }
-        
+
         return question;
     }
-    
+
     private Difficulty GetDifficultyFromSettings(DifficultySettings settings)
     {
         // Determine difficulty based on settings characteristics

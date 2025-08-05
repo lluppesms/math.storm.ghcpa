@@ -1,13 +1,8 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Azure.Functions.Worker;
+﻿using Azure.Identity;
 using Microsoft.Azure.Cosmos;
-using MathStorm.Core.Services;
-using MathStorm.Common.Services;
-using MathStorm.Functions.Services;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWorkerDefaults(
+    .ConfigureFunctionsWebApplication(
       builder =>
       {
           builder.UseMiddleware<MyExceptionHandler>();
@@ -18,6 +13,7 @@ var host = new HostBuilder()
          if (hostContext.HostingEnvironment.IsDevelopment())
          {
              config.AddJsonFile("local.settings.json");
+             config.AddEnvironmentVariables();
              config.AddUserSecrets<Program>();
          }
      })
@@ -26,25 +22,41 @@ var host = new HostBuilder()
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
 
-        // Add game service
         services.AddScoped<IGameService, GameService>();
 
-        var connectionString = context.Configuration["CosmosDb:ConnectionString"];
-
-        // Add Cosmos DB services based on whether connection string exists
-        if (!string.IsNullOrEmpty(connectionString))
+        var cosmosClientOptions = new CosmosClientOptions
         {
-            Console.WriteLine("Using Cosmos DB connection string from environment variable.");
+            MaxRetryAttemptsOnRateLimitedRequests = 3,
+            MaxRetryWaitTimeOnRateLimitedRequests = TimeSpan.FromSeconds(30)
+        };
+        // Add Cosmos DB services based on whether endpoint name exists
+        var cosmosEndpoint = context.Configuration["CosmosDb:Endpoint"];
+        if (!string.IsNullOrEmpty(cosmosEndpoint))
+        {
+            Console.WriteLine($"Connecting to Cosmos endpoint {cosmosEndpoint} with managed identity...");
+            var endpointUri = Environment.GetEnvironmentVariable("CosmosDb:Endpoint");
             services.AddSingleton<CosmosClient>(provider =>
             {
-                return new CosmosClient(connectionString);
+                var cosmosClient = new CosmosClient(endpointUri, new DefaultAzureCredential(), cosmosClientOptions);
+                return cosmosClient;
             });
             services.AddScoped<ICosmosDbService, CosmosDbService>();
         }
         else
         {
-            Console.WriteLine("Cosmos DB connection string not found -- using mock environment!");
-            services.AddScoped<ICosmosDbService, MockCosmosDbService>();
+            // Add Cosmos DB services based on whether connection string exists
+            var connectionString = context.Configuration["CosmosDb:ConnectionString"];
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                var accountName = connectionString?[..connectionString.IndexOf("AccountKey")].Replace("AccountEndpoint=https://", "").Replace(".documents.azure.com:443/;", "").Replace("/;", "");
+                Console.WriteLine($"Connecting to Cosmos DB Account {accountName} with a key...");
+                services.AddSingleton<CosmosClient>(provider =>
+                {
+                    var cosmosClient = new CosmosClient(connectionString, cosmosClientOptions);
+                    return cosmosClient;
+                });
+                services.AddScoped<ICosmosDbService, CosmosDbService>();
+            }
         }
     })
     .Build();
