@@ -94,7 +94,6 @@ jobs:
     name: Build WebApp
     uses: ./.github/workflows/template-webapp-build.yml
     if: inputs.runBuildDeploy|| inputs.runSmokeTest
-    needs: create-infra
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}
@@ -119,13 +118,12 @@ jobs:
       testApplication: true
       listFilesAfterBuild: true
 
-
 # ------------------------------------------------------------------------------------------------------------------------
   deploy-webapp:
     name: Deploy WebApp ${{ inputs.deployEnvironment }}
     uses: ./.github/workflows/template-webapp-deploy.yml
     if: inputs.runBuildDeploy || inputs.runSmokeTest
-    needs: build-webapp
+    needs: [ build-webapp, create-infra ]
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}
@@ -133,7 +131,7 @@ jobs:
 
   deploy-func:
     name: Deploy Function
-    needs: [build-func, create-infra]
+    needs: [ build-func, create-infra ]
     uses: ./.github/workflows/template-function-app-deploy.yml
     if: inputs.runBuildDeploy
     secrets: inherit

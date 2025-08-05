@@ -94,7 +94,6 @@ jobs:
     name: Build WebApp
     uses: ./.github/workflows/template-webapp-build.yml
     if: inputs.runBuildDeploy|| inputs.runSmokeTest
-    needs: create-infra
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}
