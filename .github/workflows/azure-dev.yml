@@ -32,8 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: 'dev'
-    container:
-      image: mcr.microsoft.com/azure-dev-cli-apps:latest
+    # container:
+    #   image: mcr.microsoft.com/azure-dev-cli-apps:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
