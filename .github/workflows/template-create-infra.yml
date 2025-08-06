@@ -52,6 +52,10 @@ on:
         description: Deploy Cosmos DB
         type: boolean
         default: true
+      resourceGroupSuffix:
+        required: false
+        type: string
+        default: ''
 
 # ------------------------------------------------------------------------------------------------------------------------
 jobs:
@@ -72,7 +76,7 @@ jobs:
     env:
       envCode: ${{ inputs.envCode }}
       generatedAppEnvName: ${{ inputs.envCode == 'prod' && vars.APP_NAME || format('{0}-{1}', vars.APP_NAME, inputs.envCode) }}
-      generatedResourceGroupName: ${{ vars.RESOURCE_GROUP_NAME || format('{0}-{1}', vars.RESOURCEGROUP_PREFIX, inputs.envCode) }}
+      generatedResourceGroupName: ${{ vars.RESOURCE_GROUP_NAME || format('{0}-{1}-{2}', vars.RESOURCEGROUP_PREFIX, inputs.resourceGroupSuffix, inputs.envCode) }}
       createResourceGroup: ${{ inputs.createResourceGroup }}
       requestorName: ${{ inputs.requestorName }}
       deployCosmos: ${{ inputs.deployCosmos }}
@@ -150,7 +154,9 @@ jobs:
 
     - name: Create Resource Group
       if: ${{ inputs.runCreateInfra && inputs.deployInResourceGroup && inputs.createResourceGroup }}
-      run: az group create --name ${{ env.generatedResourceGroupName }} --location ${{ vars.RESOURCEGROUP_LOCATION }} --tags Environment=${{ inputs.envCode }}
+      run: |
+        az group create --name ${{ env.generatedResourceGroupName }} --location ${{ vars.RESOURCEGROUP_LOCATION }} --tags Environment=${{ inputs.envCode }}
+        az group create --name ${{ env.generatedFunctionResourceGroupName }} --location ${{ vars.RESOURCEGROUP_LOCATION }} --tags Environment=${{ inputs.envCode }}
 
     - name: What-If Analysis (RG)
       if: ${{ inputs.runCreateInfra && inputs.deployInResourceGroup && inputs.bicepDeploymentMode == 'whatIf' }}
