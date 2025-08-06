@@ -19,7 +19,7 @@ public class GameService : IGameService
         // For now, we'll create the game session locally and get questions from the function
         // In the future, we could modify this to be fully stateless
         var gameSession = new GameSession { Difficulty = difficulty };
-        
+
         // We'll populate questions when the game starts
         return gameSession;
     }
@@ -29,11 +29,11 @@ public class GameService : IGameService
         var gameResponse = await _functionService.GetGameAsync(difficulty);
         if (gameResponse == null)
         {
-            throw new InvalidOperationException("Unable to create game: Function service unavailable");
+            throw new InvalidOperationException($"Unable to create game: Function service unavailable ({_functionService.GetBaseURL()})");
         }
 
-        var gameSession = new GameSession 
-        { 
+        var gameSession = new GameSession
+        {
             Difficulty = difficulty,
             Questions = gameResponse.Questions.Select(q => new MathQuestion
             {
@@ -47,7 +47,7 @@ public class GameService : IGameService
 
         // Store the game ID for later submission
         _activeSessions[gameResponse.GameId] = gameSession;
-        
+
         return gameSession;
     }
 
@@ -62,29 +62,29 @@ public class GameService : IGameService
         var currentQuestion = gameSession.CurrentQuestion;
         if (currentQuestion == null || gameSession.QuestionStartTime == null)
             return;
-            
+
         // Calculate time taken
         var timeElapsed = DateTime.Now - gameSession.QuestionStartTime.Value;
         currentQuestion.TimeInSeconds = Math.Round(timeElapsed.TotalSeconds, 1);
-        
+
         // Store user answer
         currentQuestion.UserAnswer = userAnswer;
-        
+
         // Calculate percentage difference
         var correctAnswer = currentQuestion.CorrectAnswer;
         var difference = Math.Abs(correctAnswer - userAnswer);
-        var percentageDifference = correctAnswer == 0 ? 
-            (userAnswer == 0 ? 0 : Math.Abs(userAnswer) * 100) : 
+        var percentageDifference = correctAnswer == 0 ?
+            (userAnswer == 0 ? 0 : Math.Abs(userAnswer) * 100) :
             Math.Round((difference / Math.Abs(correctAnswer)) * 100, 1);
-        
+
         currentQuestion.PercentageDifference = percentageDifference;
-        
+
         // Calculate score using same formula as the original
         var timeFactor = 10.0;
         if (currentQuestion.TimeInSeconds <= 1) { timeFactor = 100.0; }
 
         currentQuestion.Score = Math.Round(
-            (currentQuestion.PercentageDifference * currentQuestion.TimeInSeconds) + 
+            (currentQuestion.PercentageDifference * currentQuestion.TimeInSeconds) +
             (currentQuestion.TimeInSeconds * timeFactor), 1);
     }
 
@@ -122,7 +122,7 @@ public class GameService : IGameService
         };
 
         var result = await _functionService.SubmitGameResultsAsync(request);
-        
+
         // Clean up the session
         if (!string.IsNullOrEmpty(gameId))
         {

@@ -10,18 +10,23 @@ public interface IRemoteFunctionsService
     Task<GameResponseDto?> GetGameAsync(Difficulty difficulty);
     Task<GameResultsResponseDto?> SubmitGameResultsAsync(GameResultsRequestDto request);
     Task<LeaderboardResponseDto?> GetLeaderboardAsync(string? difficulty = null, int topCount = 10);
+    string GetBaseURL();
 }
 
 public class RemoteFunctionsService : IRemoteFunctionsService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<RemoteFunctionsService> _logger;
+    public string? BaseFunctionUrl { get; set; }
 
-    public RemoteFunctionsService(HttpClient httpClient, ILogger<RemoteFunctionsService> logger)
+    public RemoteFunctionsService(HttpClient httpClient, ILogger<RemoteFunctionsService> logger, IConfiguration config)
     {
         _httpClient = httpClient;
         _logger = logger;
+        BaseFunctionUrl = config.GetValue<string>("FunctionService:BaseUrl");
     }
+
+    public string GetBaseURL() => string.IsNullOrEmpty(BaseFunctionUrl) ? BaseFunctionUrl : "";
 
     public async Task<GameResponseDto?> GetGameAsync(Difficulty difficulty)
     {
@@ -38,7 +43,7 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting game from function API");
-            _logger.LogInformation($"Error getting game from function API: {content}");
+            _logger.LogInformation($"Error getting game from function API {BaseFunctionUrl}: {content}");
             return null;
         }
     }
@@ -60,7 +65,7 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error submitting game results to function API");
-            _logger.LogInformation($"Error getting game results from function API: {responseContent}");
+            _logger.LogInformation($"Error getting game results from function API {BaseFunctionUrl}: {responseContent}");
             return null;
         }
     }
@@ -85,7 +90,7 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting leaderboard from function API");
-            _logger.LogInformation($"Error getting leaderboard from function API: {content}");
+            _logger.LogInformation($"Error getting leaderboard from function API {BaseFunctionUrl}: {content}");
             return null;
         }
     }

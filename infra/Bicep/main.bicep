@@ -79,9 +79,9 @@ var gameContainerName = 'Game'
 var userContainerName = 'GameUser' 
 var leaderboardContainerName = 'LeaderboardEntry'
 var cosmosContainerArray = [
-  { name: userContainerName, partitionKey: '/userId' }
-  { name: gameContainerName, partitionKey: '/gameId' }
-  { name: leaderboardContainerName, partitionKey: '/entryId' }
+  { name: userContainerName, partitionKey: '/id' }
+  { name: gameContainerName, partitionKey: '/id' }
+  { name: leaderboardContainerName, partitionKey: '/id' }
 ]
 module cosmosModule 'modules/database/cosmosdb.bicep' = if (deployCosmos) {
   name: 'cosmos${deploymentSuffix}'
@@ -127,16 +127,16 @@ module adminUserRoleAssignments './modules/iam/role-assignments.bicep' = if (add
   }
 }
 
-// module functionAppRoleAssignments './modules/iam/role-assignments.bicep' = if (addRoleAssignments) {
-//   name: 'function-roles${deploymentSuffix}'
-//   params: {
-//     identityPrincipalId: functionModule.outputs.functionAppPrincipalId
-//     principalType: 'ServicePrincipal'
-//     cosmosName: deployCosmos ? cosmosModule.outputs.name : ''
-//     keyVaultName: keyVaultModule.outputs.name
-//     storageAccountName: functionStorageModule.outputs.name
-//   }
-// }
+module functionAppRoleAssignments './modules/iam/role-assignments.bicep' = if (addRoleAssignments) {
+  name: 'function-roles${deploymentSuffix}'
+  params: {
+    identityPrincipalId: functionModule.outputs.functionAppPrincipalId
+    principalType: 'ServicePrincipal'
+    cosmosName: deployCosmos ? cosmosModule.outputs.name : ''
+    keyVaultName: keyVaultModule.outputs.name
+    storageAccountName: functionStorageModule.outputs.name
+  }
+}
 
 // --------------------------------------------------------------------------------
 module keyVaultModule './modules/security/keyvault.bicep' = {
