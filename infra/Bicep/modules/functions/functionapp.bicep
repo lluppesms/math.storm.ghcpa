@@ -302,19 +302,6 @@ resource functionAppAuditLogging 'Microsoft.Insights/diagnosticSettings@2021-05-
     ]
   }
 }
-resource appServiceMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: '${appServiceResource.name}-metrics'
-  scope: appServiceResource
-  properties: {
-    workspaceId: workspaceId
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
-      }
-    ]
-  }
-}
 
 // --------------------------------------------------------------------------------
 output id string = functionAppResource.id
