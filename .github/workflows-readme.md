@@ -31,7 +31,7 @@ Repository Level Commands:
 ```bash
 gh secret set AZURE_SUBSCRIPTION_ID -b <yourAzureSubscriptionId>
 gh secret set AZURE_TENANT_ID -b <GUID-Entra-tenant-where-SP-lives>
-gh secret set CICD_CLIENT_ID -b <GUID-application/client-Id>
+gh secret set AZURE_CLIENT_ID -b <GUID-application/client-Id>
 ```
 
 Environment Level Commands:
@@ -39,7 +39,7 @@ Environment Level Commands:
 ```bash
 gh secret set --env <ENV-NAME> AZURE_SUBSCRIPTION_ID -b <yourAzureSubscriptionId>
 gh secret set --env <ENV-NAME> AZURE_TENANT_ID -b <GUID-Entra-tenant-where-SP-lives>
-gh secret set --env <ENV-NAME> CICD_CLIENT_ID -b <GUID-application/client-Id>
+gh secret set --env <ENV-NAME> AZURE_CLIENT_ID -b <GUID-application/client-Id>
 ```
 
 These two secrets are optional if you want to grant an administrator access to the Key Vault and ACR.  
