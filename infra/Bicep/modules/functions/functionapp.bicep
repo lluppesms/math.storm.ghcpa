@@ -5,13 +5,12 @@
 param functionAppName string
 param functionAppServicePlanName string
 param functionInsightsName string
-// param sharedAppServicePlanName string
-// param sharedAppInsightsInstrumentationKey string
-// param sharedAppInsightsConnectionString string
+param sharedAppServicePlanName string
+param sharedAppInsightsInstrumentationKey string
+param sharedAppInsightsConnectionString string
 param functionStorageAccountName string
 
 param location string = resourceGroup().location
-param appInsightsLocation string = resourceGroup().location
 param commonTags object = {}
 
 param managedIdentityId string
@@ -48,6 +47,7 @@ var azdTag = { 'azd-service-name': 'function' }
 var tags = union(commonTags, templateTag)
 var functionTags = union(commonTags, templateTag, azdTag)
 var useKeyVaultConnection = false
+var useExistingServicePlan = !empty(sharedAppServicePlanName)
 
 // --------------------------------------------------------------------------------
 resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' existing = { name: functionStorageAccountName }
@@ -56,25 +56,11 @@ var functionStorageAccountConnectionString = 'DefaultEndpointsProtocol=https;Acc
 var functionStorageAccountKeyVaultReference = '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=azurefilesconnectionstring)'
 
 // Use the existing shared App Service Plan
-// resource sharedAppServiceResource 'Microsoft.Web/serverfarms@2021-03-01' existing = {
-//   name: sharedAppServicePlanName
-// }
-
-resource appInsightsResource 'Microsoft.Insights/components@2020-02-02-preview' = {
-  name: functionInsightsName
-  location: appInsightsLocation
-  kind: 'web'
-  tags: tags
-  properties: {
-    Application_Type: 'web'
-    Request_Source: 'rest'
-    publicNetworkAccessForIngestion: 'Enabled'
-    publicNetworkAccessForQuery: 'Enabled'
-    WorkspaceResourceId: workspaceId
-  }
+resource sharedAppServiceResource 'Microsoft.Web/serverfarms@2021-03-01' existing = if (useExistingServicePlan) {
+  name: sharedAppServicePlanName
 }
 
-resource appServiceResource 'Microsoft.Web/serverfarms@2021-03-01' = {
+resource appServiceResource 'Microsoft.Web/serverfarms@2021-03-01' =  if (!useExistingServicePlan) {
   name: functionAppServicePlanName
   location: location
   kind: functionHostKind
@@ -120,8 +106,7 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
   // }
   properties: {
     enabled: true
-    serverFarmId: appServiceResource.id
-    //serverFarmId: sharedAppServiceResource.id
+    serverFarmId: (useExistingServicePlan ? sharedAppServiceResource.id : appServiceResource.id)
     reserved: true
     isXenon: false
     hyperV: false
@@ -166,13 +151,11 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
         }
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appInsightsResource.properties.InstrumentationKey
-          //value: sharedAppInsightsInstrumentationKey
+          value: sharedAppInsightsInstrumentationKey
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: 'InstrumentationKey=${appInsightsResource.properties.InstrumentationKey}'
-          //value: sharedAppInsightsConnectionString
+          value: sharedAppInsightsConnectionString
         }
         {
           name: 'FUNCTIONS_WORKER_RUNTIME'
@@ -338,6 +321,6 @@ output id string = functionAppResource.id
 output hostname string = functionAppResource.properties.defaultHostName
 output name string = functionAppName
 output insightsName string = functionInsightsName
-output insightsKey string = appInsightsResource.properties.InstrumentationKey
+output insightsKey string = sharedAppInsightsInstrumentationKey
 output storageAccountName string = functionStorageAccountName
 output functionAppPrincipalId string = managedIdentityPrincipalId

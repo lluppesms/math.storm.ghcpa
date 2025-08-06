@@ -14,8 +14,8 @@ param servicePlanName string = ''
 param webAppKind string = 'linux' // 'linux' or 'windows'
 
 param storageSku string = 'Standard_LRS'
-param functionAppSku string = 'Y1'
-param functionAppSkuFamily string = 'Y'
+param functionAppSku string = 'B1'
+param functionAppSkuFamily string = ''
 param functionAppSkuTier string = 'Dynamic'
 
 // --------------------------------------------------------------------------------------------------------------
@@ -257,14 +257,13 @@ module functionModule './modules/functions/functionapp.bicep' = {
     functionAppName: resourceNames.outputs.functionAppName
     functionAppServicePlanName: resourceNames.outputs.functionAppServicePlanName
     functionInsightsName: resourceNames.outputs.functionAppInsightsName
-    //sharedAppServicePlanName: appServicePlanModule.outputs.name
-    //sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
-    //sharedAppInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
+    sharedAppServicePlanName: appServicePlanModule.outputs.name
+    sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
+    sharedAppInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
     managedIdentityId: identity.outputs.managedIdentityId
     managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
     keyVaultName: keyVaultModule.outputs.name
 
-    appInsightsLocation: location
     location: location
     commonTags: commonTags
 

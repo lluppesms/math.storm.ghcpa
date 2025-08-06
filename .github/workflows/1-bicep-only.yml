@@ -58,36 +58,17 @@ jobs:
       runGHASScan: false
 
 # ------------------------------------------------------------------------------------------------------------------------
-  Deploy_Core_Bicep:
+  Deploy_Bicep:
     name: Deploy ${{ inputs.deployEnvironment }} Core Bicep (${{ inputs.bicepDeploymentMode }})
     uses: ./.github/workflows/template-create-infra.yml
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}
       templatePath: './infra/Bicep/'
-      templateFile: 'main-func.bicep'
-      parameterFile: 'main-func.gha.bicepparam'
+      templateFile: 'main.bicep'
+      parameterFile: 'main.gha.bicepparam'
       parameterFileReplaceTokens: 'true'
       requestorName: ${{ github.actor }}
       createResourceGroup: ${{ inputs.createResourceGroup }}
       bicepDeploymentMode: ${{ inputs.bicepDeploymentMode }}
       deployCosmos: ${{ inputs.deployCosmos }}
-      resourceGroupSuffix: '${{ inputs.deployEnvironment }}'
-
-  Deploy_Web_Bicep:
-    name: Deploy ${{ inputs.deployEnvironment }} Web Bicep (${{ inputs.bicepDeploymentMode }})
-    uses: ./.github/workflows/template-create-infra.yml
-    secrets: inherit
-    needs: Deploy_Core_Bicep
-    with:
-      envCode: ${{ inputs.deployEnvironment }}
-      templatePath: './infra/Bicep/'
-      templateFile: 'main-web.bicep'
-      parameterFile: 'main-web.gha.bicepparam'
-      parameterFileReplaceTokens: 'true'
-      requestorName: ${{ github.actor }}
-      createResourceGroup: ${{ inputs.createResourceGroup }}
-      bicepDeploymentMode: ${{ inputs.bicepDeploymentMode }}
-      deployCosmos: ${{ inputs.deployCosmos }}
-      resourceGroupSuffix: 'web-${{ inputs.deployEnvironment }}'
-      
