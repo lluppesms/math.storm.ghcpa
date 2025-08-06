@@ -7,7 +7,8 @@
 @localBaseUrl = http://localhost:7071/api
 
 # Production (update with your actual Function App URL)
-@prodBaseUrl = https://[your-function-app].azurewebsites.net/api
+@prodBaseUrl = https://mathstorm-func-dev.azurewebsites.net/api
+@apiKey = xxxxxx
 
 # Use local for development, switch to prod for production testing
 @baseUrl = {{localBaseUrl}}
