@@ -3,12 +3,15 @@
 // Changed to use Managed Identity Storage (no connection string)
 // ----------------------------------------------------------------------------------------------------
 param functionAppName string
-param sharedAppServicePlanName string
-param sharedAppInsightsInstrumentationKey string
-param sharedAppInsightsConnectionString string
+param functionAppServicePlanName string
+param functionInsightsName string
+// param sharedAppServicePlanName string
+// param sharedAppInsightsInstrumentationKey string
+// param sharedAppInsightsConnectionString string
 param functionStorageAccountName string
 
 param location string = resourceGroup().location
+param appInsightsLocation string = resourceGroup().location
 param commonTags object = {}
 
 param managedIdentityId string
@@ -17,6 +20,10 @@ param keyVaultName string
 
 @allowed([ 'functionapp', 'functionapp,linux' ])
 param functionKind string = 'functionapp,linux'
+param functionHostKind string = 'linux'
+param functionAppSku string = 'Y1'
+param functionAppSkuFamily string = 'Y'
+param functionAppSkuTier string = 'Dynamic'
 param linuxFxVersion string = 'DOTNET-ISOLATED|8.0'
 
 param functionsWorkerRuntime string = 'DOTNET-ISOLATED'
@@ -26,7 +33,9 @@ param use32BitProcess string = 'false'
 param netFrameworkVersion string = 'v4.0'
 param usePlaceholderDotNetIsolated string = '1'
 
+param workerSizeId int = 0
 param numberOfWorkers int = 1
+param maximumWorkerCount int = 1
 
 param publicNetworkAccess string = 'Enabled'
 
@@ -36,6 +45,7 @@ param workspaceId string = ''
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~functionapp.bicep' }
 var azdTag = { 'azd-service-name': 'function' }
+var tags = union(commonTags, templateTag)
 var functionTags = union(commonTags, templateTag, azdTag)
 var useKeyVaultConnection = false
 
@@ -46,8 +56,48 @@ var functionStorageAccountConnectionString = 'DefaultEndpointsProtocol=https;Acc
 var functionStorageAccountKeyVaultReference = '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=azurefilesconnectionstring)'
 
 // Use the existing shared App Service Plan
-resource sharedAppServiceResource 'Microsoft.Web/serverfarms@2021-03-01' existing = {
-  name: sharedAppServicePlanName
+// resource sharedAppServiceResource 'Microsoft.Web/serverfarms@2021-03-01' existing = {
+//   name: sharedAppServicePlanName
+// }
+
+resource appInsightsResource 'Microsoft.Insights/components@2020-02-02-preview' = {
+  name: functionInsightsName
+  location: appInsightsLocation
+  kind: 'web'
+  tags: tags
+  properties: {
+    Application_Type: 'web'
+    Request_Source: 'rest'
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+    WorkspaceResourceId: workspaceId
+  }
+}
+
+resource appServiceResource 'Microsoft.Web/serverfarms@2021-03-01' = {
+  name: functionAppServicePlanName
+  location: location
+  kind: functionHostKind
+  tags: tags
+  sku: {
+    name: functionAppSku
+    tier: functionAppSkuTier
+    size: functionAppSku
+    family: functionAppSkuFamily
+    capacity: 0
+  }
+  properties: {
+    perSiteScaling: false
+    elasticScaleEnabled: false
+    maximumElasticWorkerCount: maximumWorkerCount
+    targetWorkerCount: workerSizeId
+    targetWorkerSizeId: numberOfWorkers
+    isSpot: false
+    reserved: true
+    isXenon: false
+    hyperV: false
+    zoneRedundant: false
+  }
 }
 
 resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
@@ -70,7 +120,8 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
   // }
   properties: {
     enabled: true
-    serverFarmId: sharedAppServiceResource.id
+    serverFarmId: appServiceResource.id
+    //serverFarmId: sharedAppServiceResource.id
     reserved: true
     isXenon: false
     hyperV: false
@@ -115,11 +166,13 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
         }
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: sharedAppInsightsInstrumentationKey
+          value: appInsightsResource.properties.InstrumentationKey
+          //value: sharedAppInsightsInstrumentationKey
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: sharedAppInsightsConnectionString
+          value: 'InstrumentationKey=${appInsightsResource.properties.InstrumentationKey}'
+          //value: sharedAppInsightsConnectionString
         }
         {
           name: 'FUNCTIONS_WORKER_RUNTIME'
@@ -266,10 +319,25 @@ resource functionAppAuditLogging 'Microsoft.Insights/diagnosticSettings@2021-05-
     ]
   }
 }
+resource appServiceMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${appServiceResource.name}-metrics'
+  scope: appServiceResource
+  properties: {
+    workspaceId: workspaceId
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
 
 // --------------------------------------------------------------------------------
 output id string = functionAppResource.id
 output hostname string = functionAppResource.properties.defaultHostName
 output name string = functionAppName
+output insightsName string = functionInsightsName
+output insightsKey string = appInsightsResource.properties.InstrumentationKey
 output storageAccountName string = functionStorageAccountName
 output functionAppPrincipalId string = managedIdentityPrincipalId

@@ -14,6 +14,9 @@ param servicePlanName string = ''
 param webAppKind string = 'linux' // 'linux' or 'windows'
 
 param storageSku string = 'Standard_LRS'
+param functionAppSku string = 'Y1'
+param functionAppSkuFamily string = 'Y'
+param functionAppSkuTier string = 'Dynamic'
 
 // --------------------------------------------------------------------------------------------------------------
 // Run Settings Parameters
@@ -249,19 +252,26 @@ module functionStorageModule './modules/storage/storage-account.bicep' = {
 
 module functionModule './modules/functions/functionapp.bicep' = {
   name: 'function${deploymentSuffix}'
+  dependsOn: [ appIdentityRoleAssignments ]
   params: {
     functionAppName: resourceNames.outputs.functionAppName
-    sharedAppServicePlanName: appServicePlanModule.outputs.name
-    sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
-    sharedAppInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
+    functionAppServicePlanName: resourceNames.outputs.functionAppServicePlanName
+    functionInsightsName: resourceNames.outputs.functionAppInsightsName
+    //sharedAppServicePlanName: appServicePlanModule.outputs.name
+    //sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
+    //sharedAppInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
     managedIdentityId: identity.outputs.managedIdentityId
     managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
     keyVaultName: keyVaultModule.outputs.name
 
+    appInsightsLocation: location
     location: location
     commonTags: commonTags
 
     functionKind: 'functionapp,linux'
+    functionAppSku: functionAppSku
+    functionAppSkuFamily: functionAppSkuFamily
+    functionAppSkuTier: functionAppSkuTier
     functionStorageAccountName: functionStorageModule.outputs.name
     workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
   }

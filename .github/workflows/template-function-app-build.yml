@@ -87,7 +87,6 @@ jobs:
         echo "##[group]Directory of ${{ github.workspace  }}"
         tree -R ${{ github.workspace  }}
         echo "##[endgroup]"
-
       continue-on-error: true
 
     - name: Setup .NET Core
@@ -116,20 +115,11 @@ jobs:
           **/TestResults/**/*.trx
       continue-on-error: true
 
-    #- name: Publish
-    #  run: dotnet publish "${{ inputs.rootDirectory }}/${{ inputs.projectName }}.csproj" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
-
-    - name: Zip Output Folder
-      run: |
-        mkdir -p ./package
-        zip -r ./package/${{ env.artifactName }}.zip ./output
-      working-directory: ${{ inputs.rootDirectory }}
-
     - name: Save Publish Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.artifactName }}
-        path: ${{ inputs.rootDirectory }}/package
+        path: ${{ inputs.rootDirectory }}/output
         include-hidden-files: true
 
     - name: List All Files
