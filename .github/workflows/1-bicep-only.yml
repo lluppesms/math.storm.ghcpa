@@ -72,7 +72,7 @@ jobs:
       createResourceGroup: ${{ inputs.createResourceGroup }}
       bicepDeploymentMode: ${{ inputs.bicepDeploymentMode }}
       deployCosmos: ${{ inputs.deployCosmos }}
-      resourceGroupSuffix: 'func'
+      resourceGroupSuffix: '${{ inputs.deployEnvironment }}'
 
   Deploy_Web_Bicep:
     name: Deploy ${{ inputs.deployEnvironment }} Web Bicep (${{ inputs.bicepDeploymentMode }})
@@ -89,5 +89,5 @@ jobs:
       createResourceGroup: ${{ inputs.createResourceGroup }}
       bicepDeploymentMode: ${{ inputs.bicepDeploymentMode }}
       deployCosmos: ${{ inputs.deployCosmos }}
-      resourceGroupSuffix: 'func'
+      resourceGroupSuffix: 'web-${{ inputs.deployEnvironment }}'
       

@@ -55,7 +55,7 @@ on:
       resourceGroupSuffix:
         required: false
         type: string
-        default: ''
+        default: 'dev'
 
 # ------------------------------------------------------------------------------------------------------------------------
 jobs:
@@ -76,7 +76,7 @@ jobs:
     env:
       envCode: ${{ inputs.envCode }}
       generatedAppEnvName: ${{ inputs.envCode == 'prod' && vars.APP_NAME || format('{0}-{1}', vars.APP_NAME, inputs.envCode) }}
-      generatedResourceGroupName: ${{ vars.RESOURCE_GROUP_NAME || format('{0}-{1}-{2}', vars.RESOURCEGROUP_PREFIX, inputs.resourceGroupSuffix, inputs.envCode) }}
+      generatedResourceGroupName: ${{ vars.RESOURCE_GROUP_NAME || format('{0}-{1}', vars.RESOURCEGROUP_PREFIX, inputs.resourceGroupSuffix) }}
       createResourceGroup: ${{ inputs.createResourceGroup }}
       requestorName: ${{ inputs.requestorName }}
       deployCosmos: ${{ inputs.deployCosmos }}
