@@ -86,9 +86,10 @@ public class LeaderboardFunctions
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected Error in GetLeaderboard: {ErrorMessage}", ex.Message);
+            var msg = ExceptionHelper.GetExceptionMessage(ex);
+            _logger.LogError(ex, "Unexpected Error in GetLeaderboard: {ErrorMessage}", msg);
             var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
-            await errorResponse.WriteStringAsync($"Unexpected Error in GetLeaderboard: {ex.Message}");
+            await errorResponse.WriteStringAsync($"Unexpected Error in GetLeaderboard: {msg}");
             return errorResponse;
         }
     }

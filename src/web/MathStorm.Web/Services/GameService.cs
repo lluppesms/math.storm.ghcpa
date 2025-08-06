@@ -4,12 +4,12 @@ using MathStorm.Common.Services;
 
 namespace MathStorm.Web.Services;
 
-public class FunctionBasedGameService : IGameService
+public class GameService : IGameService
 {
-    private readonly IMathStormFunctionService _functionService;
+    private readonly IRemoteFunctionsService _functionService;
     private readonly Dictionary<string, GameSession> _activeSessions = new();
 
-    public FunctionBasedGameService(IMathStormFunctionService functionService)
+    public GameService(IRemoteFunctionsService functionService)
     {
         _functionService = functionService;
     }

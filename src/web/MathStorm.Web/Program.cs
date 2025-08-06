@@ -27,10 +27,10 @@ builder.Services.AddSingleton(new HttpClient
 });
 
 // Add function-based game service (calls Azure Functions for all game operations)
-builder.Services.AddScoped<MathStorm.Common.Services.IGameService, MathStorm.Web.Services.FunctionBasedGameService>();
+builder.Services.AddScoped<MathStorm.Common.Services.IGameService, MathStorm.Web.Services.GameService>();
 
 // Add function service
-builder.Services.AddScoped<IMathStormFunctionService, MathStormFunctionService>();
+builder.Services.AddScoped<IRemoteFunctionsService, RemoteFunctionsService>();
 
 var app = builder.Build();
 
