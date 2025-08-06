@@ -1,0 +1,125 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# GHA Workflow to deploy Azure Resources and WebApp and Function
+# ------------------------------------------------------------------------------------------------------------------------
+# FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
+# ------------------------------------------------------------------------------------------------------------------------
+name: 3.build.deploy.both
+run-name: '3 - Build & Deploy Both in ENV ${{ inputs.deployEnvironment }} by @${{ github.actor }}'
+
+on: 
+  workflow_dispatch:
+    inputs:
+      deployEnvironment:
+        description: Environment
+        default: 'dev' 
+        type: environment
+      runSecurityScan:
+        description: Run Security Scan
+        default: false
+        type: boolean
+      runBuildDeployWeb:
+        description: Build and Deploy WebApp
+        default: true
+        type: boolean
+      runBuildDeployFunction:
+        description: Build and Deploy Function
+        default: true
+        type: boolean
+      runSmokeTest:
+        description: Run Smoke Tests
+        default: false
+        type: boolean
+      logLevel:
+        description: Log level
+        required: false
+        default: 'warning' 
+        type: choice
+        options:
+          - info
+          - warning
+          - debug 
+
+# ------------------------------------------------------------------------------------------------------------------------
+permissions:
+  id-token: write
+  contents: write
+  actions: read
+  pages: write
+  security-events: write
+  checks: write
+  issues: read
+  pull-requests: read
+  packages: read
+
+# ------------------------------------------------------------------------------------------------------------------------
+jobs:
+  scan-code:
+    name: Scan Source Code
+    uses: ./.github/workflows/template-scan-code.yml
+    secrets: inherit
+    if: inputs.runSecurityScan
+    with:
+      runMSDevSecOpsScan: ${{ inputs.runSecurityScan }}
+      runGHASScan: ${{ inputs.runSecurityScan }}
+
+# ------------------------------------------------------------------------------------------------------------------------
+  build-webapp:
+    name: Build WebApp
+    uses: ./.github/workflows/template-webapp-build.yml
+    if: inputs.runBuildDeployWeb || inputs.runSmokeTest
+    secrets: inherit
+    with:
+      envCode: ${{ inputs.deployEnvironment }}
+      rootDirectory: '${{ vars.APP_PROJECT_FOLDER_NAME }}'
+      projectName: '${{ vars.APP_PROJECT_NAME }}'
+      testDirectory: '${{ vars.APP_TEST_FOLDER_NAME }}'
+      testProjectName: '${{ vars.APP_TEST_PROJECT_NAME }}'
+      testApplication: true
+      listFilesAfterBuild: true
+
+  build-func:
+    name: Build Function
+    if: inputs.runBuildDeployFunction
+    uses: ./.github/workflows/template-function-app-build.yml
+    secrets: inherit
+    with:
+      envCode: 'dev'
+      rootDirectory: '${{ vars.FUNC_PROJECT_FOLDER_NAME }}'
+      projectName: '${{ vars.FUNC_PROJECT_NAME }}'
+      testDirectory: '${{ vars.FUNC_TEST_FOLDER_NAME }}'
+      testProjectName: '${{ vars.FUNC_TEST_PROJECT_NAME }}'
+      testApplication: true
+      listFilesAfterBuild: true
+
+# ------------------------------------------------------------------------------------------------------------------------
+  deploy-webapp:
+    name: Deploy WebApp ${{ inputs.deployEnvironment }}
+    uses: ./.github/workflows/template-webapp-deploy.yml
+    if: inputs.runBuildDeployWeb || inputs.runSmokeTest
+    needs: [ build-webapp, create-infra ]
+    secrets: inherit
+    with:
+      envCode: ${{ inputs.deployEnvironment }}
+      listFilesBeforeDeploy: true
+
+  deploy-func:
+    name: Deploy Function
+    needs: [ build-func, create-infra ]
+    uses: ./.github/workflows/template-function-app-deploy.yml
+    if: inputs.runBuildDeployFunction
+    secrets: inherit
+    with:
+      envCode: ${{ inputs.deployEnvironment }}
+      listFilesBeforeDeploy: true
+     
+# ------------------------------------------------------------------------------------------------------------------------
+  run-smoke-test:
+    name: Smoke Test ${{ inputs.deployEnvironment }}
+    uses: ./.github/workflows/template-smoke-test.yml
+    if: inputs.runSmokeTest
+    needs: deploy-webapp
+    secrets: inherit
+    with:
+      envCode: ${{ inputs.deployEnvironment }}
+      testPath: 'playwright/ui-tests'
+      testType: 'ui'
