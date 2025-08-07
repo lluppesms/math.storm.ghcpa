@@ -16,6 +16,10 @@ global using Microsoft.Extensions.Logging;
 global using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 global using Microsoft.OpenApi.Models;
 global using System.Net;
+global using Azure.AI.OpenAI;
+global using Azure;
+global using Azure.Identity;
+global using OpenAI.Chat;
 
 //global using System.Text.Json;
 global using Newtonsoft.Json;

@@ -24,6 +24,40 @@ var host = new HostBuilder()
 
         services.AddScoped<IGameService, GameService>();
 
+        // Add OpenAI services
+        var openAIEndpoint = context.Configuration["OpenAI:Endpoint"];
+        if (!string.IsNullOrEmpty(openAIEndpoint))
+        {
+            Console.WriteLine($"Connecting to OpenAI endpoint {openAIEndpoint} with managed identity...");
+            services.AddSingleton<AzureOpenAIClient>(provider =>
+            {
+                var endpoint = new Uri(openAIEndpoint);
+                return new AzureOpenAIClient(endpoint, new DefaultAzureCredential());
+            });
+            services.AddScoped<IResultsAnalysisService, ResultsAnalysisService>();
+        }
+        else
+        {
+            // Fallback for local development or when using API key
+            var openAIKey = context.Configuration["OpenAI:ApiKey"];
+            if (!string.IsNullOrEmpty(openAIKey))
+            {
+                Console.WriteLine("Connecting to OpenAI with API key...");
+                services.AddSingleton<AzureOpenAIClient>(provider =>
+                {
+                    var endpoint = new Uri(context.Configuration["OpenAI:Endpoint"] ?? "https://api.openai.com");
+                    return new AzureOpenAIClient(endpoint, new AzureKeyCredential(openAIKey));
+                });
+                services.AddScoped<IResultsAnalysisService, ResultsAnalysisService>();
+            }
+            else
+            {
+                // Add a mock service for development/testing when no OpenAI is configured
+                Console.WriteLine("No OpenAI configuration found, using mock service...");
+                services.AddScoped<IResultsAnalysisService, MockResultsAnalysisService>();
+            }
+        }
+
         var cosmosClientOptions = new CosmosClientOptions
         {
             MaxRetryAttemptsOnRateLimitedRequests = 3,
