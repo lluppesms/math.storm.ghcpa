@@ -96,7 +96,7 @@ jobs:
     name: Deploy WebApp ${{ inputs.deployEnvironment }}
     uses: ./.github/workflows/template-webapp-deploy.yml
     if: inputs.runBuildDeployWeb || inputs.runSmokeTest
-    needs: [ build-webapp, create-infra ]
+    needs: [ build-webapp ]
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}
@@ -104,7 +104,7 @@ jobs:
 
   deploy-func:
     name: Deploy Function
-    needs: [ build-func, create-infra ]
+    needs: [ build-func ]
     uses: ./.github/workflows/template-function-app-deploy.yml
     if: inputs.runBuildDeployFunction
     secrets: inherit
