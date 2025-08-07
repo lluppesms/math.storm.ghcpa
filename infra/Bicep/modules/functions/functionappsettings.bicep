@@ -6,6 +6,8 @@ param functionStorageAccountName string
 param functionInsightsKey string
 param customAppSettings object = {}
 param keyVaultName string
+@secure()
+param cosmosConnectionString string = ''
 param functionsWorkerRuntime string = 'DOTNET-ISOLATED'
 param functionsExtensionVersion string = '~4'
 param nodeDefaultVersion string = '8.11.1'
@@ -32,6 +34,7 @@ var BASE_SLOT_APPSETTINGS = {
   APPINSIGHTS_INSTRUMENTATIONKEY: functionInsightsKey
   APPLICATIONINSIGHTS_CONNECTION_STRING: 'InstrumentationKey=${functionInsightsKey}'
 
+  CosmosDb__ConnectionString: cosmosConnectionString
   FUNCTIONS_WORKER_RUNTIME: functionsWorkerRuntime
   FUNCTIONS_EXTENSION_VERSION: functionsExtensionVersion
   WEBSITE_NODE_DEFAULT_VERSION: nodeDefaultVersion

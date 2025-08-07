@@ -275,7 +275,9 @@ module functionModule './modules/functions/functionapp.bicep' = {
     workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
   }
 }
-
+resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' existing = {
+  name: keyVaultModule.outputs.name
+} 
 module functionAppSettingsModule './modules/functions/functionappsettings.bicep' = {
   name: 'functionAppSettings${deploymentSuffix}'
   params: {
@@ -283,13 +285,13 @@ module functionAppSettingsModule './modules/functions/functionappsettings.bicep'
     functionStorageAccountName: functionModule.outputs.storageAccountName
     functionInsightsKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
     keyVaultName: keyVaultModule.outputs.name
+    cosmosConnectionString : deployCosmos ? keyVault.getSecret(keyVaultSecretCosmos.outputs.connectionStringSecretName) : ''
     customAppSettings: {
       OpenApi__HideSwaggerUI: 'false'
       OpenApi__HideDocument: 'false'
       OpenApi__DocTitle: 'MathStorm Game APIs'
       OpenApi__DocDescription: 'This repo is an example of a GitHub Copilot Agent Vibe Coded Game'
       appInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
-      CosmosDb__ConnectionString: deployCosmos ? keyVaultSecretCosmos.outputs.connectionStringSecretUri : ''
       CosmosDb__Endpoint: deployCosmos ? cosmosModule.outputs.endpoint : ''
       CosmosDb__DatabaseName: cosmosDatabaseName 
       CosmosDb__ContainerNames__Users: userContainerName
