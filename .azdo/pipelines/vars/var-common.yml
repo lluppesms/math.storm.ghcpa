@@ -51,12 +51,12 @@ variables:
   - name: playwrightUITestType
     value: 'ui'
   - name: playwrightUITestPath
-    value: 'playwright/ui-tests'
+    value: 'Tests/playwright/ui-tests'
 
   - name: playwrightAPITestType
     value: 'api'
   - name: playwrightAPITestPath
-    value: 'playwright/api-tests'
+    value: 'Tests/playwright/api-tests'
 
   - name: playwrightWebsitePrefix
-    value: 'lci-Math.Storm-web'
+    value: 'mathstorm'

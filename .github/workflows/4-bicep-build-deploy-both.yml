@@ -148,5 +148,5 @@ jobs:
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}
-      testPath: 'playwright/ui-tests'
+      testPath: 'Tests/playwright/ui-tests'
       testType: 'ui'
