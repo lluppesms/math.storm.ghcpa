@@ -6,10 +6,10 @@ using './main.bicep'
 
 param appName = readEnvironmentVariable('APP_NAME')
 param environmentCode =  readEnvironmentVariable('ENVCODE')
-param location = readEnvironmentVariable('RESOURCEGROUP_LOCATION')
+param location = readEnvironmentVariable('LOCATION')
 
-param principalId = readEnvironmentVariable('PRINCIPAL_ID')
-param myIpAddress = readEnvironmentVariable('MY_IP_ADDRESS')
+param principalId = readEnvironmentVariable('PRINCIPALID')
+param myIpAddress = readEnvironmentVariable('MYIPADDRESS')
 param deployCosmos = readEnvironmentVariable('deployCosmos')
 
 param deduplicateKeyVaultSecrets = false

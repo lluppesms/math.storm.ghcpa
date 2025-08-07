@@ -76,6 +76,10 @@ jobs:
       createResourceGroup: ${{ inputs.createResourceGroup }}
       requestorName: ${{ inputs.requestorName }}
       deployCosmos: ${{ inputs.deployCosmos }}
+      APP_NAME: ${{ vars.APP_NAME }}
+      RESOURCEGROUP_LOCATION: ${{ vars.RESOURCEGROUP_LOCATION }}
+      PRINCIPALID: ${{ secrets.PRINCIPALID }}
+      MYIPADDRESS: ${{ secrets.MYIPADDRESS }}
 
     # ------------------------------------------------------------------------------------------------------------------------
     # Outputs
