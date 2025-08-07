@@ -126,12 +126,12 @@ jobs:
         echo "##[endgroup]"
       continue-on-error: true
 
-    - name: Replace Tokens
-      if: ${{ inputs.runCreateInfra && inputs.parameterFileReplaceTokens == 'true' }}
-      uses: qetza/replacetokens-action@v1
-      with:
-        sources: '${{ inputs.templatePath }}${{ inputs.parameterFile }}; !local/ => ${{ inputs.parameterFile }}'
-        variables: '[${{ toJSON(env) }},${{ toJSON(vars) }},${{ toJSON(secrets) }}]' # use environment & variables & secrets
+    # - name: Replace Tokens
+    #   if: ${{ inputs.runCreateInfra && inputs.parameterFileReplaceTokens == 'true' }}
+    #   uses: qetza/replacetokens-action@v1
+    #   with:
+    #     sources: '${{ inputs.templatePath }}${{ inputs.parameterFile }}; !local/ => ${{ inputs.parameterFile }}'
+    #     variables: '[${{ toJSON(env) }},${{ toJSON(vars) }},${{ toJSON(secrets) }}]' # use environment & variables & secrets
 
     - name: Display Param File
       run: |-
