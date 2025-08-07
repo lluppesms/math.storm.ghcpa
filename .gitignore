@@ -375,4 +375,5 @@ test-results-ui/
 # Configuration files with secrets
 appsettings.development.json
 local.settings.development.json
-
+e2e/example.spec.ts
+tests-examples/demo-todo-app.spec.ts

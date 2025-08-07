@@ -42,16 +42,16 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:5000',
+    //baseURL: 'http://localhost:5000',
     //baseURL: 'https://localhost:44349/',
-    //baseURL: 'http://lll-mathstorm-web-demo.azurewebsites.net/',
+    baseURL: 'http://mathstorm-dev.azurewebsites.net/',
 
     // baseURL: process.env.CI ? 
-    //   process.env.TEST_ENVIRONMENT == 'PROD' ? 'http://lll-mathstorm.azurewebsites.net' :
-    //   process.env.TEST_ENVIRONMENT == 'DEMO' ? 'http://lll-mathstorm-web-demo.azurewebsites.net' :
-    //   process.env.TEST_ENVIRONMENT == 'DEV' ? 'http://lll-mathstorm-web-dev.azurewebsites.net' :
-    //   process.env.TEST_ENVIRONMENT == 'QA' ? 'http://lll-mathstorm-web-qa.azurewebsites.net' :
-    //   'http://lll-mathstorm-web-demo.azurewebsites.net' : 'https://localhost:44349/',
+    //   process.env.TEST_ENVIRONMENT == 'PROD' ? 'http://mathstorm-prod.azurewebsites.net' :
+    //   process.env.TEST_ENVIRONMENT == 'DEMO' ? 'http://mathstorm-demo.azurewebsites.net' :
+    //   process.env.TEST_ENVIRONMENT == 'DEV' ? 'http://mathstorm-dev.azurewebsites.net' :
+    //   process.env.TEST_ENVIRONMENT == 'QA' ? 'http://mathstorm-qa.azurewebsites.net' :
+    //   'http://mathstorm-dev.azurewebsites.net' : 'http://localhost:5000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry'
