@@ -3,35 +3,29 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "CosmosDb": {
-      "DatabaseName": "MathStormDB",
-      "ContainerNames": {
-        "Users": "GameUser",
-        "Games": "Game",
-        "Leaderboard": "LeaderboardEntry"
-      }
-    },
-    "OpenAI": {
-      "Models": {
-        "gpt-5-mini": {
-          "DeploymentName": "gpt-5-mini", 
-          "Endpoint": "https://your-openai-resource-premium.openai.azure.com/",
-          "ApiKey": ""
-        },
-        "gpt-4o-mini": {
-          "DeploymentName": "gpt-4o-mini",
-          "Endpoint": "https://your-openai-resource.openai.azure.com/",
-          "ApiKey": ""
-        },
-        "gpt-35-turbo": {
-          "DeploymentName": "gpt-35-turbo",
-          "Endpoint": "https://your-openai-resource-legacy.openai.azure.com/",
-          "ApiKey": ""
-        }
-      },
-      "DefaultModel": "gpt-4o-mini",
-      "Temperature": "0.8"
-    }
+
+    "CosmosDb:Endpoint": "https://your-cosmos-dev.documents.azure.com:443/",
+    "CosmosDb:DatabaseName": "MathStormDB-developer",
+    "CosmosDb:ConnectionString": "",
+
+    "CosmosDb:ContainerNames:Users": "GameUser",
+    "CosmosDb:ContainerNames:Leaderboard": "LeaderboardEntry",
+    "CosmosDb:ContainerNames:Games": "Game",
+
+    "OpenAI:DefaultModel": "gpt-4o-mini",
+    "OpenAI:Temperature": "0.8",
+
+    "OpenAI:Models:gpt-5-mini:DeploymentName": "gpt-5-mini",
+    "OpenAI:Models:gpt-5-mini:Endpoint": "",
+    "OpenAI:Models:gpt-5-mini:ApiKey": "",
+
+    "OpenAI:Models:gpt-4o-mini:DeploymentName": "gpt-4o-mini",
+    "OpenAI:Models:gpt-4o-mini:Endpoint": "",
+    "OpenAI:Models:gpt-4o-mini:ApiKey": "",
+
+    "OpenAI:Models:gpt-35-turbo:DeploymentName": "gpt-35-turbo",
+    "OpenAI:Models:gpt-35-turbo:Endpoint": "",
+    "OpenAI:Models:gpt-35-turbo:ApiKey": "",
   }
   // If you use the local Cosmos Emulator, put this in your local secrets file
   //"CosmosDb": {

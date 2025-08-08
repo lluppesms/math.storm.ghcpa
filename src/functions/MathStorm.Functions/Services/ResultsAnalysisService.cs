@@ -23,20 +23,29 @@ public class ResultsAnalysisService : IResultsAnalysisService
     {
         var clients = new Dictionary<string, AzureOpenAIClient>();
         var modelsSection = _configuration.GetSection("OpenAI:Models");
-        
+
         foreach (var modelSection in modelsSection.GetChildren())
         {
             var modelName = modelSection.Key;
             var endpoint = modelSection["Endpoint"];
             var apiKey = modelSection["ApiKey"];
-            
+            var deploymentName = modelSection["DeploymentName"];
+
             if (!string.IsNullOrEmpty(endpoint) && !string.IsNullOrEmpty(apiKey))
             {
                 try
                 {
                     var client = new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey));
                     clients[modelName] = client;
-                    _logger.LogInformation($"Initialized OpenAI client for model: {modelName}");
+                    _logger.LogInformation($"Initialized OpenAI client for model: {modelName} endpoint {endpoint}");
+
+                    // example from AI Foundry in portal
+                    //var endpoint = new Uri("https://lll-oai-service.openai.azure.com/");
+                    //var model = "gpt-4o-mini";
+                    //var deploymentName = "gpt-4o-mini";
+                    //var apiKey = "<your-api-key>";
+                    //AzureOpenAIClient azureClient = new(new Uri(endpoint), new AzureKeyCredential(apiKey));
+                    //ChatClient chatClient = azureClient.GetChatClient(deploymentName);
                 }
                 catch (Exception ex)
                 {
@@ -44,17 +53,18 @@ public class ResultsAnalysisService : IResultsAnalysisService
                 }
             }
         }
-        
+
         return clients;
     }
 
     public async Task<string> AnalyzeGameResultsAsync(ResultsAnalysisRequestDto request)
     {
+        var deploymentUsed = string.Empty;
         try
         {
             var prompt = await GetChatMessagePrompt(request);
             var modelToUse = !string.IsNullOrEmpty(request.Model) ? request.Model : _defaultModel;
-            
+
             _logger.LogInformation($"Analyzing game results for {request.Username} with {request.Personality} personality using model {modelToUse}");
 
             // Get the appropriate client and deployment name for the requested model
@@ -73,9 +83,10 @@ public class ResultsAnalysisService : IResultsAnalysisService
             {
                 throw new InvalidOperationException($"No deployment name configured for model {modelToUse}");
             }
+            deploymentUsed = deploymentName;
 
             var chatClient = openAIClient.GetChatClient(deploymentName);
-            
+
             var messages = new List<ChatMessage>
             {
                 new SystemChatMessage(await GetSystemPrompt(request.Personality)),
@@ -96,7 +107,8 @@ public class ResultsAnalysisService : IResultsAnalysisService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error analyzing game results for {request.Username}");
+            var msg = ExceptionHelper.GetExceptionMessage(ex);
+            _logger.LogError(ex, $"Error analyzing game results for user '{request.Username}', Deployment '{deploymentUsed}', {msg}");
             return GetFallbackResponse(request.Personality);
         }
     }
@@ -141,7 +153,7 @@ public class ResultsAnalysisService : IResultsAnalysisService
         {
             var templatePath = Path.Combine(_promptsBasePath, "ChatMessagePrompt.txt");
             string template;
-            
+
             if (File.Exists(templatePath))
             {
                 template = await File.ReadAllTextAsync(templatePath);
