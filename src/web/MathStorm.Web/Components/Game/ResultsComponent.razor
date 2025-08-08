@@ -64,6 +64,35 @@
                                   UserMadeLeaderboard="@userMadeLeaderboard" />
         }
 
+        @* GenAI Analysis Section *@
+        @if (isAnalysisLoading)
+        {
+            <div class="card mt-4 analysis-card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-robot"></i> Post-Game Analysis</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="spinner-border text-info" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Analyzing... please wait...</p>
+                </div>
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(analysisResult))
+        {
+            <div class="card mt-4 analysis-card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-robot"></i> Post-Game Analysis from @selectedPersonalityDisplay:</h5>
+                </div>
+                <div class="card-body analysis-content">
+                    <div class="analysis-text">
+                        @((MarkupString)analysisResult.Replace("\n", "<br />"))
+                    </div>
+                </div>
+            </div>
+        }
+
         <div class="text-center mt-4">
             <button class="btn btn-primary btn-lg" @onclick="RestartGame">
                 <i class="fas fa-redo"></i> Play Again
@@ -99,6 +128,11 @@
     private List<LeaderboardEntry>? leaderboardEntries;
     private string? currentUserId;
     private bool userMadeLeaderboard = false;
+    
+    // Analysis state
+    private bool isAnalysisLoading = false;
+    private string analysisResult = string.Empty;
+    private string selectedPersonalityDisplay = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -169,6 +203,9 @@
                 
                 showLeaderboard = true;
                 StateHasChanged();
+
+                // Start analysis asynchronously - don't await to avoid blocking UI
+                _ = Task.Run(async () => await StartGameAnalysis(request.GameId, request.Username));
             }
             else
             {
@@ -283,5 +320,84 @@
             MathOperation.Division => answer.ToString("F1"),
             _ => answer.ToString("F0")
         };
+    }
+
+    private string GetRandomPersonality()
+    {
+        var personalities = Enum.GetValues<AnalysisPersonality>();
+        var random = new Random();
+        var selectedPersonality = personalities[random.Next(personalities.Length)];
+        
+        // Map enum to API string values and display names
+        var (apiValue, displayName) = selectedPersonality switch
+        {
+            AnalysisPersonality.Default => ("default", "AI Assistant"),
+            AnalysisPersonality.ComedyRoast => ("comedyroast", "Comedy Roaster"),
+            AnalysisPersonality.Pirate => ("pirate", "Pirate Captain"),
+            AnalysisPersonality.Limerick => ("limerick", "Limerick Poet"),
+            AnalysisPersonality.SportsBroadcaster => ("sportsbroadcaster", "Sports Broadcaster"),
+            AnalysisPersonality.Haiku => ("haiku", "Haiku Master"),
+            AnalysisPersonality.Australian => ("australian", "Aussie Mate"),
+            AnalysisPersonality.YourMother => ("yourmother", "Your Mother"),
+            _ => ("default", "AI Assistant")
+        };
+        
+        selectedPersonalityDisplay = displayName;
+        return apiValue;
+    }
+
+    private async Task StartGameAnalysis(string gameId, string username)
+    {
+        try
+        {
+            isAnalysisLoading = true;
+            StateHasChanged();
+
+            var personality = GetRandomPersonality();
+            
+            var analysisRequest = new ResultsAnalysisRequestDto
+            {
+                GameId = gameId,
+                Username = username,
+                Difficulty = GameSession.Difficulty.ToString(),
+                TotalScore = GameSession.TotalScore,
+                Questions = GameSession.Questions.Select(q => new QuestionResultDto
+                {
+                    Id = q.Id,
+                    Number1 = q.Number1,
+                    Number2 = q.Number2,
+                    Operation = q.Operation.ToString(),
+                    CorrectAnswer = q.CorrectAnswer,
+                    UserAnswer = q.UserAnswer ?? 0,
+                    TimeInSeconds = q.TimeInSeconds,
+                    PercentageDifference = q.PercentageDifference,
+                    Score = q.Score
+                }).ToList(),
+                Personality = personality
+            };
+
+            var analysisResponse = await FunctionService.AnalyzeGameResultsAsync(analysisRequest);
+            
+            if (analysisResponse != null && !string.IsNullOrEmpty(analysisResponse.Analysis))
+            {
+                analysisResult = analysisResponse.Analysis;
+            }
+            else
+            {
+                analysisResult = "Sorry, the analysis service is currently unavailable. Great job on completing the game!";
+                selectedPersonalityDisplay = "System";
+            }
+        }
+        catch (Exception)
+        {
+            // Handle gracefully - don't show error to user
+            analysisResult = "Sorry, the analysis service is currently unavailable. Great job on completing the game!";
+            selectedPersonalityDisplay = "System";
+        }
+        finally
+        {
+            isAnalysisLoading = false;
+            StateHasChanged();
+        }
     }
 }

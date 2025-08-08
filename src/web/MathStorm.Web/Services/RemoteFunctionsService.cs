@@ -10,6 +10,7 @@ public interface IRemoteFunctionsService
     Task<GameResponseDto?> GetGameAsync(Difficulty difficulty);
     Task<GameResultsResponseDto?> SubmitGameResultsAsync(GameResultsRequestDto request);
     Task<LeaderboardResponseDto?> GetLeaderboardAsync(string? difficulty = null, int topCount = 10);
+    Task<ResultsAnalysisResponseDto?> AnalyzeGameResultsAsync(ResultsAnalysisRequestDto request);
     string GetBaseURL();
 }
 
@@ -91,6 +92,28 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         {
             _logger.LogError(ex, "Error getting leaderboard from function API");
             _logger.LogInformation($"Error getting leaderboard from function API {BaseFunctionUrl}: {content}");
+            return null;
+        }
+    }
+
+    public async Task<ResultsAnalysisResponseDto?> AnalyzeGameResultsAsync(ResultsAnalysisRequestDto request)
+    {
+        var responseContent = string.Empty;
+        try
+        {
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("/api/game/analysis", content);
+            response.EnsureSuccessStatusCode();
+
+            responseContent = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<ResultsAnalysisResponseDto>(responseContent);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error analyzing game results via function API");
+            _logger.LogInformation($"Error analyzing game results from function API {BaseFunctionUrl}: {responseContent}");
             return null;
         }
     }
