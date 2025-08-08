@@ -10,14 +10,34 @@
         "Games": "Game",
         "Leaderboard": "LeaderboardEntry"
       }
+    },
+    "OpenAI": {
+      "Models": {
+        "gpt-5-mini": {
+          "DeploymentName": "gpt-5-mini", 
+          "Endpoint": "https://your-openai-resource-premium.openai.azure.com/",
+          "ApiKey": ""
+        },
+        "gpt-4o-mini": {
+          "DeploymentName": "gpt-4o-mini",
+          "Endpoint": "https://your-openai-resource.openai.azure.com/",
+          "ApiKey": ""
+        },
+        "gpt-35-turbo": {
+          "DeploymentName": "gpt-35-turbo",
+          "Endpoint": "https://your-openai-resource-legacy.openai.azure.com/",
+          "ApiKey": ""
+        }
+      },
+      "DefaultModel": "gpt-4o-mini",
+      "Temperature": "0.8"
     }
   }
-  // Put this in your local secrets file
+  // If you use the local Cosmos Emulator, put this in your local secrets file
   //"CosmosDb": {
   //  "ConnectionString": "AccountEndpoint=https://localhost:8081/;AccountKey=your key here...",
   //}
-  // If you use the local Cosmos DB emulator, this is the key
-  // It's not a risk, but we can't store the actual key here because GHAS will flag it.
+  // This is the key - it's not a risk it's a constant, but we can't store the actual key here because GHAS will flag it.
   // key part 1: C2y6yDjf5/
   // key part 2: R+ob0N8A7Cgv30VRDJIWEHLM
   // key part 3: +4QDU5DE2nQ9nDuVTqobD4b8

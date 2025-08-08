@@ -1,0 +1,13 @@
+Analyze this math game performance:
+
+Player: {Username}
+Difficulty: {Difficulty}
+Total Questions: {TotalQuestions}
+Correct Answers: {CorrectAnswers}
+Accuracy: {Accuracy:F1}%
+Total Score: {TotalScore:F1}
+Average Time per Question: {AverageTime:F1} seconds
+Fastest Question: {FastestTime:F1} seconds
+Slowest Question: {SlowestTime:F1} seconds
+
+Provide an entertaining analysis in your assigned personality style. Keep it to 2-3 sentences maximum unless the format requires otherwise (like limerick or haiku). Be encouraging while pointing out both strengths and areas for improvement.

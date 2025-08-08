@@ -24,6 +24,9 @@ var host = new HostBuilder()
 
         services.AddScoped<IGameService, GameService>();
 
+        // Add OpenAI services - ResultsAnalysisService will manage multiple clients internally
+        services.AddScoped<IResultsAnalysisService, ResultsAnalysisService>();
+
         var cosmosClientOptions = new CosmosClientOptions
         {
             MaxRetryAttemptsOnRateLimitedRequests = 3,
