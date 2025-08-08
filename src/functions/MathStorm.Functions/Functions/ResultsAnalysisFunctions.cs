@@ -15,6 +15,7 @@ public class ResultsAnalysisFunctions
     [OpenApiOperation(operationId: "AnalyzeGameResults", tags: new[] { "Game" }, Summary = "Analyze game results with AI commentary", Description = "Analyzes completed game results and provides personalized commentary using various AI personalities.")]
     [OpenApiRequestBody(contentType: "application/json", bodyType: typeof(ResultsAnalysisRequestDto), Required = true, Description = "Game results data for analysis")]
     [OpenApiParameter(name: "personality", In = ParameterLocation.Query, Required = false, Type = typeof(string), Summary = "AI personality style", Description = "The personality style for analysis (default, comedyroast, pirate, limerick, sportsbroadcaster, haiku, australian, yourmother). Defaults to 'default' if not specified.")]
+    [OpenApiParameter(name: "model", In = ParameterLocation.Query, Required = false, Type = typeof(string), Summary = "AI model to use", Description = "The AI model to use for analysis (gpt-4o-mini, gpt-4o, gpt-4). Defaults to the configured default model if not specified.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(ResultsAnalysisResponseDto), Summary = "Analysis completed successfully", Description = "Returns AI-generated analysis and commentary on the game performance.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.BadRequest, contentType: "text/plain", bodyType: typeof(string), Summary = "Bad request", Description = "Invalid request body or missing required fields.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while analyzing the game results.")]
@@ -35,11 +36,16 @@ public class ResultsAnalysisFunctions
                 return badRequest;
             }
 
-            // Get personality from query string if provided
+            // Get personality and model from query string if provided
             var queryCollection = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(req.Url.Query);
             if (queryCollection.ContainsKey("personality"))
             {
                 request.Personality = queryCollection["personality"].FirstOrDefault() ?? "default";
+            }
+            
+            if (queryCollection.ContainsKey("model"))
+            {
+                request.Model = queryCollection["model"].FirstOrDefault() ?? "gpt-4o-mini";
             }
 
             // Validate personality
@@ -48,7 +54,13 @@ public class ResultsAnalysisFunctions
                 request.Personality = "default";
             }
 
-            _logger.LogInformation($"Analyzing game results for {request.Username} with {request.Personality} personality");
+            // Validate model (basic validation - actual validation happens in the service)
+            if (!IsValidModel(request.Model))
+            {
+                request.Model = "gpt-4o-mini"; // fallback to default
+            }
+
+            _logger.LogInformation($"Analyzing game results for {request.Username} with {request.Personality} personality using model {request.Model}");
 
             // Generate analysis
             var analysis = await _analysisService.AnalyzeGameResultsAsync(request);
@@ -58,6 +70,7 @@ public class ResultsAnalysisFunctions
             {
                 GameId = request.GameId,
                 Personality = request.Personality,
+                Model = request.Model,
                 Analysis = analysis,
                 GeneratedAt = DateTime.UtcNow
             };
@@ -82,5 +95,11 @@ public class ResultsAnalysisFunctions
     {
         var validPersonalities = new[] { "default", "comedyroast", "pirate", "limerick", "sportsbroadcaster", "haiku", "australian", "yourmother" };
         return validPersonalities.Contains(personality.ToLowerInvariant());
+    }
+
+    private static bool IsValidModel(string model)
+    {
+        var validModels = new[] { "gpt-4o-mini", "gpt-4o", "gpt-4" };
+        return validModels.Contains(model.ToLowerInvariant());
     }
 }

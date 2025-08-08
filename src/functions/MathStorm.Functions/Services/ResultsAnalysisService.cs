@@ -2,15 +2,48 @@ namespace MathStorm.Functions.Services;
 
 public class ResultsAnalysisService : IResultsAnalysisService
 {
-    private readonly AzureOpenAIClient _openAIClient;
     private readonly ILogger<ResultsAnalysisService> _logger;
-    private readonly string _deploymentName;
+    private readonly IConfiguration _configuration;
+    private readonly float _temperature;
+    private readonly string _defaultModel;
+    private readonly Dictionary<string, AzureOpenAIClient> _openAIClients;
 
-    public ResultsAnalysisService(AzureOpenAIClient openAIClient, ILogger<ResultsAnalysisService> logger, IConfiguration configuration)
+    public ResultsAnalysisService(ILogger<ResultsAnalysisService> logger, IConfiguration configuration)
     {
-        _openAIClient = openAIClient;
         _logger = logger;
-        _deploymentName = configuration["OpenAI:DeploymentName"] ?? "gpt-4o-mini";
+        _configuration = configuration;
+        _temperature = float.TryParse(configuration["OpenAI:Temperature"], out var temp) ? temp : 0.8f;
+        _defaultModel = configuration["OpenAI:DefaultModel"] ?? "gpt-4o-mini";
+        _openAIClients = InitializeOpenAIClients();
+    }
+
+    private Dictionary<string, AzureOpenAIClient> InitializeOpenAIClients()
+    {
+        var clients = new Dictionary<string, AzureOpenAIClient>();
+        var modelsSection = _configuration.GetSection("OpenAI:Models");
+        
+        foreach (var modelSection in modelsSection.GetChildren())
+        {
+            var modelName = modelSection.Key;
+            var endpoint = modelSection["Endpoint"];
+            var apiKey = modelSection["ApiKey"];
+            
+            if (!string.IsNullOrEmpty(endpoint) && !string.IsNullOrEmpty(apiKey))
+            {
+                try
+                {
+                    var client = new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey));
+                    clients[modelName] = client;
+                    _logger.LogInformation($"Initialized OpenAI client for model: {modelName}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Failed to initialize OpenAI client for model: {modelName}");
+                }
+            }
+        }
+        
+        return clients;
     }
 
     public async Task<string> AnalyzeGameResultsAsync(ResultsAnalysisRequestDto request)
@@ -18,9 +51,28 @@ public class ResultsAnalysisService : IResultsAnalysisService
         try
         {
             var prompt = GeneratePersonalityPrompt(request);
-            _logger.LogInformation($"Analyzing game results for {request.Username} with {request.Personality} personality");
+            var modelToUse = !string.IsNullOrEmpty(request.Model) ? request.Model : _defaultModel;
+            
+            _logger.LogInformation($"Analyzing game results for {request.Username} with {request.Personality} personality using model {modelToUse}");
 
-            var chatClient = _openAIClient.GetChatClient(_deploymentName);
+            // Get the appropriate client and deployment name for the requested model
+            if (!_openAIClients.TryGetValue(modelToUse, out var openAIClient))
+            {
+                _logger.LogWarning($"Model {modelToUse} not found, falling back to default model {_defaultModel}");
+                if (!_openAIClients.TryGetValue(_defaultModel, out openAIClient))
+                {
+                    throw new InvalidOperationException($"No OpenAI client available for model {modelToUse} or default model {_defaultModel}");
+                }
+                modelToUse = _defaultModel;
+            }
+
+            var deploymentName = _configuration[$"OpenAI:Models:{modelToUse}:DeploymentName"];
+            if (string.IsNullOrEmpty(deploymentName))
+            {
+                throw new InvalidOperationException($"No deployment name configured for model {modelToUse}");
+            }
+
+            var chatClient = openAIClient.GetChatClient(deploymentName);
             
             var messages = new List<ChatMessage>
             {
@@ -31,13 +83,13 @@ public class ResultsAnalysisService : IResultsAnalysisService
             var chatCompletionOptions = new ChatCompletionOptions()
             {
                 MaxOutputTokenCount = 500,
-                Temperature = 0.8f
+                Temperature = _temperature
             };
 
             var response = await chatClient.CompleteChatAsync(messages, chatCompletionOptions);
             var analysis = response.Value.Content[0].Text;
 
-            _logger.LogInformation($"Generated analysis for {request.Username}: {analysis?.Length} characters");
+            _logger.LogInformation($"Generated analysis for {request.Username} using {modelToUse}: {analysis?.Length} characters");
             return analysis ?? "I'm speechless! Your performance has left me without words.";
         }
         catch (Exception ex)
@@ -90,7 +142,7 @@ Provide an entertaining analysis in your assigned personality style. Keep it to 
         {
             "comedyroast" => "Well, well, well... looks like my AI brain had a math error while analyzing your math errors. How's that for irony?",
             "pirate" => "Arrr, me systems be havin' troubles, matey! But I'm sure ye did fine with yer numbers!",
-            "limerick" => "A player once did math so neat,\nBut my analysis can't compete,\nI'm broken today,\nIn a technical way,\nBut your effort was quite a feat!",
+            "limerick" => "A player once did math so neat,\nBut my analysis can't compete,\nI'm broken today,\nIn a technical way,\nBut your effort was still quite a feat!",
             "sportsbroadcaster" => "Ladies and gentlemen, we're experiencing some technical difficulties in the booth, but what a performance we witnessed today!",
             "haiku" => "My circuits failed hard\nBut your math skills shine so bright\nKeep calculating",
             "australian" => "G'day mate! My systems are having a bit of a wobble, but I reckon you did bonzer with those numbers!",

@@ -8,12 +8,14 @@ public class ResultsAnalysisRequestDto
     public double TotalScore { get; set; }
     public List<QuestionResultDto> Questions { get; set; } = [];
     public string Personality { get; set; } = "default";
+    public string Model { get; set; } = "gpt-4o-mini";
 }
 
 public class ResultsAnalysisResponseDto
 {
     public string GameId { get; set; } = string.Empty;
     public string Personality { get; set; } = string.Empty;
+    public string Model { get; set; } = string.Empty;
     public string Analysis { get; set; } = string.Empty;
     public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
 }
