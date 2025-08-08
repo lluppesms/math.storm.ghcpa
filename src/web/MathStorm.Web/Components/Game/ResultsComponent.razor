@@ -11,6 +11,35 @@
             <p class="text-muted">Lower scores are better! (Error% × Time + Time × 10)</p>
         </div>
 
+        @* GenAI Analysis Section *@
+        @if (isAnalysisLoading)
+        {
+            <div class="card mt-4 analysis-card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-robot"></i> Post-Game Analysis</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="spinner-border text-info" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Analyzing... please wait...</p>
+                </div>
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(analysisResult))
+        {
+            <div class="card mt-4 analysis-card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-robot"></i> Post-Game Analysis from @selectedPersonalityDisplay:</h5>
+                </div>
+                <div class="card-body analysis-content">
+                    <div class="analysis-text">
+                        @((MarkupString)analysisResult.Replace("\n", "<br />"))
+                    </div>
+                </div>
+            </div>
+        }
+
         <div class="card">
             <div class="card-header">
                 <h5><i class="fas fa-chart-line"></i> Detailed Results</h5>
@@ -58,11 +87,12 @@
 
         @if (showLeaderboard)
         {
-            <LeaderboardComponent LeaderboardEntries="@leaderboardEntries" 
-                                  Difficulty="@GameSession.Difficulty.ToString()" 
+            <LeaderboardComponent LeaderboardEntries="@leaderboardEntries"
+                                  Difficulty="@GameSession.Difficulty.ToString()"
                                   CurrentUserId="@currentUserId"
                                   UserMadeLeaderboard="@userMadeLeaderboard" />
         }
+
 
         <div class="text-center mt-4">
             <button class="btn btn-primary btn-lg" @onclick="RestartGame">
@@ -85,9 +115,9 @@
     </div>
 </div>
 
-<UsernamePromptComponent IsVisible="@showUsernamePrompt" 
-                         TotalScore="@GameSession.TotalScore" 
-                         OnSave="@HandleSaveScore" 
+<UsernamePromptComponent IsVisible="@showUsernamePrompt"
+                         TotalScore="@GameSession.TotalScore"
+                         OnSave="@HandleSaveScore"
                          OnSkip="@HandleSkipSave" />
 
 @code {
@@ -99,6 +129,11 @@
     private List<LeaderboardEntry>? leaderboardEntries;
     private string? currentUserId;
     private bool userMadeLeaderboard = false;
+
+    // Analysis state
+    private bool isAnalysisLoading = false;
+    private string analysisResult = string.Empty;
+    private string selectedPersonalityDisplay = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -140,7 +175,7 @@
 
             // Submit game results to Function API
             var response = await FunctionService.SubmitGameResultsAsync(request);
-            
+
             if (response != null)
             {
                 currentUserId = request.Username; // Use username as ID for display
@@ -166,8 +201,11 @@
                 {
                     leaderboardEntries = new List<LeaderboardEntry>();
                 }
-                
+
                 showLeaderboard = true;
+                StateHasChanged();
+
+                await StartGameAnalysis(request.GameId, request.Username, userMadeLeaderboard);
                 StateHasChanged();
             }
             else
@@ -186,7 +224,7 @@
     private async Task HandleSkipSave()
     {
         showUsernamePrompt = false;
-        
+
         // Still show leaderboard even if user skipped
         try
         {
@@ -216,7 +254,7 @@
         {
             // If we can't load leaderboard, just don't show it
         }
-        
+
         StateHasChanged();
     }
 
@@ -245,7 +283,7 @@
         return operation switch
         {
             MathOperation.Addition => "text-primary",
-            MathOperation.Subtraction => "text-warning", 
+            MathOperation.Subtraction => "text-warning",
             MathOperation.Multiplication => "text-success",
             MathOperation.Division => "text-info",
             _ => "text-muted"
@@ -257,7 +295,7 @@
         return operation switch
         {
             MathOperation.Addition => "fas fa-plus text-primary",
-            MathOperation.Subtraction => "fas fa-minus text-warning", 
+            MathOperation.Subtraction => "fas fa-minus text-warning",
             MathOperation.Multiplication => "fas fa-times text-success",
             MathOperation.Division => "fas fa-divide text-info",
             _ => "fas fa-question text-muted"
@@ -269,7 +307,7 @@
         return operation switch
         {
             MathOperation.Addition => "➕",
-            MathOperation.Subtraction => "➖", 
+            MathOperation.Subtraction => "➖",
             MathOperation.Multiplication => "✖️",
             MathOperation.Division => "➗",
             _ => "❓"
@@ -283,5 +321,85 @@
             MathOperation.Division => answer.ToString("F1"),
             _ => answer.ToString("F0")
         };
+    }
+
+    private string GetRandomPersonality()
+    {
+        var personalities = Enum.GetValues<AnalysisPersonality>();
+        var random = new Random();
+        var selectedPersonality = personalities[random.Next(personalities.Length)];
+
+        // Map enum to API string values and display names
+        var (apiValue, displayName) = selectedPersonality switch
+        {
+            AnalysisPersonality.Default => ("default", "AI Assistant"),
+            AnalysisPersonality.ComedyRoast => ("comedyroast", "Comedy Roaster"),
+            AnalysisPersonality.Pirate => ("pirate", "Pirate Captain"),
+            AnalysisPersonality.Limerick => ("limerick", "Limerick Poet"),
+            AnalysisPersonality.SportsBroadcaster => ("sportsbroadcaster", "Sports Broadcaster"),
+            AnalysisPersonality.Haiku => ("haiku", "Haiku Master"),
+            AnalysisPersonality.Australian => ("australian", "Aussie Mate"),
+            AnalysisPersonality.YourMother => ("yourmother", "Your Mother"),
+            _ => ("default", "AI Assistant")
+        };
+
+        selectedPersonalityDisplay = displayName;
+        return apiValue;
+    }
+
+    private async Task StartGameAnalysis(string gameId, string username, bool userMadeLeaderboard)
+    {
+        try
+        {
+            isAnalysisLoading = true;
+            StateHasChanged();
+
+            var personality = GetRandomPersonality();
+
+            var analysisRequest = new ResultsAnalysisRequestDto
+            {
+                GameId = gameId,
+                Username = username,
+                Difficulty = GameSession.Difficulty.ToString(),
+                TotalScore = GameSession.TotalScore,
+                Questions = GameSession.Questions.Select(q => new QuestionResultDto
+                {
+                    Id = q.Id,
+                    Number1 = q.Number1,
+                    Number2 = q.Number2,
+                    Operation = q.Operation.ToString(),
+                    CorrectAnswer = q.CorrectAnswer,
+                    UserAnswer = q.UserAnswer ?? 0,
+                    TimeInSeconds = q.TimeInSeconds,
+                    PercentageDifference = q.PercentageDifference,
+                    Score = q.Score
+                }).ToList(),
+                Personality = personality,
+                UserMadeLeaderboard = userMadeLeaderboard
+            };
+
+            var analysisResponse = await FunctionService.AnalyzeGameResultsAsync(analysisRequest);
+
+            if (analysisResponse != null && !string.IsNullOrEmpty(analysisResponse.Analysis))
+            {
+                analysisResult = analysisResponse.Analysis;
+            }
+            else
+            {
+                analysisResult = "Sorry, the analysis service is currently unavailable. Great job on completing the game!";
+                selectedPersonalityDisplay = "System";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle gracefully - don't show error to user
+            analysisResult = $"Sorry, the analysis service is not working right now. Great job on completing the game! Error: {ex.Message}";
+            selectedPersonalityDisplay = "System";
+        }
+        finally
+        {
+            isAnalysisLoading = false;
+            StateHasChanged();
+        }
     }
 }

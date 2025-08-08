@@ -1,0 +1,43 @@
+.analysis-card {
+    border-left: 4px solid #198754;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.analysis-content {
+    background-color: var(--bs-light);
+    padding: 1.5rem;
+    border-radius: 0.375rem;
+}
+
+.analysis-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--bs-dark);
+    font-style: italic;
+    background-color: var(--bs-white);
+    padding: 1rem;
+    border-radius: 0.375rem;
+    border: 2px solid #e9ecef;
+}
+
+.analysis-card .card-header {
+    background: linear-gradient(45deg, #198754, #20c997);
+    border-bottom: none;
+}
+
+.analysis-card .card-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+    .analysis-content {
+        background-color: var(--bs-dark);
+    }
+    
+    .analysis-text {
+        background-color: var(--bs-gray-900);
+        color: var(--bs-light);
+        border-color: var(--bs-gray-700);
+    }
+}

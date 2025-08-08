@@ -1,20 +1,4 @@
-﻿namespace MathStorm.Functions.Services;
-
-public class MyExceptionHandler : IFunctionsWorkerMiddleware
-{
-    public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
-    {
-        try
-        {
-            await next(context);
-        }
-        catch (Exception ex)
-        {
-            var logger = context.GetLogger(context.FunctionDefinition.Name);
-            logger.LogError($"Unexpected Error In {context.FunctionDefinition.Name}: {ExceptionHelper.GetExceptionMessage(ex)}");
-        }
-    }
-}
+﻿namespace MathStorm.Web.Services;
 
 public static class ExceptionHelper
 {
