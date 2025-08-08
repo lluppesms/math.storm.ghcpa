@@ -19,17 +19,17 @@
         "gpt-5-mini": {
           "DeploymentName": "gpt-5-mini", 
           "Endpoint": "https://your-openai-resource-premium.openai.azure.com/",
-          "ApiKey": "your-premium-api-key-here"
+          "ApiKey": ""
         },
         "gpt-4o-mini": {
           "DeploymentName": "gpt-4o-mini",
           "Endpoint": "https://your-openai-resource.openai.azure.com/",
-          "ApiKey": "your-api-key-here"
+          "ApiKey": ""
         },
         "gpt-35-turbo": {
           "DeploymentName": "gpt-35-turbo",
           "Endpoint": "https://your-openai-resource-legacy.openai.azure.com/",
-          "ApiKey": "your-legacy-api-key-here"
+          "ApiKey": ""
         }
       },
       "DefaultModel": "gpt-4o-mini",
