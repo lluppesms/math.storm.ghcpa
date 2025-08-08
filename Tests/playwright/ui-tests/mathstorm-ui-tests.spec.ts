@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('MathStorm Game Tests', (page, baseURL, process) => {
-  test.beforeEach(async ({ page, baseURL, process }) => {
+test.describe('MathStorm Game Tests', () => {
+  test.beforeEach(async ({ page, baseURL }) => {
     console.log('Test: Open MathStorm website');
     console.log('Using Base URL: ' + baseURL);
     console.log('process.env.CI: ' + process.env.CI);
     console.log('process.env.TEST_ENVIRONMENT: ' + process.env.TEST_ENVIRONMENT);
-    await page.goto(baseURL);
+    await page.goto(`${baseURL}`);
   });
 
   test.describe('Home Page and Initial Setup', () => {

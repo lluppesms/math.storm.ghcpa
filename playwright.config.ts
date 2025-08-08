@@ -42,9 +42,9 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    //baseURL: 'http://localhost:5000',
-    //baseURL: 'https://localhost:44349/',
-    baseURL: 'http://mathstorm-dev.azurewebsites.net/',
+    baseURL: 'http://localhost:5278/',
+    //baseURL: 'https://localhost:7159/',
+    //baseURL: 'http://mathstorm-dev.azurewebsites.net/',
 
     // baseURL: process.env.CI ? 
     //   process.env.TEST_ENVIRONMENT == 'PROD' ? 'http://mathstorm-prod.azurewebsites.net' :
