@@ -7,6 +7,7 @@ public class ResultsAnalysisService : IResultsAnalysisService
     private readonly float _temperature;
     private readonly string _defaultModel;
     private readonly Dictionary<string, AzureOpenAIClient> _openAIClients;
+    private readonly string _promptsBasePath;
 
     public ResultsAnalysisService(ILogger<ResultsAnalysisService> logger, IConfiguration configuration)
     {
@@ -15,6 +16,7 @@ public class ResultsAnalysisService : IResultsAnalysisService
         _temperature = float.TryParse(configuration["OpenAI:Temperature"], out var temp) ? temp : 0.8f;
         _defaultModel = configuration["OpenAI:DefaultModel"] ?? "gpt-4o-mini";
         _openAIClients = InitializeOpenAIClients();
+        _promptsBasePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Services", "Prompts");
     }
 
     private Dictionary<string, AzureOpenAIClient> InitializeOpenAIClients()
@@ -50,7 +52,7 @@ public class ResultsAnalysisService : IResultsAnalysisService
     {
         try
         {
-            var prompt = GeneratePersonalityPrompt(request);
+            var prompt = await GetChatMessagePrompt(request);
             var modelToUse = !string.IsNullOrEmpty(request.Model) ? request.Model : _defaultModel;
             
             _logger.LogInformation($"Analyzing game results for {request.Username} with {request.Personality} personality using model {modelToUse}");
@@ -76,7 +78,7 @@ public class ResultsAnalysisService : IResultsAnalysisService
             
             var messages = new List<ChatMessage>
             {
-                new SystemChatMessage(GetSystemPrompt(request.Personality)),
+                new SystemChatMessage(await GetSystemPrompt(request.Personality)),
                 new UserChatMessage(prompt)
             };
 
@@ -99,39 +101,98 @@ public class ResultsAnalysisService : IResultsAnalysisService
         }
     }
 
-    private string GetSystemPrompt(string personality)
+    private async Task<string> ReadPromptFileAsync(string fileName)
     {
-        return personality.ToLowerInvariant() switch
+        try
         {
-            "comedyroast" => "You are a comedian doing a roast. Be funny but not mean-spirited. Focus on the math performance with witty observations and clever wordplay.",
-            "pirate" => "You are a pirate captain. Use pirate language, maritime metaphors, and seafaring terminology to comment on the math performance. Say 'arrr' and use 'ye', 'matey', etc.",
-            "limerick" => "You must respond ONLY in limerick form - exactly 5 lines with AABBA rhyme scheme. Make it about their math performance.",
-            "sportsbroadcaster" => "You are a sports broadcaster giving post-game commentary. Use energetic sports terminology, play-by-play style, and dramatic flair.",
-            "haiku" => "You must respond ONLY in haiku form - exactly 3 lines with 5-7-5 syllable pattern. Focus on their math performance.",
-            "australian" => "You are an Australian giving commentary. Use Australian slang, expressions like 'mate', 'crikey', 'fair dinkum', and Australian cultural references.",
-            "yourmother" => "You are commenting like someone's supportive but slightly embarrassing mother. Be loving, proud, but with gentle teasing and motherly observations.",
-            _ => "You are a friendly and encouraging AI assistant providing thoughtful analysis of math game performance."
-        };
+            var filePath = Path.Combine(_promptsBasePath, fileName);
+            if (File.Exists(filePath))
+            {
+                var content = await File.ReadAllTextAsync(filePath);
+                return content.Trim();
+            }
+            else
+            {
+                _logger.LogWarning($"Prompt file not found: {filePath}");
+                return GetDefaultSystemPrompt();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error reading prompt file: {fileName}");
+            return GetDefaultSystemPrompt();
+        }
     }
 
-    private string GeneratePersonalityPrompt(ResultsAnalysisRequestDto request)
+    private string GetDefaultSystemPrompt()
     {
-        var correctAnswers = request.Questions.Count(q => Math.Abs(q.UserAnswer - q.CorrectAnswer) < 0.01);
-        var averageTime = request.Questions.Average(q => q.TimeInSeconds);
-        var fastestTime = request.Questions.Min(q => q.TimeInSeconds);
-        var slowestTime = request.Questions.Max(q => q.TimeInSeconds);
+        return "You are a friendly and encouraging AI assistant providing thoughtful analysis of math game performance.";
+    }
 
-        return $@"Analyze this math game performance:
+    private async Task<string> GetSystemPrompt(string personality)
+    {
+        var fileName = $"{personality.ToLowerInvariant()}.txt";
+        return await ReadPromptFileAsync(fileName);
+    }
 
-Player: {request.Username}
-Difficulty: {request.Difficulty}
-Total Questions: {request.Questions.Count}
-Correct Answers: {correctAnswers}
-Accuracy: {(double)correctAnswers / request.Questions.Count * 100:F1}%
-Total Score: {request.TotalScore:F1}
-Average Time per Question: {averageTime:F1} seconds
-Fastest Question: {fastestTime:F1} seconds
-Slowest Question: {slowestTime:F1} seconds
+    private async Task<string> GetChatMessagePrompt(ResultsAnalysisRequestDto request)
+    {
+        try
+        {
+            var templatePath = Path.Combine(_promptsBasePath, "ChatMessagePrompt.txt");
+            string template;
+            
+            if (File.Exists(templatePath))
+            {
+                template = await File.ReadAllTextAsync(templatePath);
+            }
+            else
+            {
+                _logger.LogWarning($"ChatMessagePrompt.txt not found at {templatePath}, using default template");
+                template = GetDefaultChatMessageTemplate();
+            }
+
+            // Calculate values
+            var correctAnswers = request.Questions.Count(q => Math.Abs(q.UserAnswer - q.CorrectAnswer) < 0.01);
+            var averageTime = request.Questions.Average(q => q.TimeInSeconds);
+            var fastestTime = request.Questions.Min(q => q.TimeInSeconds);
+            var slowestTime = request.Questions.Max(q => q.TimeInSeconds);
+            var accuracy = (double)correctAnswers / request.Questions.Count * 100;
+
+            // Replace placeholders
+            var prompt = template
+                .Replace("{Username}", request.Username)
+                .Replace("{Difficulty}", request.Difficulty)
+                .Replace("{TotalQuestions}", request.Questions.Count.ToString())
+                .Replace("{CorrectAnswers}", correctAnswers.ToString())
+                .Replace("{Accuracy:F1}", accuracy.ToString("F1"))
+                .Replace("{TotalScore:F1}", request.TotalScore.ToString("F1"))
+                .Replace("{AverageTime:F1}", averageTime.ToString("F1"))
+                .Replace("{FastestTime:F1}", fastestTime.ToString("F1"))
+                .Replace("{SlowestTime:F1}", slowestTime.ToString("F1"));
+
+            return prompt;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating chat message prompt");
+            return GetDefaultChatMessageTemplate();
+        }
+    }
+
+    private string GetDefaultChatMessageTemplate()
+    {
+        return @"Analyze this math game performance:
+
+Player: {Username}
+Difficulty: {Difficulty}
+Total Questions: {TotalQuestions}
+Correct Answers: {CorrectAnswers}
+Accuracy: {Accuracy:F1}%
+Total Score: {TotalScore:F1}
+Average Time per Question: {AverageTime:F1} seconds
+Fastest Question: {FastestTime:F1} seconds
+Slowest Question: {SlowestTime:F1} seconds
 
 Provide an entertaining analysis in your assigned personality style. Keep it to 2-3 sentences maximum unless the format requires otherwise (like limerick or haiku). Be encouraging while pointing out both strengths and areas for improvement.";
     }
