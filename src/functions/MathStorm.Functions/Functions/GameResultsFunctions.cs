@@ -34,22 +34,25 @@ public class GameResultsFunctions
                 return badRequest;
             }
 
-            // Get or create user
+            // Get user by UserId (since authentication is now done before game submission)
             var user = await _cosmosDbService.GetUserByUsernameAsync(request.Username);
             if (user == null)
             {
-                user = await _cosmosDbService.CreateUserAsync(request.Username);
+                var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequest.WriteStringAsync("User not found. Please authenticate first.");
+                return badRequest;
             }
 
             // Create game record
             var game = new Game
             {
                 Id = request.GameId,
-                UserId = user.Id,
+                UserId = request.UserId,
                 Username = request.Username,
                 Difficulty = request.Difficulty,
                 TotalScore = request.Questions.Sum(q => q.Score),
                 CompletedAt = DateTime.UtcNow,
+                Analysis = request.Analysis,
                 Questions = request.Questions.Select(q => new GameQuestion
                 {
                     Id = q.Id,

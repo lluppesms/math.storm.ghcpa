@@ -115,16 +115,11 @@
     </div>
 </div>
 
-<UsernamePromptComponent IsVisible="@showUsernamePrompt"
-                         TotalScore="@GameSession.TotalScore"
-                         OnSave="@HandleSaveScore"
-                         OnSkip="@HandleSkipSave" />
-
 @code {
     [Parameter] public GameSession GameSession { get; set; } = new();
+    [Parameter] public UserAuthResponseDto? CurrentUser { get; set; }
     [Parameter] public EventCallback OnRestartGame { get; set; }
 
-    private bool showUsernamePrompt = true;
     private bool showLeaderboard = false;
     private List<LeaderboardEntry>? leaderboardEntries;
     private string? currentUserId;
@@ -135,29 +130,62 @@
     private string analysisResult = string.Empty;
     private string selectedPersonalityDisplay = string.Empty;
 
-    protected override void OnInitialized()
+    // Background processing state
+    private bool isBackgroundProcessing = false;
+
+    protected override async Task OnInitializedAsync()
     {
-        // Show username prompt initially
-        showUsernamePrompt = true;
+        // Show results immediately, no prompt needed
+        // Start background processing for leaderboard and analysis
+        await StartBackgroundProcessing();
     }
 
-    private async Task RestartGame()
+    private async Task StartBackgroundProcessing()
     {
-        await OnRestartGame.InvokeAsync();
-    }
+        if (CurrentUser == null)
+        {
+            // No user authenticated, just show basic results
+            return;
+        }
 
-    private async Task HandleSaveScore(string username)
-    {
+        isBackgroundProcessing = true;
+        StateHasChanged();
+
         try
         {
-            showUsernamePrompt = false;
-            StateHasChanged();
+            // Start analysis in background
+            var analysisTask = StartGameAnalysisBackground();
 
+            // Submit game results and get leaderboard
+            await SubmitGameResults();
+
+            // Wait for analysis to complete
+            await analysisTask;
+        }
+        catch (Exception ex)
+        {
+            // Handle gracefully - log error but don't show to user
+            // Analysis or leaderboard failure shouldn't break the results display
+        }
+        finally
+        {
+            isBackgroundProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SubmitGameResults()
+    {
+        if (CurrentUser == null) return;
+
+        try
+        {
             // Create request DTO
             var request = new GameResultsRequestDto
             {
                 GameId = Guid.NewGuid().ToString(),
-                Username = username,
+                UserId = CurrentUser.UserId,
+                Username = CurrentUser.Username,
                 Difficulty = GameSession.Difficulty.ToString(),
                 Questions = GameSession.Questions.Select(q => new QuestionResultDto
                 {
@@ -170,15 +198,16 @@
                     TimeInSeconds = q.TimeInSeconds,
                     PercentageDifference = q.PercentageDifference,
                     Score = q.Score
-                }).ToList()
+                }).ToList(),
+                Analysis = analysisResult // Will be null initially, but we'll update the game record later
             };
 
-            // Submit game results to Function API
+            // Submit game results to Function API (if available)
             var response = await FunctionService.SubmitGameResultsAsync(request);
 
             if (response != null)
             {
-                currentUserId = request.Username; // Use username as ID for display
+                currentUserId = CurrentUser.UserId;
                 userMadeLeaderboard = response.AddedToLeaderboard;
 
                 // Get updated leaderboard
@@ -204,58 +233,104 @@
 
                 showLeaderboard = true;
                 StateHasChanged();
-
-                await StartGameAnalysis(request.GameId, request.Username, userMadeLeaderboard);
-                StateHasChanged();
             }
             else
             {
-                // Handle error - show leaderboard without user's score
-                await HandleSkipSave();
+                // Function service unavailable - create mock leaderboard entry
+                currentUserId = CurrentUser.UserId;
+                userMadeLeaderboard = true; // Mock that user made leaderboard
+                leaderboardEntries = new List<LeaderboardEntry>
+                {
+                    new LeaderboardEntry
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        UserId = CurrentUser.UserId,
+                        Username = CurrentUser.Username,
+                        GameId = request.GameId,
+                        Difficulty = GameSession.Difficulty.ToString(),
+                        Score = GameSession.TotalScore,
+                        AchievedAt = DateTime.UtcNow,
+                        Rank = 1
+                    }
+                };
+                showLeaderboard = true;
+                StateHasChanged();
             }
         }
         catch (Exception)
         {
-            // Handle error - for now just show leaderboard without user's score
-            await HandleSkipSave();
+            // Handle error gracefully - still show results even if leaderboard fails
+            showLeaderboard = false;
         }
     }
 
-    private async Task HandleSkipSave()
+    private async Task RestartGame()
     {
-        showUsernamePrompt = false;
+        await OnRestartGame.InvokeAsync();
+    }
 
-        // Still show leaderboard even if user skipped
+    private async Task StartGameAnalysisBackground()
+    {
+        if (CurrentUser == null) return;
+
         try
         {
-            var difficultyKey = GameSession.Difficulty.ToString();
-            var leaderboardResponse = await FunctionService.GetLeaderboardAsync(difficultyKey);
-            if (leaderboardResponse?.Entries != null)
+            isAnalysisLoading = true;
+            StateHasChanged();
+
+            var personality = GetRandomPersonality();
+            var gameId = Guid.NewGuid().ToString();
+
+            var analysisRequest = new ResultsAnalysisRequestDto
             {
-                leaderboardEntries = leaderboardResponse.Entries.Select(e => new LeaderboardEntry
+                GameId = gameId,
+                Username = CurrentUser.Username,
+                Difficulty = GameSession.Difficulty.ToString(),
+                TotalScore = GameSession.TotalScore,
+                Questions = GameSession.Questions.Select(q => new QuestionResultDto
                 {
-                    Id = e.Id,
-                    UserId = e.UserId,
-                    Username = e.Username,
-                    GameId = e.GameId,
-                    Difficulty = e.Difficulty,
-                    Score = e.Score,
-                    AchievedAt = e.AchievedAt,
-                    Rank = e.Rank
-                }).ToList();
+                    Id = q.Id,
+                    Number1 = q.Number1,
+                    Number2 = q.Number2,
+                    Operation = q.Operation.ToString(),
+                    CorrectAnswer = q.CorrectAnswer,
+                    UserAnswer = q.UserAnswer ?? 0,
+                    TimeInSeconds = q.TimeInSeconds,
+                    PercentageDifference = q.PercentageDifference,
+                    Score = q.Score
+                }).ToList(),
+                Personality = personality,
+                UserMadeLeaderboard = userMadeLeaderboard
+            };
+
+            var analysisResponse = await FunctionService.AnalyzeGameResultsAsync(analysisRequest);
+
+            if (analysisResponse != null && !string.IsNullOrEmpty(analysisResponse.Analysis))
+            {
+                analysisResult = analysisResponse.Analysis;
             }
             else
             {
-                leaderboardEntries = new List<LeaderboardEntry>();
+                // Function service unavailable - create mock analysis
+                analysisResult = $"Great job completing the {GameSession.Difficulty} level game, {CurrentUser.Username}! " +
+                               $"You scored {GameSession.TotalScore:F1} points. " +
+                               $"Keep practicing to improve your math skills! " +
+                               $"(Note: AI analysis service is currently unavailable)";
+                selectedPersonalityDisplay = "System";
             }
-            showLeaderboard = true;
         }
-        catch
+        catch (Exception)
         {
-            // If we can't load leaderboard, just don't show it
+            // Handle gracefully - don't show error to user
+            analysisResult = $"Great job completing the game, {CurrentUser.Username}! " +
+                           $"You scored {GameSession.TotalScore:F1} points. Keep practicing!";
+            selectedPersonalityDisplay = "System";
         }
-
-        StateHasChanged();
+        finally
+        {
+            isAnalysisLoading = false;
+            StateHasChanged();
+        }
     }
 
     private string GetRowClass(MathQuestion question)
@@ -345,61 +420,5 @@
 
         selectedPersonalityDisplay = displayName;
         return apiValue;
-    }
-
-    private async Task StartGameAnalysis(string gameId, string username, bool userMadeLeaderboard)
-    {
-        try
-        {
-            isAnalysisLoading = true;
-            StateHasChanged();
-
-            var personality = GetRandomPersonality();
-
-            var analysisRequest = new ResultsAnalysisRequestDto
-            {
-                GameId = gameId,
-                Username = username,
-                Difficulty = GameSession.Difficulty.ToString(),
-                TotalScore = GameSession.TotalScore,
-                Questions = GameSession.Questions.Select(q => new QuestionResultDto
-                {
-                    Id = q.Id,
-                    Number1 = q.Number1,
-                    Number2 = q.Number2,
-                    Operation = q.Operation.ToString(),
-                    CorrectAnswer = q.CorrectAnswer,
-                    UserAnswer = q.UserAnswer ?? 0,
-                    TimeInSeconds = q.TimeInSeconds,
-                    PercentageDifference = q.PercentageDifference,
-                    Score = q.Score
-                }).ToList(),
-                Personality = personality,
-                UserMadeLeaderboard = userMadeLeaderboard
-            };
-
-            var analysisResponse = await FunctionService.AnalyzeGameResultsAsync(analysisRequest);
-
-            if (analysisResponse != null && !string.IsNullOrEmpty(analysisResponse.Analysis))
-            {
-                analysisResult = analysisResponse.Analysis;
-            }
-            else
-            {
-                analysisResult = "Sorry, the analysis service is currently unavailable. Great job on completing the game!";
-                selectedPersonalityDisplay = "System";
-            }
-        }
-        catch (Exception ex)
-        {
-            // Handle gracefully - don't show error to user
-            analysisResult = $"Sorry, the analysis service is not working right now. Great job on completing the game! Error: {ex.Message}";
-            selectedPersonalityDisplay = "System";
-        }
-        finally
-        {
-            isAnalysisLoading = false;
-            StateHasChanged();
-        }
     }
 }

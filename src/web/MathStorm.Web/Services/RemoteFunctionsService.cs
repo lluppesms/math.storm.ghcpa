@@ -11,6 +11,7 @@ public interface IRemoteFunctionsService
     Task<GameResultsResponseDto?> SubmitGameResultsAsync(GameResultsRequestDto request);
     Task<LeaderboardResponseDto?> GetLeaderboardAsync(string? difficulty = null, int topCount = 10);
     Task<ResultsAnalysisResponseDto?> AnalyzeGameResultsAsync(ResultsAnalysisRequestDto request);
+    Task<UserAuthResponseDto?> AuthenticateUserAsync(UserAuthRequestDto request);
     string GetBaseURL();
 }
 
@@ -114,6 +115,28 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         {
             _logger.LogError(ex, "Error analyzing game results via function API");
             _logger.LogInformation($"Error analyzing game results from function API {BaseFunctionUrl}: {responseContent}");
+            return null;
+        }
+    }
+
+    public async Task<UserAuthResponseDto?> AuthenticateUserAsync(UserAuthRequestDto request)
+    {
+        var responseContent = string.Empty;
+        try
+        {
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("/api/user/auth", content);
+            response.EnsureSuccessStatusCode();
+
+            responseContent = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<UserAuthResponseDto>(responseContent);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error authenticating user via function API");
+            _logger.LogInformation($"Error authenticating user from function API {BaseFunctionUrl}: {responseContent}");
             return null;
         }
     }

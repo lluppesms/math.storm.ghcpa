@@ -20,6 +20,9 @@ public class Game
     [JsonProperty("completedAt")]
     public DateTime CompletedAt { get; set; } = DateTime.UtcNow;
 
+    [JsonProperty("analysis")]
+    public string? Analysis { get; set; }
+
     [JsonProperty("questions")]
     public List<GameQuestion> Questions { get; set; } = [];
 }

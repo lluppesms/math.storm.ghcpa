@@ -3,9 +3,11 @@ namespace MathStorm.Common.DTOs;
 public class GameResultsRequestDto
 {
     public string GameId { get; set; } = string.Empty;
+    public string UserId { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
     public string Difficulty { get; set; } = string.Empty;
     public List<QuestionResultDto> Questions { get; set; } = [];
+    public string? Analysis { get; set; }
 }
 
 public class QuestionResultDto
