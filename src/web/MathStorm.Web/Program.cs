@@ -32,6 +32,9 @@ builder.Services.AddScoped<MathStorm.Common.Services.IGameService, MathStorm.Web
 // Add function service
 builder.Services.AddScoped<IRemoteFunctionsService, RemoteFunctionsService>();
 
+// Add user profile service
+builder.Services.AddScoped<IUserProfileService, UserProfileService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
