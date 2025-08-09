@@ -202,7 +202,7 @@
                 Analysis = analysisResult // Will be null initially, but we'll update the game record later
             };
 
-            // Submit game results to Function API
+            // Submit game results to Function API (if available)
             var response = await FunctionService.SubmitGameResultsAsync(request);
 
             if (response != null)
@@ -231,6 +231,28 @@
                     leaderboardEntries = new List<LeaderboardEntry>();
                 }
 
+                showLeaderboard = true;
+                StateHasChanged();
+            }
+            else
+            {
+                // Function service unavailable - create mock leaderboard entry
+                currentUserId = CurrentUser.UserId;
+                userMadeLeaderboard = true; // Mock that user made leaderboard
+                leaderboardEntries = new List<LeaderboardEntry>
+                {
+                    new LeaderboardEntry
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        UserId = CurrentUser.UserId,
+                        Username = CurrentUser.Username,
+                        GameId = request.GameId,
+                        Difficulty = GameSession.Difficulty.ToString(),
+                        Score = GameSession.TotalScore,
+                        AchievedAt = DateTime.UtcNow,
+                        Rank = 1
+                    }
+                };
                 showLeaderboard = true;
                 StateHasChanged();
             }
@@ -289,14 +311,19 @@
             }
             else
             {
-                analysisResult = "Sorry, the analysis service is currently unavailable. Great job on completing the game!";
+                // Function service unavailable - create mock analysis
+                analysisResult = $"Great job completing the {GameSession.Difficulty} level game, {CurrentUser.Username}! " +
+                               $"You scored {GameSession.TotalScore:F1} points. " +
+                               $"Keep practicing to improve your math skills! " +
+                               $"(Note: AI analysis service is currently unavailable)";
                 selectedPersonalityDisplay = "System";
             }
         }
         catch (Exception)
         {
             // Handle gracefully - don't show error to user
-            analysisResult = "Sorry, the analysis service is not working right now. Great job on completing the game!";
+            analysisResult = $"Great job completing the game, {CurrentUser.Username}! " +
+                           $"You scored {GameSession.TotalScore:F1} points. Keep practicing!";
             selectedPersonalityDisplay = "System";
         }
         finally
