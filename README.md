@@ -108,10 +108,10 @@ The project features **three complete CI/CD implementations** demonstrating diff
 [![Deploy with GitHub Actions](https://img.shields.io/badge/Deploy-GitHub%20Actions-black?style=for-the-badge&logo=github)](/.github/workflows-readme.md)
 
 **Features:**
-- ✅ Automated on push
-- ✅ Matrix builds  
-- ✅ Secrets management
-- ✅ Environment protection
+- ✅ YML&nbsp;Pipelines
+- ✅ Matrix&nbsp;builds
+- ✅ Secrets&nbsp;management
+- ✅ Environment&nbsp;protection
 
 </td>
 <td width="33%">
@@ -122,10 +122,10 @@ The project features **three complete CI/CD implementations** demonstrating diff
 [![Deploy with Azure DevOps](https://img.shields.io/badge/Deploy-Azure%20DevOps-blue?style=for-the-badge&logo=azuredevops)](/.azdo/pipelines/readme.md)
 
 **Features:**
-- ✅ YAML pipelines
-- ✅ Approval gates
-- ✅ Variable groups
-- ✅ Release management
+- ✅ YML&nbsp;pipelines
+- ✅ Approval&nbsp;gates
+- ✅ Variable&nbsp;groups
+- ✅ Release&nbsp;management
 
 </td>
 <td width="33%">
@@ -137,9 +137,9 @@ The project features **three complete CI/CD implementations** demonstrating diff
 
 **Features:**
 - ✅ Single command
-- ✅ Environment templates
-- ✅ Resource provisioning
-- ✅ Local Configuration
+- ✅ Environment&nbsp;templates
+- ✅ Resource&nbsp;provisioning
+- ✅ Configuration&nbsp;management
 
 </td>
 </tr>
