@@ -81,40 +81,6 @@ Math Storm offers two distinct interfaces to match your preferred style of inter
 - **Perfect for:** Developers, CLI enthusiasts, automation scenarios
 - **Highlights:** Beautiful terminal graphics, keyboard shortcuts, performance metrics
 
-## 🎮 **Core Functions & Services**
-
-#### 🎯 **Game Functions**
-*[📁 GameFunctions.cs](src/functions/MathStorm.Functions/Functions/GameFunctions.cs)*
-- **🎲 GetGame:** Generates new math problems based on difficulty level
-- **✅ SubmitAnswer:** Processes player responses and calculates scores
-- **⏱️ TimerSync:** Manages real-time game sessions
-
-#### 🏆 **Leaderboard Functions**
-*[📁 LeaderboardFunctions.cs](src/functions/MathStorm.Functions/Functions/LeaderboardFunctions.cs)*
-- **📊 GetLeaderboard:** Retrieves top players globally and by difficulty
-- **🎖️ UpdateRankings:** Processes score submissions and ranking updates
-- **🏅 GetPlayerStats:** Individual player performance analytics
-
-#### 📈 **Results Analysis Functions**
-*[📁 ResultsAnalysisFunctions.cs](src/functions/MathStorm.Functions/Functions/ResultsAnalysisFunctions.cs)*
-- **📊 GetDetailedStats:** Comprehensive performance breakdowns
-- **📈 TrendAnalysis:** Progress tracking over time
-- **🎯 DifficultyRecommendations:** AI-powered difficulty suggestions
-
-#### 👤 **User Authentication Functions**
-*[📁 UserAuthFunctions.cs](src/functions/MathStorm.Functions/Functions/UserAuthFunctions.cs)*
-- **🔐 UserAuth:** Secure player authentication
-- **👤 ProfileManagement:** Player profile and preferences
-- **🔒 SessionManagement:** Secure session handling
-
-#### 📊 **Game Results Functions**
-*[📁 GameResultsFunctions.cs](src/functions/MathStorm.Functions/Functions/GameResultsFunctions.cs)*
-- **💾 StoreResults:** Persists game outcomes and statistics
-- **📋 GetGameHistory:** Retrieves player's game history
-- **🔍 QueryResults:** Advanced filtering and search capabilities
-
----
-
 ## 🛠️ **Development Workflow**
 
 #### 🔄 **Local Development**
@@ -173,7 +139,7 @@ The project features **three complete CI/CD implementations** demonstrating diff
 - ✅ Single command
 - ✅ Environment templates
 - ✅ Resource provisioning
-- ✅ Configuration management
+- ✅ Local Configuration
 
 </td>
 </tr>
