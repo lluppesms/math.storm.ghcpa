@@ -33,7 +33,7 @@ on:
         type: boolean
         default: false
       runBuildDeploy:
-        description: Build and Deploy App
+        description: Build and Deploy Apps
         default: true
         type: boolean
       runSmokeTest:
