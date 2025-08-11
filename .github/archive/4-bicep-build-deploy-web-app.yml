@@ -1,28 +1,37 @@
 # ------------------------------------------------------------------------------------------------------------------------
-# GHA Workflow to build and deploy WebApp only - no bicep deploy
+# GHA Workflow to deploy Azure Resources and WebApp
 # ------------------------------------------------------------------------------------------------------------------------
 # FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
 # ------------------------------------------------------------------------------------------------------------------------
-name: 3.build.deploy.webapp
-run-name: '3 - Build & Deploy WebApp: using ENV ${{ inputs.deployEnvironment }} by @${{ github.actor }}'
+name: 4.bicep.build.deploy.webapp
+run-name: '4 - ENV ${{ inputs.deployEnvironment }} Bicep/Build/Deploy WebApp ${{ inputs.bicepDeploymentMode }} using  by @${{ github.actor }}'
 
-on:
+on: 
   workflow_dispatch:
     inputs:
       deployEnvironment:
         description: Environment
-        default: 'dev' 
+        # default: 'dev' 
         type: environment
-      runMSDevSecOpsScan:
-        description: 'Run MS DevSecOps Scan'
-        required: false
+      runSecurityScan:
+        description: Run Security Scan
         default: false
         type: boolean
-      runGHASScan:
-        description: 'Run GitHub Advanced Security Scan'
-        required: false
-        default: false
+      runCreateInfra:
+        description: Deploy Bicep
+        default: true
         type: boolean
+      bicepDeploymentMode:
+        description: Bicep Mode
+        default: create
+        type: choice
+        options:
+          - create
+          - whatIf
+      createResourceGroup:
+        description: Create Resource Group?
+        type: boolean
+        default: false
       runBuildDeploy:
         description: Build and Deploy App
         default: true
@@ -33,6 +42,7 @@ on:
         type: boolean
       logLevel:
         description: Log level
+        required: false
         default: 'warning' 
         type: choice
         options:
@@ -58,16 +68,32 @@ jobs:
     name: Scan Source Code
     uses: ./.github/workflows/template-scan-code.yml
     secrets: inherit
-    if: inputs.runMSDevSecOpsScan || inputs.runGHASScan
+    if: inputs.runSecurityScan
     with:
-      runMSDevSecOpsScan: ${{ inputs.runMSDevSecOpsScan }}
-      runGHASScan: ${{ inputs.runGHASScan }}
+      runMSDevSecOpsScan: ${{ inputs.runSecurityScan }}
+      runGHASScan: ${{ inputs.runSecurityScan }}
 
   # ------------------------------------------------------------------------------------------------------------------------
+  create-infra:
+    name: Create Infra ${{ inputs.deployEnvironment }}
+    uses: ./.github/workflows/template-create-infra.yml
+    if: inputs.runCreateInfra || inputs.runBuildDeploy
+    secrets: inherit
+    with:
+      envCode: ${{ inputs.deployEnvironment }}
+      templatePath: './infra/Bicep/'
+      templateFile: 'main.bicep'
+      parameterFile: 'main.gha.bicepparam'
+      parameterFileReplaceTokens: 'true'
+      requestorName: ${{ github.actor }}
+      createResourceGroup: ${{ inputs.createResourceGroup }}
+      bicepDeploymentMode: ${{ inputs.bicepDeploymentMode }}
+
+# ------------------------------------------------------------------------------------------------------------------------
   build-webapp:
     name: Build WebApp
     uses: ./.github/workflows/template-webapp-build.yml
-    if: inputs.runBuildDeploy || inputs.runSmokeTest
+    if: inputs.runBuildDeploy|| inputs.runSmokeTest
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}

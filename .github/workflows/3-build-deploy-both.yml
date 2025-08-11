@@ -3,8 +3,8 @@
 # ------------------------------------------------------------------------------------------------------------------------
 # FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
 # ------------------------------------------------------------------------------------------------------------------------
-name: 3.build.deploy.both
-run-name: '3 - Build & Deploy Both in ENV ${{ inputs.deployEnvironment }} by @${{ github.actor }}'
+name: 3.build.deploy
+run-name: '3 - ENV ${{ inputs.deployEnvironment }} Build & Deploy in by @${{ github.actor }}'
 
 on: 
   workflow_dispatch:
@@ -83,7 +83,7 @@ jobs:
     uses: ./.github/workflows/template-function-app-build.yml
     secrets: inherit
     with:
-      envCode: 'dev'
+      envCode: ${{ inputs.deployEnvironment }}
       rootDirectory: '${{ vars.FUNC_PROJECT_FOLDER_NAME }}'
       projectName: '${{ vars.FUNC_PROJECT_NAME }}'
       testDirectory: '${{ vars.FUNC_TEST_FOLDER_NAME }}'

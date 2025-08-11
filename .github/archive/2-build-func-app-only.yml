@@ -1,0 +1,67 @@
+# # ------------------------------------------------------------------------------------------------------------------------
+# # GHA Workflow to build and unit test Function App Only - no app or bicep deploy
+# # ------------------------------------------------------------------------------------------------------------------------
+# # FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
+# # ------------------------------------------------------------------------------------------------------------------------
+# name: 2.build.function.only
+# run-name: '2 - Build Function by @${{ github.actor }}'
+
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       runMSDevSecOpsScan:
+#         description: 'Run MS DevSecOps Scan'
+#         required: false
+#         default: false
+#         type: boolean
+#       runGHASScan:
+#         description: 'Run GitHub Advanced Security Scan'
+#         required: false
+#         default: false
+#         type: boolean
+#       logLevel:
+#         description: 'Log level'
+#         required: false
+#         default: 'warning' 
+#         type: choice
+#         options:
+#           - info
+#           - warning
+#           - debug 
+
+# # ------------------------------------------------------------------------------------------------------------------------
+# permissions:
+#   id-token: write
+#   contents: write
+#   actions: read
+#   pages: write
+#   security-events: write
+#   checks: write
+#   issues: read
+#   pull-requests: read
+#   packages: read
+
+# # ------------------------------------------------------------------------------------------------------------------------
+# jobs:
+#   scan-code:
+#     name: Scan Source Code
+#     uses: ./.github/workflows/template-scan-code.yml
+#     secrets: inherit
+#     if: inputs.runMSDevSecOpsScan || inputs.runGHASScan
+#     with:
+#       runMSDevSecOpsScan: ${{ inputs.runMSDevSecOpsScan }}
+#       runGHASScan: ${{ inputs.runGHASScan }}
+
+# # ------------------------------------------------------------------------------------------------------------------------
+#   build-func:
+#     name: Build Function App
+#     uses: ./.github/workflows/template-function-app-build.yml
+#     secrets: inherit
+#     with:
+#       envCode: 'dev'
+#       rootDirectory: '${{ vars.FUNC_PROJECT_FOLDER_NAME }}'
+#       projectName: '${{ vars.FUNC_PROJECT_NAME }}'
+#       testDirectory: '${{ vars.FUNC_TEST_FOLDER_NAME }}'
+#       testProjectName: '${{ vars.FUNC_TEST_PROJECT_NAME }}'
+#       testApplication: true
+#       listFilesAfterBuild: true

@@ -1,0 +1,88 @@
+# # ------------------------------------------------------------------------------------------------------------------------
+# # GHA Workflow to deploy Function App Only
+# # ------------------------------------------------------------------------------------------------------------------------
+# # FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
+# # ------------------------------------------------------------------------------------------------------------------------
+# name: 3.build.deploy.function
+# run-name: '3 - Build & Deploy Function: using ENV ${{ inputs.deployEnvironment }} by @${{ github.actor }}'
+
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       deployEnvironment:
+#         description: 'Environment'
+#         required: true
+#         default: 'dev' 
+#         type: environment
+#       runMSDevSecOpsScan:
+#         description: 'Run MS DevSecOps Scan'
+#         required: false
+#         default: false
+#         type: boolean
+#       runGHASScan:
+#         description: 'Run GitHub Advanced Security Scan'
+#         required: false
+#         default: false
+#         type: boolean
+#       runBuildDeploy:
+#         description: 'Build and Deploy App'
+#         required: false
+#         default: true
+#         type: boolean
+#       logLevel:
+#         description: 'Log level'
+#         required: false
+#         default: 'warning' 
+#         type: choice
+#         options:
+#           - info
+#           - warning
+#           - debug 
+
+# # ------------------------------------------------------------------------------------------------------------------------
+# permissions:
+#   id-token: write
+#   contents: write
+#   actions: read
+#   pages: write
+#   security-events: write
+#   checks: write
+#   issues: read
+#   pull-requests: read
+#   packages: read
+
+# # ------------------------------------------------------------------------------------------------------------------------
+# jobs:
+#   scan-code:
+#     name: Scan Source Code
+#     uses: ./.github/workflows/template-scan-code.yml
+#     secrets: inherit
+#     if: inputs.runMSDevSecOpsScan || inputs.runGHASScan
+#     with:
+#       runMSDevSecOpsScan: ${{ inputs.runMSDevSecOpsScan }}
+#       runGHASScan: ${{ inputs.runGHASScan }}
+
+# # ------------------------------------------------------------------------------------------------------------------------
+#   build-func:
+#     name: Build Function
+#     uses: ./.github/workflows/template-function-app-build.yml
+#     secrets: inherit
+#     with:
+#       envCode: ${{ inputs.deployEnvironment }}
+#       rootDirectory: '${{ vars.FUNC_PROJECT_FOLDER_NAME }}'
+#       projectName: '${{ vars.FUNC_PROJECT_NAME }}'
+#       testDirectory: '${{ vars.FUNC_TEST_FOLDER_NAME }}'
+#       testProjectName: '${{ vars.FUNC_TEST_PROJECT_NAME }}'
+#       testApplication: true
+#       listFilesAfterBuild: true
+
+# # ------------------------------------------------------------------------------------------------------------------------
+#   deploy-func:
+#     name: Deploy Function
+#     needs: build-func
+#     uses: ./.github/workflows/template-function-app-deploy.yml
+#     if: inputs.runBuildDeploy
+#     secrets: inherit
+#     with:
+#       envCode: ${{ inputs.deployEnvironment }}
+#       listFilesBeforeDeploy: true
