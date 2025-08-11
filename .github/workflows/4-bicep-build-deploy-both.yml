@@ -31,7 +31,7 @@ on:
       createResourceGroup:
         description: Create Resource Group?
         type: boolean
-        default: false
+        default: true
       runBuildDeploy:
         description: Build and Deploy Apps
         default: true
