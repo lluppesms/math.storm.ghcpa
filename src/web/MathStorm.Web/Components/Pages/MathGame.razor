@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @inject MathStorm.Common.Services.IGameService GameService
 @inject MathStorm.Web.Services.IRemoteFunctionsService FunctionService
+@inject MathStorm.Web.Services.IUserProfileService UserProfileService
 @using MathStorm.Web.Components.Game
 @using MathStorm.Web.Services
 @using MathStorm.Common.DTOs
@@ -18,10 +19,21 @@
                     <p class="lead">Test your mathematical skills with our lightning-fast math game!</p>
                 </div>
                 <div class="card-body">
-                    @if (!gameSession.IsGameStarted)
+                    @if (!isUserAuthenticated)
+                    {
+                        <UserLoginComponent OnAuthenticated="HandleUserAuthenticated" />
+                    }
+                    else if (!gameSession.IsGameStarted)
                     {
                         <div class="row">
                             <div class="col-md-12 mb-4">
+                                <div class="alert alert-success d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-user-check"></i> Welcome, <strong>@currentUser?.Username</strong>! Ready to play?</span>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="HandleLogout">
+                                        <i class="fas fa-sign-out-alt"></i> Switch User
+                                    </button>
+                                </div>
+                                
                                 <h3><i class="fas fa-cog"></i> Select Difficulty Level</h3>
                                 <div class="row">
                                     <div class="col-md-6 col-lg-3 mb-3">
@@ -113,7 +125,9 @@
                     }
                     else
                     {
-                        <ResultsComponent GameSession="@gameSession" OnRestartGame="RestartGame" />
+                        <ResultsComponent GameSession="@gameSession" 
+                                          CurrentUser="@currentUser" 
+                                          OnRestartGame="RestartGame" />
                     }
                 </div>
             </div>
@@ -150,11 +164,28 @@
     private Difficulty selectedDifficulty = Difficulty.Intermediate;
     private List<LeaderboardEntry>? globalLeaderboardEntries;
     private bool isLoadingGlobalLeaderboard = true;
+    private bool isUserAuthenticated = false;
+    private UserAuthResponseDto? currentUser;
 
     protected override async Task OnInitializedAsync()
     {
         gameSession = await GameService.CreateNewGameAsync(selectedDifficulty);
         await LoadGlobalLeaderboard();
+    }
+
+    private async Task HandleUserAuthenticated(UserAuthResponseDto authResponse)
+    {
+        currentUser = authResponse;
+        isUserAuthenticated = true;
+        StateHasChanged();
+    }
+
+    private async Task HandleLogout()
+    {
+        isUserAuthenticated = false;
+        currentUser = null;
+        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty);
+        StateHasChanged();
     }
 
     private async Task LoadGlobalLeaderboard()
@@ -181,6 +212,7 @@
             }
             else
             {
+                // Function service unavailable - create empty leaderboard
                 globalLeaderboardEntries = new List<LeaderboardEntry>();
             }
         }

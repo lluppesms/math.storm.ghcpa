@@ -1,0 +1,173 @@
+@rendermode InteractiveServer
+@inject MathStorm.Web.Services.IUserProfileService UserProfileService
+@using MathStorm.Common.DTOs
+
+<div class="card">
+    <div class="card-header">
+        <h5><i class="fas fa-user"></i> Player Authentication</h5>
+        <p class="mb-0 text-muted">Enter your username to start playing. Add a PIN to protect your profile (optional).</p>
+    </div>
+    <div class="card-body">
+        @if (isLoading)
+        {
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Authenticating...</p>
+            </div>
+        }
+        else
+        {
+            <div class="mb-3">
+                <label for="username" class="form-label">Username:</label>
+                <input type="text" class="form-control" id="username" @bind="username" 
+                       @onkeypress="@(async (e) => { if (e.Key == "Enter") await HandleAuthentication(); })"
+                       placeholder="Enter your username" maxlength="20" />
+            </div>
+            
+            <div class="mb-3">
+                <label for="pin" class="form-label">PIN (Optional):</label>
+                <input type="password" class="form-control" id="pin" @bind="pin" 
+                       @onkeypress="@(async (e) => { if (e.Key == "Enter") await HandleAuthentication(); })"
+                       placeholder="Enter PIN (optional)" maxlength="10" />
+                <div class="form-text">
+                    <i class="fas fa-info-circle"></i> If you're a new player, you can set a PIN to protect your profile. If you're returning, enter the PIN you used before.
+                </div>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="rememberMe" @bind="rememberMe" />
+                <label class="form-check-label" for="rememberMe">
+                    Remember me on this device
+                </label>
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i> @errorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="alert alert-success" role="alert">
+                    <i class="fas fa-check-circle"></i> @successMessage
+                </div>
+            }
+        }
+    </div>
+    <div class="card-footer text-end">
+        <button type="button" class="btn btn-primary" @onclick="HandleAuthentication" disabled="@(isLoading || string.IsNullOrWhiteSpace(username))">
+            @if (isLoading)
+            {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+            }
+            <i class="fas fa-sign-in-alt"></i> Continue
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<UserAuthResponseDto> OnAuthenticated { get; set; }
+
+    private string username = string.Empty;
+    private string pin = string.Empty;
+    private bool rememberMe = true;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Try to load stored profile
+        var storedProfile = await UserProfileService.GetStoredProfileAsync();
+        if (storedProfile != null)
+        {
+            username = storedProfile.Username;
+            pin = storedProfile.Pin ?? string.Empty;
+            rememberMe = storedProfile.RememberMe;
+        }
+    }
+
+    private async Task HandleAuthentication()
+    {
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            errorMessage = "Please enter a username.";
+            return;
+        }
+
+        if (username.Length < 2)
+        {
+            errorMessage = "Username must be at least 2 characters long.";
+            return;
+        }
+
+        if (username.Length > 20)
+        {
+            errorMessage = "Username must be 20 characters or less.";
+            return;
+        }
+
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var authResponse = await UserProfileService.AuthenticateAsync(username, string.IsNullOrWhiteSpace(pin) ? null : pin);
+            
+            if (authResponse?.IsAuthenticated == true)
+            {
+                if (authResponse.IsNewUser)
+                {
+                    successMessage = $"Welcome {username}! New profile created.";
+                }
+                else
+                {
+                    successMessage = $"Welcome back, {username}!";
+                }
+
+                // Save profile if remember me is checked
+                if (rememberMe)
+                {
+                    var profile = new UserProfileDto
+                    {
+                        Username = username,
+                        Pin = string.IsNullOrWhiteSpace(pin) ? null : pin,
+                        RememberMe = rememberMe
+                    };
+                    await UserProfileService.SaveProfileAsync(profile);
+                }
+                else
+                {
+                    await UserProfileService.ClearProfileAsync();
+                }
+
+                StateHasChanged();
+                
+                // Small delay to show success message
+                await Task.Delay(1000);
+                
+                await OnAuthenticated.InvokeAsync(authResponse);
+            }
+            else
+            {
+                errorMessage = authResponse?.ErrorMessage ?? "Authentication failed. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred during authentication: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

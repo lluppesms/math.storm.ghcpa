@@ -11,6 +11,9 @@ public class GameUser
     [JsonProperty("username")]
     public string Username { get; set; } = string.Empty;
 
+    [JsonProperty("pin")]
+    public string? Pin { get; set; }
+
     [JsonProperty("gamesPlayed")]
     public int GamesPlayed { get; set; }
 
