@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700">
+  <!-- Background -->
+  <rect width="1200" height="700" fill="#f8f9fa"/>
+  
+  <!-- Title -->
+  <text x="600" y="40" text-anchor="middle" fill="#1a1a1a" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold">
+    Math Storm Architecture Flow
+  </text>
+  
+  <!-- Arrows definitions -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+  </defs>
+  
+  <!-- Client Layer -->
+  <g id="client-layer">
+    <!-- Web Client -->
+    <rect x="50" y="80" width="150" height="80" rx="8" fill="#28a745" stroke="#1e7e34" stroke-width="2"/>
+    <text x="125" y="105" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold">Web Client</text>
+    <text x="125" y="125" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12">Blazor Server</text>
+    <text x="125" y="145" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12">Interactive UI</text>
+    
+    <!-- Console Client -->
+    <rect x="50" y="180" width="150" height="80" rx="8" fill="#fd7e14" stroke="#e55a00" stroke-width="2"/>
+    <text x="125" y="205" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold">Console App</text>
+    <text x="125" y="225" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12">Spectre.Console</text>
+    <text x="125" y="245" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12">CLI Interface</text>
+    
+    <!-- API Client -->
+    <rect x="50" y="280" width="150" height="80" rx="8" fill="#6f42c1" stroke="#5a3a99" stroke-width="2"/>
+    <text x="125" y="305" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold">API Clients</text>
+    <text x="125" y="325" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12">Direct HTTP</text>
+    <text x="125" y="345" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12">Integration</text>
+  </g>
+  
+  <!-- HTTP/HTTPS arrows -->
+  <line x1="200" y1="120" x2="320" y2="120" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="260" y="115" text-anchor="middle" fill="#666" font-family="system-ui, -apple-system, sans-serif" font-size="11">HTTPS</text>
+  
+  <line x1="200" y1="220" x2="320" y2="160" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="260" y="185" text-anchor="middle" fill="#666" font-family="system-ui, -apple-system, sans-serif" font-size="11">HTTP API</text>
+  
+  <line x1="200" y1="320" x2="320" y2="200" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="260" y="265" text-anchor="middle" fill="#666" font-family="system-ui, -apple-system, sans-serif" font-size="11">REST API</text>
+  
+  <!-- Azure Functions Layer -->
+  <rect x="320" y="80" width="200" height="140" rx="12" fill="#0078d4" stroke="#106ebe" stroke-width="2"/>
+  <text x="420" y="105" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold">Azure Functions</text>
+  <text x="420" y="125" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="13">API Gateway</text>
+  
+  <!-- Function endpoints -->
+  <rect x="335" y="140" width="170" height="22" rx="4" fill="#005a9f" stroke="#ffffff" stroke-width="1"/>
+  <text x="420" y="155" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="11">Game Functions</text>
+  
+  <rect x="335" y="165" width="170" height="22" rx="4" fill="#005a9f" stroke="#ffffff" stroke-width="1"/>
+  <text x="420" y="180" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="11">Leaderboard Functions</text>
+  
+  <rect x="335" y="190" width="170" height="22" rx="4" fill="#005a9f" stroke="#ffffff" stroke-width="1"/>
+  <text x="420" y="205" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="11">Results Analysis Functions</text>
+  
+  <!-- Arrow from Functions to Services -->
+  <line x1="520" y1="150" x2="600" y2="150" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="560" y="145" text-anchor="middle" fill="#666" font-family="system-ui, -apple-system, sans-serif" font-size="11">Internal</text>
+  
+  <!-- Core Services Layer -->
+  <rect x="600" y="80" width="180" height="140" rx="12" fill="#dc3545" stroke="#b02a37" stroke-width="2"/>
+  <text x="690" y="105" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold">Core Services</text>
+  <text x="690" y="125" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="13">Business Logic</text>
+  
+  <!-- Service components -->
+  <rect x="615" y="140" width="150" height="22" rx="4" fill="#a02834" stroke="#ffffff" stroke-width="1"/>
+  <text x="690" y="155" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="11">Game Service</text>
+  
+  <rect x="615" y="165" width="150" height="22" rx="4" fill="#a02834" stroke="#ffffff" stroke-width="1"/>
+  <text x="690" y="180" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="11">User Service</text>
+  
+  <rect x="615" y="190" width="150" height="22" rx="4" fill="#a02834" stroke="#ffffff" stroke-width="1"/>
+  <text x="690" y="205" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="11">Analytics Service</text>
+  
+  <!-- Arrow to Data Layer -->
+  <line x1="780" y1="150" x2="860" y2="150" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="820" y="145" text-anchor="middle" fill="#666" font-family="system-ui, -apple-system, sans-serif" font-size="11">Data Access</text>
+  
+  <!-- Data Storage Layer -->
+  <rect x="860" y="80" width="180" height="140" rx="12" fill="#6f42c1" stroke="#5a3a99" stroke-width="2"/>
+  <text x="950" y="105" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold">Data Layer</text>
+  <text x="950" y="125" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="13">Document Database</text>
+  
+  <!-- Storage components -->
+  <rect x="875" y="140" width="150" height="22" rx="4" fill="#553399" stroke="#ffffff" stroke-width="1"/>
+  <text x="950" y="155" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="11">Cosmos Database</text>
+
+  <rect x="875" y="165" width="150" height="22" rx="4" fill="#553399" stroke="#ffffff" stroke-width="1"/>
+  <text x="950" y="180" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="11">Users &amp; Games</text>
+
+  <rect x="875" y="190" width="150" height="22" rx="4" fill="#553399" stroke="#ffffff" stroke-width="1"/>
+  <text x="950" y="205" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="11">Leaderboard</text>
+  
+  <!-- CI/CD Pipeline Section -->
+  <rect x="150" y="400" width="900" height="120" rx="12" fill="#17a2b8" stroke="#138496" stroke-width="2"/>
+  <text x="600" y="425" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold">CI/CD Pipeline</text>
+  
+  <!-- Pipeline stages -->
+  <rect x="180" y="450" width="120" height="50" rx="6" fill="#20c997" stroke="#ffffff" stroke-width="1"/>
+  <text x="240" y="470" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold">Build</text>
+  <text x="240" y="485" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="10">Compile &amp; Test</text>
+  
+  <rect x="320" y="450" width="120" height="50" rx="6" fill="#20c997" stroke="#ffffff" stroke-width="1"/>
+  <text x="380" y="470" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold">Infrastructure</text>
+  <text x="380" y="485" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="10">Bicep Deploy</text>
+  
+  <rect x="460" y="450" width="120" height="50" rx="6" fill="#20c997" stroke="#ffffff" stroke-width="1"/>
+  <text x="520" y="470" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold">Deploy</text>
+  <text x="520" y="485" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="10">App Service</text>
+  
+  <rect x="600" y="450" width="120" height="50" rx="6" fill="#20c997" stroke="#ffffff" stroke-width="1"/>
+  <text x="660" y="470" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold">Test</text>
+  <text x="660" y="485" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="10">Playwright E2E</text>
+  
+  <rect x="740" y="450" width="120" height="50" rx="6" fill="#20c997" stroke="#ffffff" stroke-width="1"/>
+  <text x="800" y="470" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold">Monitor</text>
+  <text x="800" y="485" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="10">Azure Insights</text>
+  
+  <!-- Pipeline arrows -->
+  <line x1="300" y1="475" x2="320" y2="475" stroke="#ffffff" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="440" y1="475" x2="460" y2="475" stroke="#ffffff" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="580" y1="475" x2="600" y2="475" stroke="#ffffff" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="720" y1="475" x2="740" y2="475" stroke="#ffffff" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Platform Labels -->
+  <text x="240" y="545" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold">GitHub Actions</text>
+  <text x="520" y="545" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold">Azure DevOps</text>
+  <text x="800" y="545" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold">Azure CLI (azd)</text>
+  
+  <!-- AI Generated Footer -->
+  <rect x="100" y="580" width="1000" height="50" rx="8" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+  <text x="600" y="600" text-anchor="middle" fill="#495057" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold">Generated by GitHub Copilot Agent</text>
+  <text x="600" y="618" text-anchor="middle" fill="#6c757d" font-family="system-ui, -apple-system, sans-serif" font-size="12">99.9% of the code in this repository was created using AI-powered development</text>
+</svg>
