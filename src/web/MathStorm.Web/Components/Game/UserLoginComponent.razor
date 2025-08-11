@@ -79,15 +79,19 @@
     private string successMessage = string.Empty;
     private bool isLoading = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Try to load stored profile
-        var storedProfile = await UserProfileService.GetStoredProfileAsync();
-        if (storedProfile != null)
+        if (firstRender)
         {
-            username = storedProfile.Username;
-            pin = storedProfile.Pin ?? string.Empty;
-            rememberMe = storedProfile.RememberMe;
+            // Try to load stored profile - JavaScript interop calls can only be made after first render
+            var storedProfile = await UserProfileService.GetStoredProfileAsync();
+            if (storedProfile != null)
+            {
+                username = storedProfile.Username;
+                pin = storedProfile.Pin ?? string.Empty;
+                rememberMe = storedProfile.RememberMe;
+                StateHasChanged();
+            }
         }
     }
 
