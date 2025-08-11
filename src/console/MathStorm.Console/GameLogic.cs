@@ -85,27 +85,54 @@ public class GameLogic
                 .AddChoices([
                     "🌱 Beginner - 5 questions, 2-digit numbers, Addition & Subtraction only",
                     "🚀 Novice - 5 questions, 2-digit numbers, All operations", 
-                    "⚡ Expert - 10 questions, 3-digit numbers, All operations",
-                    "🔥 Intermediate - 10 questions, 3-digit numbers, All operations"
+                    "🔥 Intermediate - 10 questions, 3-digit numbers, All operations",
+                    "⚡ Expert - 10 questions, 4-digit numbers, All operations"
                 ]));
 
         var difficulty = difficultyChoice switch
         {
             var s when s.Contains("Beginner") => Difficulty.Beginner,
             var s when s.Contains("Novice") => Difficulty.Novice, 
-            var s when s.Contains("Expert") => Difficulty.Expert,
             var s when s.Contains("Intermediate") => Difficulty.Intermediate,
+            var s when s.Contains("Expert") => Difficulty.Expert,
             _ => Difficulty.Expert
         };
 
         AnsiConsole.MarkupLine($"\n[green]Starting {difficulty} game...[/] 🎯");
 
-        // Get game from API
+        // Try to get game from API first, fall back to local generation
         var gameData = await _mathStormService.GetGameAsync(difficulty);
-        if (gameData == null) return;
+        GameSession? gameSession = null;
+        string gameId = string.Empty;
 
-        AnsiConsole.MarkupLine($"[yellow]Game ID: {gameData.GameId}[/]");
-        AnsiConsole.MarkupLine($"[blue]You will answer {gameData.Questions.Count} questions. Good luck![/]\n");
+        if (gameData != null)
+        {
+            // API call successful - use remote game
+            gameId = gameData.GameId;
+            gameSession = new GameSession
+            {
+                Difficulty = difficulty,
+                Questions = gameData.Questions.Select(q => new MathQuestion
+                {
+                    Id = q.Id,
+                    Number1 = q.Number1,
+                    Number2 = q.Number2,
+                    Operation = Enum.Parse<MathOperation>(q.Operation),
+                    CorrectAnswer = q.CorrectAnswer
+                }).ToList()
+            };
+            AnsiConsole.MarkupLine($"[yellow]Game ID: {gameId}[/]");
+        }
+        else
+        {
+            // API unavailable - use local game generation
+            AnsiConsole.MarkupLine("[yellow]API unavailable, generating local game...[/]");
+            gameSession = _mathStormService.CreateLocalGame(difficulty);
+            gameId = Guid.NewGuid().ToString();
+            AnsiConsole.MarkupLine($"[yellow]Local Game ID: {gameId}[/]");
+        }
+
+        AnsiConsole.MarkupLine($"[blue]You will answer {gameSession.Questions.Count} questions. Good luck![/]\n");
 
         // Track game results
         var gameResults = new List<QuestionResultDto>();
@@ -116,12 +143,12 @@ public class GameLogic
         AnsiConsole.Clear();
 
         // Play through questions
-        for (int i = 0; i < gameData.Questions.Count; i++)
+        for (int i = 0; i < gameSession.Questions.Count; i++)
         {
-            var question = gameData.Questions[i];
+            var question = gameSession.Questions[i];
             var questionNumber = i + 1;
 
-            AnsiConsole.Write(new Rule($"Question {questionNumber} of {gameData.Questions.Count}").RuleStyle("blue"));
+            AnsiConsole.Write(new Rule($"Question {questionNumber} of {gameSession.Questions.Count}").RuleStyle("blue"));
             AnsiConsole.WriteLine();
 
             var startTime = DateTime.UtcNow;
@@ -144,11 +171,20 @@ public class GameLogic
             var endTime = DateTime.UtcNow;
             var timeInSeconds = (endTime - startTime).TotalSeconds;
 
-            // Calculate score for this question
-            var percentageDifference = Math.Abs((userAnswer - question.CorrectAnswer) / question.CorrectAnswer) * 100;
-            var accuracyScore = Math.Max(0, 100 - percentageDifference);
-            var timeBonus = Math.Max(0, 50 - timeInSeconds); // Bonus for speed (up to 50 points)
-            var questionScore = (accuracyScore + timeBonus) / 1.5; // Scale to reasonable range
+            // Calculate score for this question using same logic as web app
+            var correctAnswer = question.CorrectAnswer;
+            var difference = Math.Abs(correctAnswer - userAnswer);
+            var percentageDifference = correctAnswer == 0 ?
+                (userAnswer == 0 ? 0 : Math.Abs(userAnswer) * 100) :
+                Math.Round((difference / Math.Abs(correctAnswer)) * 100, 1);
+
+            // Use same scoring formula as web app
+            var timeFactor = 10.0;
+            if (timeInSeconds <= 1) { timeFactor = 100.0; }
+
+            var questionScore = Math.Round(
+                (percentageDifference * timeInSeconds) +
+                (timeInSeconds * timeFactor), 1);
 
             totalScore += questionScore;
 
@@ -170,7 +206,7 @@ public class GameLogic
                 Id = question.Id,
                 Number1 = question.Number1,
                 Number2 = question.Number2,
-                Operation = question.Operation,
+                Operation = question.Operation.ToString(),
                 CorrectAnswer = question.CorrectAnswer,
                 UserAnswer = userAnswer,
                 TimeInSeconds = timeInSeconds,
@@ -178,7 +214,7 @@ public class GameLogic
                 Score = questionScore
             });
 
-            if (i < gameData.Questions.Count - 1)
+            if (i < gameSession.Questions.Count - 1)
             {
                 AnsiConsole.WriteLine();
                 AnsiConsole.MarkupLine("[grey]Press any key for the next question...[/]");
@@ -201,7 +237,7 @@ public class GameLogic
 
         resultsTable.AddRow("Player", $"[yellow]{username}[/]");
         resultsTable.AddRow("Difficulty", $"[blue]{difficulty}[/]");
-        resultsTable.AddRow("Questions", $"[white]{gameData.Questions.Count}[/]");
+        resultsTable.AddRow("Questions", $"[white]{gameSession.Questions.Count}[/]");
         resultsTable.AddRow("Total Score", $"[green bold]{totalScore:F1}[/]");
 
         var correctAnswers = gameResults.Count(r => Math.Abs(r.PercentageDifference) < 1);
@@ -213,27 +249,34 @@ public class GameLogic
 
         AnsiConsole.Write(resultsTable);
 
-        // Submit results to API
+        // Submit results to API if we have connection
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[blue]Submitting your results...[/] 📤");
-
-        var submitRequest = new GameResultsRequestDto
+        if (gameData != null)
         {
-            GameId = gameData.GameId,
-            Username = username,
-            Difficulty = difficulty.ToString(),
-            Questions = gameResults
-        };
+            AnsiConsole.MarkupLine("[blue]Submitting your results...[/] 📤");
 
-        var submitResponse = await _mathStormService.SubmitGameResultsAsync(submitRequest);
-        if (submitResponse != null)
-        {
-            AnsiConsole.MarkupLine("[green]✓ Results submitted successfully![/] 🎉");
-            if (submitResponse.AddedToLeaderboard)
+            var submitRequest = new GameResultsRequestDto
             {
-                var rankText = submitResponse.LeaderboardRank.HasValue ? $" (Rank #{submitResponse.LeaderboardRank.Value})" : "";
-                AnsiConsole.MarkupLine($"[gold1 bold]🏆 ADDED TO LEADERBOARD!{rankText} Congratulations! 🏆[/]");
+                GameId = gameId,
+                Username = username,
+                Difficulty = difficulty.ToString(),
+                Questions = gameResults
+            };
+
+            var submitResponse = await _mathStormService.SubmitGameResultsAsync(submitRequest);
+            if (submitResponse != null)
+            {
+                AnsiConsole.MarkupLine("[green]✓ Results submitted successfully![/] 🎉");
+                if (submitResponse.AddedToLeaderboard)
+                {
+                    var rankText = submitResponse.LeaderboardRank.HasValue ? $" (Rank #{submitResponse.LeaderboardRank.Value})" : "";
+                    AnsiConsole.MarkupLine($"[gold1 bold]🏆 ADDED TO LEADERBOARD!{rankText} Congratulations! 🏆[/]");
+                }
             }
+        }
+        else
+        {
+            AnsiConsole.MarkupLine("[yellow]📱 Local game completed - scores not submitted due to API unavailability[/]");
         }
     }
 
