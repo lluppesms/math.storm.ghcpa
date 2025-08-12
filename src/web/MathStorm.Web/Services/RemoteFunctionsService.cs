@@ -33,9 +33,10 @@ public class RemoteFunctionsService : IRemoteFunctionsService
     public async Task<GameResponseDto?> GetGameAsync(Difficulty difficulty)
     {
         var content = string.Empty;
+        var apiUrl = $"/api/game?difficulty={difficulty}";
         try
         {
-            var response = await _httpClient.GetAsync($"/api/game?difficulty={difficulty}");
+            var response = await _httpClient.GetAsync(apiUrl);
             response.EnsureSuccessStatusCode();
 
             content = await response.Content.ReadAsStringAsync();
@@ -44,8 +45,9 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         }
         catch (Exception ex)
         {
+            var msg = $"Error getting game from function API {apiUrl}: {content}";
+            _logger.LogWarning(msg);
             _logger.LogError(ex, "Error getting game from function API");
-            _logger.LogInformation($"Error getting game from function API {BaseFunctionUrl}: {content}");
             return null;
         }
     }
@@ -53,12 +55,13 @@ public class RemoteFunctionsService : IRemoteFunctionsService
     public async Task<GameResultsResponseDto?> SubmitGameResultsAsync(GameResultsRequestDto request)
     {
         var responseContent = string.Empty;
+        var apiUrl = "/api/game/results";
         try
         {
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("/api/game/results", content);
+            var response = await _httpClient.PostAsync(apiUrl, content);
             response.EnsureSuccessStatusCode();
 
             responseContent = await response.Content.ReadAsStringAsync();
@@ -66,8 +69,9 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         }
         catch (Exception ex)
         {
+            var msg = $"Error submitting game results to function API {apiUrl}: {responseContent}";
+            _logger.LogWarning(msg);
             _logger.LogError(ex, "Error submitting game results to function API");
-            _logger.LogInformation($"Error getting game results from function API {BaseFunctionUrl}: {responseContent}");
             return null;
         }
     }
@@ -75,15 +79,15 @@ public class RemoteFunctionsService : IRemoteFunctionsService
     public async Task<LeaderboardResponseDto?> GetLeaderboardAsync(string? difficulty = null, int topCount = 10)
     {
         var content = string.Empty;
+        var apiUrl = $"/api/leaderboard?topCount={topCount}";
         try
         {
-            var url = $"/api/leaderboard?topCount={topCount}";
             if (!string.IsNullOrEmpty(difficulty))
             {
-                url += $"&difficulty={difficulty}";
+                apiUrl += $"&difficulty={difficulty}";
             }
 
-            var response = await _httpClient.GetAsync(url);
+            var response = await _httpClient.GetAsync(apiUrl);
             response.EnsureSuccessStatusCode();
 
             content = await response.Content.ReadAsStringAsync();
@@ -91,8 +95,9 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         }
         catch (Exception ex)
         {
+            var msg = $"Error getting leaderboard from function API {apiUrl}: {content}";
+            _logger.LogWarning(msg);
             _logger.LogError(ex, "Error getting leaderboard from function API");
-            _logger.LogInformation($"Error getting leaderboard from function API {BaseFunctionUrl}: {content}");
             return null;
         }
     }
@@ -100,12 +105,13 @@ public class RemoteFunctionsService : IRemoteFunctionsService
     public async Task<ResultsAnalysisResponseDto?> AnalyzeGameResultsAsync(ResultsAnalysisRequestDto request)
     {
         var responseContent = string.Empty;
+        var apiUrl = "/api/game/analysis";
         try
         {
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("/api/game/analysis", content);
+            var response = await _httpClient.PostAsync(apiUrl, content);
             response.EnsureSuccessStatusCode();
 
             responseContent = await response.Content.ReadAsStringAsync();
@@ -113,8 +119,9 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         }
         catch (Exception ex)
         {
+            var msg = $"Error analyzing game results via function API {apiUrl}: {responseContent}";
+            _logger.LogWarning(msg);    
             _logger.LogError(ex, "Error analyzing game results via function API");
-            _logger.LogInformation($"Error analyzing game results from function API {BaseFunctionUrl}: {responseContent}");
             return null;
         }
     }
@@ -122,12 +129,13 @@ public class RemoteFunctionsService : IRemoteFunctionsService
     public async Task<UserAuthResponseDto?> AuthenticateUserAsync(UserAuthRequestDto request)
     {
         var responseContent = string.Empty;
+        var apiUrl = "/api/user/auth";
         try
         {
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("/api/user/auth", content);
+            var response = await _httpClient.PostAsync(apiUrl, content);
             response.EnsureSuccessStatusCode();
 
             responseContent = await response.Content.ReadAsStringAsync();
@@ -135,8 +143,9 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         }
         catch (Exception ex)
         {
+            var msg = $"Error authenticating user from function API {apiUrl}: {responseContent}";
+            _logger.LogWarning(msg);
             _logger.LogError(ex, "Error authenticating user via function API");
-            _logger.LogInformation($"Error authenticating user from function API {BaseFunctionUrl}: {responseContent}");
             return null;
         }
     }

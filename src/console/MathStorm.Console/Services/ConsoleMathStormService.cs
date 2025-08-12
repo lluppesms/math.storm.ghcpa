@@ -28,16 +28,19 @@ public class ConsoleMathStormService : IConsoleMathStormService
 
     public async Task<GameResponseDto?> GetGameAsync(Difficulty difficulty)
     {
+        var apiUrl = $"/api/game?difficulty={difficulty}";
         try
         {
-            var response = await _httpClient.GetAsync($"/api/game?difficulty={difficulty}");
+            var response = await _httpClient.GetAsync(apiUrl);
             response.EnsureSuccessStatusCode();
-            
+
             var content = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<GameResponseDto>(content, _jsonOptions);
         }
         catch (Exception ex)
         {
+            var msg = $"Error getting game from function API {apiUrl}: {content}";
+            _logger.LogWarning(msg);
             _logger.LogError(ex, "Error getting game from function API");
             AnsiConsole.MarkupLine("[red]Error: Unable to connect to game service. Please try again later.[/]");
             return null;
@@ -46,19 +49,22 @@ public class ConsoleMathStormService : IConsoleMathStormService
 
     public async Task<GameResultsResponseDto?> SubmitGameResultsAsync(GameResultsRequestDto request)
     {
+        var apiUrl = "/api/game/results";
         try
         {
             var json = JsonSerializer.Serialize(request, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            
-            var response = await _httpClient.PostAsync("/api/game/results", content);
+
+            var response = await _httpClient.PostAsync(apiUrl, content);
             response.EnsureSuccessStatusCode();
-            
+
             var responseContent = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<GameResultsResponseDto>(responseContent, _jsonOptions);
         }
         catch (Exception ex)
         {
+            var msg = $"Error submitting game results to function API {apiUrl}: {content}";
+            _logger.LogWarning(msg);
             _logger.LogError(ex, "Error submitting game results to function API");
             AnsiConsole.MarkupLine("[red]Error: Unable to submit results. Your score may not be saved.[/]");
             return null;
@@ -67,22 +73,24 @@ public class ConsoleMathStormService : IConsoleMathStormService
 
     public async Task<LeaderboardResponseDto?> GetLeaderboardAsync(string? difficulty = null, int topCount = 10)
     {
+        var apiUrl = $"/api/leaderboard?topCount={topCount}";
         try
         {
-            var url = $"/api/leaderboard?topCount={topCount}";
             if (!string.IsNullOrEmpty(difficulty))
             {
-                url += $"&difficulty={difficulty}";
+                apiUrl += $"&difficulty={difficulty}";
             }
-            
-            var response = await _httpClient.GetAsync(url);
+
+            var response = await _httpClient.GetAsync(apiUrl);
             response.EnsureSuccessStatusCode();
-            
+
             var content = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<LeaderboardResponseDto>(content, _jsonOptions);
         }
         catch (Exception ex)
         {
+            var msg = $"Error getting leaderboard from function API {apiUrl}: {content}";
+            _logger.LogWarning(msg);
             _logger.LogError(ex, "Error getting leaderboard from function API");
             AnsiConsole.MarkupLine("[red]Error: Unable to load leaderboard. Please try again later.[/]");
             return null;
@@ -91,19 +99,22 @@ public class ConsoleMathStormService : IConsoleMathStormService
 
     public async Task<ResultsAnalysisResponseDto?> AnalyzeGameResultsAsync(ResultsAnalysisRequestDto request)
     {
+        var apiUrl = "/api/game/analysis";
         try
         {
             var json = JsonSerializer.Serialize(request, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            
-            var response = await _httpClient.PostAsync("/api/game/analysis", content);
+
+            var response = await _httpClient.PostAsync(apiUrl, content);
             response.EnsureSuccessStatusCode();
-            
+
             var responseContent = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<ResultsAnalysisResponseDto>(responseContent, _jsonOptions);
         }
         catch (Exception ex)
         {
+            var msg = $"Error analyzing game results via function API {apiUrl}: {content}";
+            _logger.LogWarning(msg);
             _logger.LogError(ex, "Error analyzing game results via function API");
             AnsiConsole.MarkupLine("[red]Error: Unable to analyze results. Please try again later.[/]");
             return null;
@@ -112,19 +123,22 @@ public class ConsoleMathStormService : IConsoleMathStormService
 
     public async Task<UserAuthResponseDto?> AuthenticateUserAsync(UserAuthRequestDto request)
     {
+        var apiUrl = "/api/user/auth";
         try
         {
             var json = JsonSerializer.Serialize(request, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            
-            var response = await _httpClient.PostAsync("/api/user/auth", content);
+
+            var response = await _httpClient.PostAsync(apiUrl, content);
             response.EnsureSuccessStatusCode();
-            
+
             var responseContent = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<UserAuthResponseDto>(responseContent, _jsonOptions);
         }
         catch (Exception ex)
         {
+            var msg = $"Error authenticating user via function API {apiUrl}: {content}";
+            _logger.LogWarning(msg);
             _logger.LogError(ex, "Error authenticating user via function API");
             AnsiConsole.MarkupLine("[red]Error: Unable to authenticate user. Please try again later.[/]");
             return null;
