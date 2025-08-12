@@ -32,8 +32,12 @@ on:
         description: Create Resource Group?
         type: boolean
         default: true
-      runBuildDeploy:
-        description: Build and Deploy Apps
+      runBuildDeployWeb:
+        description: Build and Deploy Web App
+        default: true
+        type: boolean
+      runBuildDeployFunction:
+        description: Build and Deploy Function
         default: true
         type: boolean
       runSmokeTest:
@@ -77,7 +81,7 @@ jobs:
   create-infra:
     name: Create Infra ${{ inputs.deployEnvironment }}
     uses: ./.github/workflows/template-create-infra.yml
-    if: inputs.runCreateInfra || inputs.runBuildDeploy
+    if: inputs.runCreateInfra || inputs.runBuildDeployWeb || inputs.runBuildDeployFunction
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}
@@ -93,7 +97,7 @@ jobs:
   build-webapp:
     name: Build WebApp
     uses: ./.github/workflows/template-webapp-build.yml
-    if: inputs.runBuildDeploy|| inputs.runSmokeTest
+    if: inputs.runBuildDeployWeb || inputs.runSmokeTest
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}
@@ -106,7 +110,7 @@ jobs:
 
   build-func:
     name: Build Function
-    if: inputs.runBuildDeploy
+    if: inputs.runBuildDeployFunction
     uses: ./.github/workflows/template-function-app-build.yml
     secrets: inherit
     with:
@@ -122,7 +126,7 @@ jobs:
   deploy-webapp:
     name: Deploy WebApp ${{ inputs.deployEnvironment }}
     uses: ./.github/workflows/template-webapp-deploy.yml
-    if: inputs.runBuildDeploy || inputs.runSmokeTest
+    if: inputs.runBuildDeployWeb || inputs.runSmokeTest
     needs: [ build-webapp, create-infra ]
     secrets: inherit
     with:
@@ -133,7 +137,7 @@ jobs:
     name: Deploy Function
     needs: [ build-func, create-infra ]
     uses: ./.github/workflows/template-function-app-deploy.yml
-    if: inputs.runBuildDeploy
+    if: inputs.runBuildDeployFunction
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}
