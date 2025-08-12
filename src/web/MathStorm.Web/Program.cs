@@ -7,6 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Add HttpContextAccessor for BuildInfoService
+builder.Services.AddHttpContextAccessor();
+
 // Add OpenTelemetry and Application Insights
 var appInsightsConnectionString = builder.Configuration.GetConnectionString("ApplicationInsights");
 if (!string.IsNullOrEmpty(appInsightsConnectionString))
@@ -34,6 +37,9 @@ builder.Services.AddScoped<IRemoteFunctionsService, RemoteFunctionsService>();
 
 // Add user profile service
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
+
+// Add build info service with its own HttpClient
+builder.Services.AddHttpClient<IBuildInfoService, BuildInfoService>();
 
 var app = builder.Build();
 

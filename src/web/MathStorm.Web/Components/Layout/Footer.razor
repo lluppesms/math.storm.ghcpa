@@ -1,7 +1,40 @@
 @namespace MathStorm.Web.Components.Layout
+@using MathStorm.Web.Services
+@inject IBuildInfoService BuildInfoService
 
 <footer class="footer">
     <div class="container-fluid">
-        <span class="text-muted">Copyright @DateTime.Now.Year Luppes Consulting, Inc.</span>
+        <div class="footer-content">
+            <span class="text-muted">Copyright @DateTime.Now.Year Luppes Consulting, Inc.</span>
+            @if (buildInfo is not null)
+            {
+                <div class="build-info">
+                    <span class="build-number">@buildInfo.BuildNumber</span>
+                    @if (!string.IsNullOrEmpty(buildInfo.BuildDate))
+                    {
+                        <br />
+                        <span class="build-date">@FormatBuildDate(buildInfo.BuildDate)</span>
+                    }
+                </div>
+            }
+        </div>
     </div>
 </footer>
+
+@code {
+    private BuildInfo? buildInfo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        buildInfo = await BuildInfoService.GetBuildInfoAsync();
+    }
+
+    private string FormatBuildDate(string buildDate)
+    {
+        if (DateTime.TryParse(buildDate, out var date))
+        {
+            return date.ToString("MMM dd, yyyy");
+        }
+        return buildDate;
+    }
+}
