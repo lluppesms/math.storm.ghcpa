@@ -40,12 +40,17 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             response.EnsureSuccessStatusCode();
 
             content = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(content))
+            {
+                _logger.LogWarning($"Received empty response from function API {BaseFunctionUrl}{apiUrl}");
+                return null;
+            }
             var game = JsonSerializer.Deserialize<GameResponseDto>(content);
             return game;
         }
         catch (Exception ex)
         {
-            var msg = $"Error getting game from function API {apiUrl}: {content}";
+            var msg = $"Error getting game from function API {BaseFunctionUrl}{apiUrl}: {content}";
             _logger.LogWarning(msg);
             _logger.LogError(ex, "Error getting game from function API");
             return null;
@@ -65,11 +70,16 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             response.EnsureSuccessStatusCode();
 
             responseContent = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseContent))
+            {
+                _logger.LogWarning($"Received empty response from function API {BaseFunctionUrl}{apiUrl}");
+                return null;
+            }
             return JsonSerializer.Deserialize<GameResultsResponseDto>(responseContent);
         }
         catch (Exception ex)
         {
-            var msg = $"Error submitting game results to function API {apiUrl}: {responseContent}";
+            var msg = $"Error submitting game results to function API {BaseFunctionUrl}{apiUrl}: {responseContent}";
             _logger.LogWarning(msg);
             _logger.LogError(ex, "Error submitting game results to function API");
             return null;
@@ -91,11 +101,16 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             response.EnsureSuccessStatusCode();
 
             content = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(content))
+            {
+                _logger.LogWarning($"Received empty response from function API {BaseFunctionUrl}{apiUrl}");
+                return null;
+            }
             return JsonSerializer.Deserialize<LeaderboardResponseDto>(content);
         }
         catch (Exception ex)
         {
-            var msg = $"Error getting leaderboard from function API {apiUrl}: {content}";
+            var msg = $"Error getting leaderboard from function API {BaseFunctionUrl}{apiUrl}: {content}";
             _logger.LogWarning(msg);
             _logger.LogError(ex, "Error getting leaderboard from function API");
             return null;
@@ -115,12 +130,17 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             response.EnsureSuccessStatusCode();
 
             responseContent = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseContent))
+            {
+                _logger.LogWarning($"Received empty response from function API {BaseFunctionUrl}{apiUrl}");
+                return null;
+            }
             return JsonSerializer.Deserialize<ResultsAnalysisResponseDto>(responseContent);
         }
         catch (Exception ex)
         {
-            var msg = $"Error analyzing game results via function API {apiUrl}: {responseContent}";
-            _logger.LogWarning(msg);    
+            var msg = $"Error analyzing game results via function API {BaseFunctionUrl}{apiUrl}: {responseContent}";
+            _logger.LogWarning(msg);
             _logger.LogError(ex, "Error analyzing game results via function API");
             return null;
         }
@@ -139,11 +159,16 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             response.EnsureSuccessStatusCode();
 
             responseContent = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseContent))
+            {
+                _logger.LogWarning($"Received empty response from function API {BaseFunctionUrl}{apiUrl}");
+                return null;
+            }
             return JsonSerializer.Deserialize<UserAuthResponseDto>(responseContent);
         }
         catch (Exception ex)
         {
-            var msg = $"Error authenticating user from function API {apiUrl}: {responseContent}";
+            var msg = $"Error authenticating user from function API {BaseFunctionUrl}{apiUrl}: {responseContent}";
             _logger.LogWarning(msg);
             _logger.LogError(ex, "Error authenticating user via function API");
             return null;
