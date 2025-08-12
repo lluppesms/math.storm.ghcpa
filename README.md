@@ -201,17 +201,17 @@ cd math.storm.ghcpa
 dotnet restore src/web/MathStorm.Web.sln
 dotnet restore src/functions/MathStorm.Functions.sln
 
-# Run the web app
-cd src/web/MathStorm.Web
+# Run the functions locally
+cd src/functions/MathStorm.Functions
 dotnet run
+
+# Run the web app
+cd ../../web/MathStorm.Web
+func start
 
 # Run the console app  
 cd ../../console/MathStorm.Console
 dotnet run
-
-# Run the functions locally
-cd ../../functions/MathStorm.Functions
-func start
 ```
 
 ### 2️⃣ **Deploy to Azure**
