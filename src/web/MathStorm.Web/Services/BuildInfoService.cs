@@ -9,16 +9,14 @@ public interface IBuildInfoService
 
 public class BuildInfoService : IBuildInfoService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IWebHostEnvironment _webHostEnvironment;
     private readonly ILogger<BuildInfoService> _logger;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private BuildInfo? _cachedBuildInfo;
 
-    public BuildInfoService(HttpClient httpClient, ILogger<BuildInfoService> logger, IHttpContextAccessor httpContextAccessor)
+    public BuildInfoService(IWebHostEnvironment webHostEnvironment, ILogger<BuildInfoService> logger)
     {
-        _httpClient = httpClient;
+        _webHostEnvironment = webHostEnvironment;
         _logger = logger;
-        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<BuildInfo?> GetBuildInfoAsync()
@@ -30,32 +28,24 @@ public class BuildInfoService : IBuildInfoService
 
         try
         {
-            var baseUrl = GetBaseUrl();
-            var url = $"{baseUrl}buildinfo.json";
-            var response = await _httpClient.GetAsync(url);
-            if (response.IsSuccessStatusCode)
+            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "buildinfo.json");
+            
+            if (File.Exists(filePath))
             {
-                var json = await response.Content.ReadAsStringAsync();
+                var json = await File.ReadAllTextAsync(filePath);
                 _cachedBuildInfo = JsonConvert.DeserializeObject<BuildInfo>(json);
                 return _cachedBuildInfo;
+            }
+            else
+            {
+                _logger.LogInformation("BuildInfo.json file not found at {FilePath}", filePath);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to load build info");
+            _logger.LogWarning(ex, "Failed to load build info from file");
         }
 
         return null;
-    }
-
-    private string GetBaseUrl()
-    {
-        var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext is not null)
-        {
-            var request = httpContext.Request;
-            return $"{request.Scheme}://{request.Host}/";
-        }
-        return "http://localhost:5000/"; // Fallback for development
     }
 }

@@ -380,3 +380,5 @@ tests-examples/demo-todo-app.spec.ts
 
 # Build info file generated during deployment
 buildinfo.json
+# Exception: Allow default buildinfo.json in wwwroot
+!src/web/MathStorm.Web/wwwroot/buildinfo.json
