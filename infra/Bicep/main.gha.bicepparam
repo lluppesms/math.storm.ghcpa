@@ -12,6 +12,9 @@ param myIpAddress = '#{MYIPADDRESS}#'
 param deployCosmos = #{deployCosmos}#
 
 param deduplicateKeyVaultSecrets = false
+param OpenAI_Endpoint = '#{OPENAI_ENDPOINT}#'
+@secure()
+param OpenAI_ApiKey = '#{OPENAI_APIKEY}#'
 
 // ----------------------------------------------------------------------------------------------------
 // Experiment: change this to read environment instead of using Quezta replace

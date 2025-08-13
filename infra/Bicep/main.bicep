@@ -18,6 +18,10 @@ param functionAppSku string = 'B1'
 param functionAppSkuFamily string = ''
 param functionAppSkuTier string = 'Dynamic'
 
+param OpenAI_Endpoint string
+@secure()
+param OpenAI_ApiKey string
+
 // --------------------------------------------------------------------------------------------------------------
 // Run Settings Parameters
 // --------------------------------------------------------------------------------------------------------------
@@ -275,9 +279,9 @@ module functionModule './modules/functions/functionapp.bicep' = {
     workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
   }
 }
-resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' existing = {
-  name: keyVaultModule.outputs.name
-} 
+// resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' existing = {
+//   name: keyVaultModule.outputs.name
+// } 
 module functionAppSettingsModule './modules/functions/functionappsettings.bicep' = {
   name: 'functionAppSettings${deploymentSuffix}'
   params: {
@@ -285,18 +289,28 @@ module functionAppSettingsModule './modules/functions/functionappsettings.bicep'
     functionStorageAccountName: functionModule.outputs.storageAccountName
     functionInsightsKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
     keyVaultName: keyVaultModule.outputs.name
-    cosmosConnectionString : deployCosmos ? keyVault.getSecret(keyVaultSecretCosmos.outputs.connectionStringSecretName) : ''
+
+    cosmosAccountName: deployCosmos ? cosmosModule.outputs.name : ''
+
+    OpenAI_Gpt4o_DeploymentName: 'gpt-4o-mini'
+    OpenAI_Gpt4o_Endpoint: OpenAI_Endpoint
+    OpenAI_Gpt4o_ApiKey: OpenAI_ApiKey
+    OpenAI_Gpt35_DeploymentName: 'gpt-35-turbo'
+    OpenAI_Gpt35_Endpoint: OpenAI_Endpoint
+    OpenAI_Gpt35_ApiKey: OpenAI_ApiKey
+
     customAppSettings: {
       OpenApi__HideSwaggerUI: 'false'
       OpenApi__HideDocument: 'false'
       OpenApi__DocTitle: 'MathStorm Game APIs'
       OpenApi__DocDescription: 'This repo is an example of a GitHub Copilot Agent Vibe Coded Game'
       appInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
-      CosmosDb__Endpoint: deployCosmos ? cosmosModule.outputs.endpoint : ''
       CosmosDb__DatabaseName: cosmosDatabaseName 
       CosmosDb__ContainerNames__Users: userContainerName
       CosmosDb__ContainerNames__Games: gameContainerName
       CosmosDb__ContainerNames__Leaderboard: leaderboardContainerName
+      OpenAI__DefaultModel: 'gpt_4o_mini' // must use underscores, not hyphens...
+      OpenAI__Temperature: '0.8'     
     }
   }
 }
