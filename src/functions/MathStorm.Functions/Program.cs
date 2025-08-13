@@ -32,7 +32,9 @@ var host = new HostBuilder()
             MaxRetryAttemptsOnRateLimitedRequests = 3,
             MaxRetryWaitTimeOnRateLimitedRequests = TimeSpan.FromSeconds(30)
         };
+
         // Add Cosmos DB services based on whether endpoint name exists
+        Console.WriteLine("Checking for Cosmos DB configuration...");
         var cosmosEndpoint = context.Configuration["CosmosDb:Endpoint"];
         if (!string.IsNullOrEmpty(cosmosEndpoint))
         {
@@ -48,6 +50,7 @@ var host = new HostBuilder()
         else
         {
             // Add Cosmos DB services based on whether connection string exists
+            Console.WriteLine("No Cosmos Endpoint Found... Looking for Cosmos DB connection string...");
             var connectionString = context.Configuration["CosmosDb:ConnectionString"];
             if (!string.IsNullOrEmpty(connectionString))
             {
@@ -59,6 +62,12 @@ var host = new HostBuilder()
                     return cosmosClient;
                 });
                 services.AddScoped<ICosmosDbService, CosmosDbService>();
+            }
+            else
+            {
+                Console.WriteLine("*******  No valid Cosmos DB configuration found!!!! *******");
+                Console.WriteLine("*******         Using MOCK Cosmos Service!!!!       *******");
+                services.AddScoped<ICosmosDbService, MockCosmosDbService>();
             }
         }
     })
