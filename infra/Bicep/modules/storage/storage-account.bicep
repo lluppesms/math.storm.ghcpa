@@ -10,16 +10,22 @@ param commonTags object = {}
 param storageSku string = 'Standard_LRS'
 param storageAccessTier string = 'Hot'
 param containerNames array = ['input','output']
-@allowed(['Enabled','Disabled'])
-param publicNetworkAccess string = 'Enabled'
-@allowed(['Allow','Deny'])
-param allowNetworkAccess string = 'Deny' // except for Azure Services
 @description('Provide the IP address to allow access to the Azure Container Registry')
 param myIpAddress string = ''
+
+@description('Set to false to disable authorization with account access keys (Shared Key); forces Azure AD / SAS with user delegation.')
+param allowSharedKeyAccess bool = false
+param allowPublicNetworkAccess bool = true
+param allowNetworkAccess bool = false
 
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~storageAccount.bicep' }
 var tags = union(commonTags, templateTag)
+// @allowed(['Enabled','Disabled'])
+var publicNetworkAccess string = allowPublicNetworkAccess ? 'Enabled' : 'Disabled'
+// @allowed(['Allow','Deny'])
+var networkAccessSetting string = allowNetworkAccess ? 'Allow' : 'Deny'
+
 
 // --------------------------------------------------------------------------------
 resource storageAccountResource 'Microsoft.Storage/storageAccounts@2023-01-01' = {
@@ -34,7 +40,7 @@ resource storageAccountResource 'Microsoft.Storage/storageAccounts@2023-01-01' =
         publicNetworkAccess: publicNetworkAccess
         networkAcls: {
             bypass: 'AzureServices'
-            defaultAction: allowNetworkAccess
+            defaultAction: networkAccessSetting
             ipRules: empty(myIpAddress)
                 ? []
                 : [
@@ -62,6 +68,8 @@ resource storageAccountResource 'Microsoft.Storage/storageAccounts@2023-01-01' =
         accessTier: storageAccessTier
         allowBlobPublicAccess: false
         minimumTlsVersion: 'TLS1_2'
+    // When set to false, Shared Key authorization is disabled. Clients must use Azure AD (OAuth) or user delegation SAS.
+    allowSharedKeyAccess: allowSharedKeyAccess
     }
 }
 
