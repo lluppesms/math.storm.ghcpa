@@ -75,7 +75,7 @@ jobs:
     displayName: "Put Build Details in buildinfo.json"
     inputs:
       script: |
-        echo {"buildDate":"$(runDateTime)","buildNumber":"$(Build.BuildNumber)","buildId":"$(Build.BuildId)","branchName":"$(Build.SourceBranchName)","commitHash":"$(Build.SourceVersion)"} > $(projectDirectory)buildinfo.json
+        echo {"buildDate":"$(runDateTime)","buildNumber":"$(Build.BuildNumber)","buildId":"$(Build.BuildId)","branchName":"$(Build.SourceBranchName)","commitHash":"$(Build.SourceVersion)"} > $(projectDirectory)wwwroot\buildinfo.json
     continueOnError: true
   # Not sure about the -e -n...  was that for Linux build server...?  It fails on Windows build server (adds the -e -n to the front of the file and all the quote marks)
   # - script: |
