@@ -9,13 +9,13 @@
             @if (buildInfo is not null)
             {
                 <div class="build-info">
-                    <span class="build-number">@buildInfo.BuildNumber</span>
-                    @if (!string.IsNullOrEmpty(buildInfo.BuildDate))
+                    <span class="build-number" title="@FormatBuildDate(buildInfo.BuildDate)">@buildInfo.BuildNumber</span>
+@*                     @if (!string.IsNullOrEmpty(buildInfo.BuildDate))
                     {
                         <br />
                         <span class="build-date">@FormatBuildDate(buildInfo.BuildDate)</span>
                     }
-                </div>
+ *@                </div>
             }
         </div>
     </div>
@@ -33,7 +33,7 @@
     {
         if (DateTime.TryParse(buildDate, out var date))
         {
-            return date.ToString("MMM dd, yyyy");
+            return $"Compiled {date.ToString("yyyy-MM-dd HH:mm:ss")}";
         }
         return buildDate;
     }

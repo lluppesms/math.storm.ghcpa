@@ -40,14 +40,18 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             response.EnsureSuccessStatusCode();
 
             content = await response.Content.ReadAsStringAsync();
-            var game = JsonSerializer.Deserialize<GameResponseDto>(content);
-            return game;
+            if (!string.IsNullOrEmpty(content) && content.Trim().StartsWith("{"))
+            {
+                var game = JsonSerializer.Deserialize<GameResponseDto>(content);
+                return game;
+            }
+            _logger.LogError($"Error getting game from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
+            return null;
         }
         catch (Exception ex)
         {
-            var msg = $"Error getting game from function API {apiUrl}: {content}";
-            _logger.LogWarning(msg);
-            _logger.LogError(ex, "Error getting game from function API");
+            var msg = $"Error getting game from API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            _logger.LogError(msg);
             return null;
         }
     }
@@ -65,13 +69,17 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             response.EnsureSuccessStatusCode();
 
             responseContent = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<GameResultsResponseDto>(responseContent);
+            if (!string.IsNullOrEmpty(responseContent) && responseContent.Trim().StartsWith("{"))
+            {
+                return JsonSerializer.Deserialize<GameResultsResponseDto>(responseContent);
+            }
+            _logger.LogError($"Error submitting game results to API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
+            return null;
         }
         catch (Exception ex)
         {
-            var msg = $"Error submitting game results to function API {apiUrl}: {responseContent}";
-            _logger.LogWarning(msg);
-            _logger.LogError(ex, "Error submitting game results to function API");
+            var msg = $"Error submitting game results to API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            _logger.LogError(msg);
             return null;
         }
     }
@@ -91,13 +99,17 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             response.EnsureSuccessStatusCode();
 
             content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<LeaderboardResponseDto>(content);
+            if (!string.IsNullOrEmpty(content) && content.Trim().StartsWith("{"))
+            {
+                return JsonSerializer.Deserialize<LeaderboardResponseDto>(content);
+            }
+            _logger.LogError($"Error getting leaderboard from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
+            return null;
         }
         catch (Exception ex)
         {
-            var msg = $"Error getting leaderboard from function API {apiUrl}: {content}";
-            _logger.LogWarning(msg);
-            _logger.LogError(ex, "Error getting leaderboard from function API");
+            var msg = $"Error getting leaderboard from API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            _logger.LogError(msg);
             return null;
         }
     }
@@ -115,13 +127,17 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             response.EnsureSuccessStatusCode();
 
             responseContent = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<ResultsAnalysisResponseDto>(responseContent);
+            if (!string.IsNullOrEmpty(responseContent) && responseContent.Trim().StartsWith("{"))
+            {
+                return JsonSerializer.Deserialize<ResultsAnalysisResponseDto>(responseContent);
+            }
+            _logger.LogError($"Error analyzing game results via API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
+            return null;
         }
         catch (Exception ex)
         {
-            var msg = $"Error analyzing game results via function API {apiUrl}: {responseContent}";
-            _logger.LogWarning(msg);    
-            _logger.LogError(ex, "Error analyzing game results via function API");
+            var msg = $"Error analyzing game results via API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            _logger.LogError(msg);
             return null;
         }
     }
@@ -139,13 +155,17 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             response.EnsureSuccessStatusCode();
 
             responseContent = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<UserAuthResponseDto>(responseContent);
+            if (!string.IsNullOrEmpty(responseContent) && responseContent.Trim().StartsWith("{"))
+            {
+                return JsonSerializer.Deserialize<UserAuthResponseDto>(responseContent);
+            }
+            _logger.LogError($"Error authenticating user from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
+            return null;
         }
         catch (Exception ex)
         {
-            var msg = $"Error authenticating user from function API {apiUrl}: {responseContent}";
-            _logger.LogWarning(msg);
-            _logger.LogError(ex, "Error authenticating user via function API");
+            var msg = $"Error authenticating user from API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            _logger.LogError(msg);
             return null;
         }
     }
