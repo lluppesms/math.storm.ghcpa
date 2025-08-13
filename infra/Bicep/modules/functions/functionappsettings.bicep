@@ -46,23 +46,6 @@ var functionStorageAccountKeyVaultReference = '@Microsoft.KeyVault(VaultName=${k
 var cosmosKey = cosmosResource.listKeys().primaryMasterKey
 var cosmosConnectionString = 'AccountEndpoint=https://${cosmosAccountName}.documents.azure.com:443/;AccountKey=${cosmosKey}'
 
-var BASE_SLOT_APPSETTINGS = {
-  // See https://learn.microsoft.com/en-us/azure/azure-functions/functions-identity-based-connections-tutorial
-  //AzureWebJobsStorage: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
-  AzureWebJobsStorage__accountName: functionStorageAccountName
-  //AzureWebJobsDashboard: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
-  WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
-  WEBSITE_CONTENTSHARE: functionAppName
-  APPINSIGHTS_INSTRUMENTATIONKEY: functionInsightsKey
-  APPLICATIONINSIGHTS_CONNECTION_STRING: 'InstrumentationKey=${functionInsightsKey}'
-
-  FUNCTIONS_WORKER_RUNTIME: functionsWorkerRuntime
-  FUNCTIONS_EXTENSION_VERSION: functionsExtensionVersion
-  WEBSITE_NODE_DEFAULT_VERSION: nodeDefaultVersion
-  USE32BITWORKERPROCESS: use32BitProcess
-  NET_FRAMEWORK_VERSION: netFrameworkVersion
-  WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED: usePlaceholderDotNetIsolated
-}
 
 var cosmosSettings = addCosmos ? {
   CosmosDb__ConnectionString: cosmosConnectionString
@@ -78,6 +61,30 @@ var openAISettings = addOpenAI ? {
   OpenAI__Models__gpt_35_turbo__ApiKey: OpenAI_Gpt35_ApiKey
 } : {}
 
+var BASE_SLOT_APPSETTINGS = {
+  // See https://learn.microsoft.com/en-us/azure/azure-functions/functions-identity-based-connections-tutorial
+  //AzureWebJobsStorage: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
+  AzureWebJobsStorage__accountName: functionStorageAccountName
+  //AzureWebJobsDashboard: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
+  AzureWebJobsSecretStorageType: 'files'
+
+  WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
+  WEBSITE_CONTENTSHARE: functionAppName
+
+  APPINSIGHTS_INSTRUMENTATIONKEY: functionInsightsKey
+  APPLICATIONINSIGHTS_CONNECTION_STRING: 'InstrumentationKey=${functionInsightsKey}'
+
+  FUNCTIONS_WORKER_RUNTIME: functionsWorkerRuntime
+  FUNCTIONS_EXTENSION_VERSION: functionsExtensionVersion
+
+  WEBSITE_NODE_DEFAULT_VERSION: nodeDefaultVersion
+
+  USE32BITWORKERPROCESS: use32BitProcess
+
+  NET_FRAMEWORK_VERSION: netFrameworkVersion
+
+  WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED: usePlaceholderDotNetIsolated
+}
 
 // This *should* work, but I keep getting a "circular dependency detected" error and it doesn't work
 // resource appResource 'Microsoft.Web/sites@2021-03-01' existing = { name: functionAppName }
