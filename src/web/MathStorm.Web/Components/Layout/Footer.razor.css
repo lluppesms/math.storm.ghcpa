@@ -10,11 +10,38 @@
 }
 
 .footer .container-fluid {
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
 }
 
 .footer .text-muted {
     color: #6c757d !important;
+}
+
+.build-info {
+    text-align: right;
+    font-size: 0.75rem;
+    line-height: 1.2;
+}
+
+.build-number {
+    color: #6c757d;
+    font-weight: 300;
+}
+
+.build-date {
+    color: #6c757d;
+    font-weight: 300;
 }
 
 /* Dark theme support */
@@ -26,5 +53,10 @@
     
     .footer .text-muted {
         color: #adb5bd !important;
+    }
+
+    .build-number,
+    .build-date {
+        color: #adb5bd;
     }
 }

@@ -35,6 +35,9 @@ builder.Services.AddScoped<IRemoteFunctionsService, RemoteFunctionsService>();
 // Add user profile service
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 
+// Add build info service
+builder.Services.AddScoped<IBuildInfoService, BuildInfoService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
