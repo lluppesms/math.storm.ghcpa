@@ -40,7 +40,7 @@ public class UserProfileService : IUserProfileService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting stored user profile");
+            _logger.LogError(ex, "Web: Error getting stored user profile");
             return null;
         }
     }
@@ -61,7 +61,7 @@ public class UserProfileService : IUserProfileService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error saving user profile");
+            _logger.LogError(ex, "Web: Error saving user profile");
         }
     }
 
@@ -73,7 +73,7 @@ public class UserProfileService : IUserProfileService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error clearing user profile");
+            _logger.LogError(ex, "Web: Error clearing user profile");
         }
     }
 
@@ -97,7 +97,7 @@ public class UserProfileService : IUserProfileService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error authenticating user via function service, falling back to mock authentication");
+            _logger.LogError(ex, "Web: Error authenticating user via function service, falling back to mock authentication");
         }
 
         // Fallback: Mock authentication for testing when function service is unavailable

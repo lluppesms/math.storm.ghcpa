@@ -58,7 +58,7 @@ public class CosmosDbService : ICosmosDbService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting user by username: {Username}", username);
+            _logger.LogError(ex, "Cosmos: Error getting user by username: {Username}", username);
             throw;
         }
     }
@@ -80,7 +80,7 @@ public class CosmosDbService : ICosmosDbService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating user: {Username}", username);
+            _logger.LogError(ex, "Cosmos: Error creating user: {Username}", username);
             throw;
         }
     }
@@ -106,7 +106,7 @@ public class CosmosDbService : ICosmosDbService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error validating user: {Username}", username);
+            _logger.LogError(ex, "Cosmos: Error validating user: {Username}", username);
             return false;
         }
     }
@@ -120,7 +120,7 @@ public class CosmosDbService : ICosmosDbService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating user: {UserId}", user.Id);
+            _logger.LogError(ex, "Cosmos: Error updating user: {UserId}", user.Id);
             throw;
         }
     }
@@ -134,7 +134,7 @@ public class CosmosDbService : ICosmosDbService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating game");
+            _logger.LogError(ex, "Cosmos: Error creating game");
             throw;
         }
     }
@@ -152,7 +152,7 @@ public class CosmosDbService : ICosmosDbService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting game: {GameId}", gameId);
+            _logger.LogError(ex, "Cosmos: Error getting game: {GameId}", gameId);
             throw;
         }
     }
@@ -184,7 +184,7 @@ public class CosmosDbService : ICosmosDbService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting leaderboard for difficulty: {Difficulty}", difficulty);
+            _logger.LogError(ex, "Cosmos: Error getting leaderboard for difficulty: {Difficulty}", difficulty);
             throw;
         }
     }
@@ -215,7 +215,7 @@ public class CosmosDbService : ICosmosDbService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting global leaderboard");
+            _logger.LogError(ex, "Cosmos: Error getting global leaderboard");
             throw;
         }
     }
@@ -261,7 +261,7 @@ public class CosmosDbService : ICosmosDbService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error adding to leaderboard");
+            _logger.LogError(ex, "Cosmos: Error adding to leaderboard");
             throw;
         }
     }
@@ -283,7 +283,7 @@ public class CosmosDbService : ICosmosDbService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating leaderboard rankings for difficulty: {Difficulty}", difficulty);
+            _logger.LogError(ex, "Cosmos: Error updating leaderboard rankings for difficulty: {Difficulty}", difficulty);
             throw;
         }
     }

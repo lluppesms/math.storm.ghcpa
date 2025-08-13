@@ -106,7 +106,7 @@ public class GameResultsFunctions
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in SubmitGameResults function");
+            _logger.LogError(ex, "Func: Error in SubmitGameResults function");
             var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
             await errorResponse.WriteStringAsync($"Error: {ex.Message}");
             return errorResponse;

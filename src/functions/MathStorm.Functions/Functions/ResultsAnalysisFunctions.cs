@@ -42,7 +42,7 @@ public class ResultsAnalysisFunctions
             {
                 request.Personality = queryCollection["personality"].FirstOrDefault() ?? "default";
             }
-            
+
             if (queryCollection.ContainsKey("model"))
             {
                 request.Model = queryCollection["model"].FirstOrDefault() ?? "gpt-4o-mini";
@@ -84,7 +84,7 @@ public class ResultsAnalysisFunctions
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in AnalyzeGameResults function");
+            _logger.LogError(ex, "Func: Error in AnalyzeGameResults function");
             var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
             await errorResponse.WriteStringAsync($"Error: {ex.Message}");
             return errorResponse;

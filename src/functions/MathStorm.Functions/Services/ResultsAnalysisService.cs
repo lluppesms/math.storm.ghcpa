@@ -187,7 +187,7 @@ public class ResultsAnalysisService : IResultsAnalysisService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating chat message prompt");
+            _logger.LogError(ex, "Func: Error generating chat message prompt");
             return GetDefaultChatMessageTemplate();
         }
     }

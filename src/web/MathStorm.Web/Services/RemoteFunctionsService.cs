@@ -45,12 +45,12 @@ public class RemoteFunctionsService : IRemoteFunctionsService
                 var game = JsonSerializer.Deserialize<GameResponseDto>(content);
                 return game;
             }
-            _logger.LogError($"Error getting game from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
+            _logger.LogError($"Web: Error getting game from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
             return null;
         }
         catch (Exception ex)
         {
-            var msg = $"Error getting game from API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            var msg = $"Web: Error getting game from API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
             _logger.LogError(msg);
             return null;
         }
@@ -73,12 +73,12 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             {
                 return JsonSerializer.Deserialize<GameResultsResponseDto>(responseContent);
             }
-            _logger.LogError($"Error submitting game results to API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
+            _logger.LogError($"Web: Error submitting game results to API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
             return null;
         }
         catch (Exception ex)
         {
-            var msg = $"Error submitting game results to API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            var msg = $"Web: Error submitting game results to API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
             _logger.LogError(msg);
             return null;
         }
@@ -103,12 +103,12 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             {
                 return JsonSerializer.Deserialize<LeaderboardResponseDto>(content);
             }
-            _logger.LogError($"Error getting leaderboard from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
+            _logger.LogError($"Web: Error getting leaderboard from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
             return null;
         }
         catch (Exception ex)
         {
-            var msg = $"Error getting leaderboard from API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            var msg = $"Web: Error getting leaderboard from API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
             _logger.LogError(msg);
             return null;
         }
@@ -131,12 +131,12 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             {
                 return JsonSerializer.Deserialize<ResultsAnalysisResponseDto>(responseContent);
             }
-            _logger.LogError($"Error analyzing game results via API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
+            _logger.LogError($"Web: Error analyzing game results via API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
             return null;
         }
         catch (Exception ex)
         {
-            var msg = $"Error analyzing game results via API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            var msg = $"Web: Error analyzing game results via API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
             _logger.LogError(msg);
             return null;
         }
@@ -159,12 +159,12 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             {
                 return JsonSerializer.Deserialize<UserAuthResponseDto>(responseContent);
             }
-            _logger.LogError($"Error authenticating user from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
+            _logger.LogError($"Web: Error authenticating user from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
             return null;
         }
         catch (Exception ex)
         {
-            var msg = $"Error authenticating user from API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            var msg = $"Web: Error authenticating user from API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
             _logger.LogError(msg);
             return null;
         }

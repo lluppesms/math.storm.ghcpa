@@ -84,7 +84,7 @@ public class UserAuthFunctions
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in AuthenticateUser function");
+            _logger.LogError(ex, "Func: Error in AuthenticateUser function");
             var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
             await errorResponse.WriteStringAsync($"Error: {ex.Message}");
             return errorResponse;
