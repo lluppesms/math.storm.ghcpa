@@ -4,7 +4,7 @@
 # FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
 # ------------------------------------------------------------------------------------------------------------------------
 name: 3.build.deploy
-run-name: '3 - ENV ${{ inputs.deployEnvironment }} Build & Deploy in by @${{ github.actor }}'
+run-name: '3 - [${{ inputs.deployEnvironment }}] Build/Deploy by @${{ github.actor }}'
 
 on: 
   workflow_dispatch:

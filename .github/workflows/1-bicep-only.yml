@@ -3,8 +3,8 @@
 # ------------------------------------------------------------------------------------------------------------------------
 # FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
 # ------------------------------------------------------------------------------------------------------------------------
-name: 1.deploy.infrastructure
-run-name: '1 - Deploy Infra: ${{ inputs.bicepDeploymentMode }} using ENV ${{ inputs.deployEnvironment }} by @${{ github.actor }}'
+name: 1.bicep.only
+run-name: '1 - [${{ inputs.deployEnvironment }}] Deploy Bicep (${{ inputs.bicepDeploymentMode }}) by @${{ github.actor }}'
 
 on: 
   workflow_dispatch:
