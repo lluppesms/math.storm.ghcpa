@@ -14,7 +14,7 @@ public class ResultsAnalysisService : IResultsAnalysisService
         _logger = logger;
         _configuration = configuration;
         _temperature = float.TryParse(configuration["OpenAI:Temperature"], out var temp) ? temp : 0.8f;
-        _defaultModel = configuration["OpenAI:DefaultModel"] ?? "gpt-4o-mini";
+        _defaultModel = configuration["OpenAI:DefaultModel"] ?? "gpt_4o_mini";
         _openAIClients = InitializeOpenAIClients();
         _promptsBasePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Services", "Prompts");
     }

@@ -45,7 +45,7 @@ public class ResultsAnalysisFunctions
 
             if (queryCollection.ContainsKey("model"))
             {
-                request.Model = queryCollection["model"].FirstOrDefault() ?? "gpt-4o-mini";
+                request.Model = queryCollection["model"].FirstOrDefault() ?? "gpt_4o_mini";
             }
 
             // Validate personality
@@ -57,7 +57,7 @@ public class ResultsAnalysisFunctions
             // Validate model (basic validation - actual validation happens in the service)
             if (!IsValidModel(request.Model))
             {
-                request.Model = "gpt-4o-mini"; // fallback to default
+                request.Model = "gpt_4o_mini"; // fallback to default
             }
 
             _logger.LogInformation($"Analyzing game results for {request.Username} with {request.Personality} personality using model {request.Model}");
@@ -99,7 +99,7 @@ public class ResultsAnalysisFunctions
 
     private static bool IsValidModel(string model)
     {
-        var validModels = new[] { "gpt-4o-mini", "gpt-4o", "gpt-4" };
+        var validModels = new[] { "gpt_4o_mini", "gpt_4o", "gpt_4", "gpt_5_mini", "gpt_35_turbo" };
         return validModels.Contains(model.ToLowerInvariant());
     }
 }

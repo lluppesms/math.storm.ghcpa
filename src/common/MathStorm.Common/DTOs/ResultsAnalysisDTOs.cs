@@ -8,7 +8,7 @@ public class ResultsAnalysisRequestDto
     public double TotalScore { get; set; }
     public List<QuestionResultDto> Questions { get; set; } = [];
     public string Personality { get; set; } = "default";
-    public string Model { get; set; } = "gpt-4o-mini";
+    public string Model { get; set; } = "gpt_4o_mini";
     public bool UserMadeLeaderboard { get; set; } = false;
 }
 

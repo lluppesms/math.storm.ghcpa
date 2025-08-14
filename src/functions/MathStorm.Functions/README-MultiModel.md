@@ -10,23 +10,23 @@ The MathStorm Results Analysis Service now supports multiple OpenAI models with 
 {
   "OpenAI": {
     "Models": {
-      "gpt-5-mini": {
+      "gpt_5_mini": {
         "DeploymentName": "gpt-5-mini", 
         "Endpoint": "https://your-openai-resource-premium.openai.azure.com/",
         "ApiKey": "your-premium-api-key-here"
       },
-      "gpt-4o-mini": {
+      "gpt_4o_mini": {
         "DeploymentName": "gpt-4o-mini",
         "Endpoint": "https://your-openai-resource.openai.azure.com/",
         "ApiKey": "your-api-key-here"
       },
-      "gpt-35-turbo": {
+      "gpt_35_turbo": {
         "DeploymentName": "gpt-35-turbo",
         "Endpoint": "https://your-openai-resource-legacy.openai.azure.com/",
         "ApiKey": "your-legacy-api-key-here"
       }
     },
-    "DefaultModel": "gpt-4o-mini",
+    "DefaultModel": "gpt_4o_mini",
     "Temperature": "0.8"
   }
 }
@@ -115,13 +115,13 @@ The service includes comprehensive error handling:
 {
   "OpenAI": {
     "Models": {
-      "gpt-4o-mini": {
+      "gpt_4o_mini": {
         "DeploymentName": "gpt-4o-mini",
         "Endpoint": "https://dev-openai.openai.azure.com/",
         "ApiKey": "dev-api-key"
       }
     },
-    "DefaultModel": "gpt-4o-mini",
+    "DefaultModel": "gpt_4o_mini",
     "Temperature": "0.8"
   }
 }
@@ -132,23 +132,23 @@ The service includes comprehensive error handling:
 {
   "OpenAI": {
     "Models": {
-      "gpt-4o-mini": {
+      "gpt_4o_mini": {
         "DeploymentName": "gpt-4o-mini",
         "Endpoint": "https://prod-openai-basic.openai.azure.com/",
         "ApiKey": "basic-api-key"
       },
-      "gpt-4o": {
+      "gpt_4o": {
         "DeploymentName": "gpt-4o",
         "Endpoint": "https://prod-openai-premium.openai.azure.com/",
         "ApiKey": "premium-api-key"
       },
-      "gpt-4": {
+      "gpt_4": {
         "DeploymentName": "gpt-4", 
         "Endpoint": "https://prod-openai-legacy.openai.azure.com/",
         "ApiKey": "legacy-api-key"
       }
     },
-    "DefaultModel": "gpt-4o-mini",
+    "DefaultModel": "gpt_4o_mini",
     "Temperature": "0.7"
   }
 }

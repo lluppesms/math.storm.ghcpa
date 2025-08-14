@@ -10,6 +10,6 @@ public class OpenAIModelConfig
 public class OpenAIConfiguration
 {
     public Dictionary<string, OpenAIModelConfig> Models { get; set; } = new();
-    public string DefaultModel { get; set; } = "gpt-4o-mini";
+    public string DefaultModel { get; set; } = "gpt_4o_mini";
     public string Temperature { get; set; } = "0.8";
 }
