@@ -140,7 +140,8 @@ jobs:
 
   deploy-func:
     name: Deploy Function
-    needs: [ build-func, create-infra ]
+    # the login seems to crash if you try to deploy both web and function at the same time...???
+    needs: [ build-func, create-infra, deploy-webapp ]
     uses: ./.github/workflows/template-function-app-deploy.yml
     if: inputs.runBuildDeployFunction
     secrets: inherit
