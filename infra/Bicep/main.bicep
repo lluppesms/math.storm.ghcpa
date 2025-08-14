@@ -265,9 +265,10 @@ module functionModule './modules/functions/functionapp.bicep' = {
     sharedAppServicePlanName: appServicePlanModule.outputs.name
     sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
     sharedAppInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
-    managedIdentityId: identity.outputs.managedIdentityId
-    managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
-    keyVaultName: keyVaultModule.outputs.name
+    // switch to system assigned principal for secure storage access...
+    // keyVaultName: keyVaultModule.outputs.name
+    // managedIdentityId: identity.outputs.managedIdentityId
+    // managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
 
     location: location
     commonTags: commonTags
@@ -289,7 +290,7 @@ module functionAppSettingsModule './modules/functions/functionappsettings.bicep'
     functionAppName: functionModule.outputs.name
     functionStorageAccountName: functionModule.outputs.storageAccountName
     functionInsightsKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
-    keyVaultName: keyVaultModule.outputs.name
+    // keyVaultName: keyVaultModule.outputs.name
 
     cosmosAccountName: deployCosmos ? cosmosModule.outputs.name : ''
 

@@ -13,9 +13,9 @@ param functionStorageAccountName string
 param location string = resourceGroup().location
 param commonTags object = {}
 
-param managedIdentityId string
-param managedIdentityPrincipalId string
-param keyVaultName string
+// param managedIdentityId string
+// param managedIdentityPrincipalId string
+// param keyVaultName string
 
 @allowed([ 'functionapp', 'functionapp,linux' ])
 param functionKind string = 'functionapp,linux'
@@ -27,7 +27,7 @@ param linuxFxVersion string = 'DOTNET-ISOLATED|8.0'
 
 param functionsWorkerRuntime string = 'DOTNET-ISOLATED'
 param functionsExtensionVersion string = '~4'
-param nodeDefaultVersion string = '8.11.1'
+//param nodeDefaultVersion string = '8.11.1'
 param use32BitProcess string = 'false'
 param netFrameworkVersion string = 'v4.0'
 param usePlaceholderDotNetIsolated string = '1'
@@ -46,14 +46,14 @@ var templateTag = { TemplateFile: '~functionapp.bicep' }
 var azdTag = { 'azd-service-name': 'function' }
 var tags = union(commonTags, templateTag)
 var functionTags = union(commonTags, templateTag, azdTag)
-var useKeyVaultConnection = false
 var useExistingServicePlan = !empty(sharedAppServicePlanName)
+//var useKeyVaultConnection = false
 
 // --------------------------------------------------------------------------------
-resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' existing = { name: functionStorageAccountName }
-var accountKey = storageAccountResource.listKeys().keys[0].value
-var functionStorageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountResource.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${accountKey}'
-var functionStorageAccountKeyVaultReference = '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=azurefilesconnectionstring)'
+// resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' existing = { name: functionStorageAccountName }
+// var accountKey = storageAccountResource.listKeys().keys[0].value
+// var functionStorageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountResource.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${accountKey}'
+// var functionStorageAccountKeyVaultReference = '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=azurefilesconnectionstring)'
 
 // Use the existing shared App Service Plan
 resource sharedAppServiceResource 'Microsoft.Web/serverfarms@2021-03-01' existing = if (useExistingServicePlan) {
@@ -91,13 +91,13 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
   location: location
   kind: functionKind
   tags: functionTags
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: { '${managedIdentityId}': {} }
-  }
   // identity: {
-  //   type: 'SystemAssigned'
+  //   type: 'UserAssigned'
+  //   userAssignedIdentities: { '${managedIdentityId}': {} }
   // }
+  identity: {
+    type: 'SystemAssigned'
+  }
   // identity: {
   //   //disable-next-line BCP036
   //   type: 'SystemAssigned, UserAssigned'
@@ -126,36 +126,16 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
       appSettings: [
         // See https://learn.microsoft.com/en-us/azure/azure-functions/functions-identity-based-connections-tutorial
         {
-          name: 'AzureWebJobsStorage'
-          value: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : functionStorageAccountConnectionString
-        }
-        // {
-        //   name: 'AzureWebJobsStorage__accountName'
-        //   value: functionStorageAccountName
-        // }
-        {
-          name: 'AzureWebJobsDashboard'
-          value: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : functionStorageAccountConnectionString
-        }
-        {
-          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-          value: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : functionStorageAccountConnectionString
-        }
-        {
-          name: 'StorageAccountConnectionString'
-          value: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : functionStorageAccountConnectionString
-        }
-        {
-          name: 'WEBSITE_CONTENTSHARE'
-          value: toLower(functionAppName)
-        }
-        {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: sharedAppInsightsInstrumentationKey
-        }
-        {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
           value: sharedAppInsightsConnectionString
+        }
+        {
+          name: 'AzureWebJobsStorage__accountName'
+          value: functionStorageAccountName
+        }
+        {
+          name: 'AzureWebJobsSecretStorageType'
+          value: 'files'
         }
         {
           name: 'FUNCTIONS_WORKER_RUNTIME'
@@ -164,10 +144,6 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
         {
           name: 'FUNCTIONS_EXTENSION_VERSION'
           value: functionsExtensionVersion
-        }
-        {
-          name: 'WEBSITE_NODE_DEFAULT_VERSION'
-          value: nodeDefaultVersion
         }
         {
           name: 'USE32BITWORKERPROCESS'
@@ -181,6 +157,39 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
           name: 'WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED'
           value: usePlaceholderDotNetIsolated
         }
+
+        // {
+        //   name: 'WEBSITE_RUN_FROM_PACKAGE'
+        //   value: packageUri
+        // }
+        // {
+        //   name: 'AzureWebJobsStorage'
+        //   value: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : functionStorageAccountConnectionString
+        // }
+        // {
+        //   name: 'AzureWebJobsDashboard'
+        //   value: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : functionStorageAccountConnectionString
+        // }
+        // {
+        //   name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+        //   value: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : functionStorageAccountConnectionString
+        // }
+        // {
+        //   name: 'StorageAccountConnectionString'
+        //   value: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : functionStorageAccountConnectionString
+        // }
+        // {
+        //   name: 'WEBSITE_CONTENTSHARE'
+        //   value: toLower(functionAppName)
+        // }
+        // {
+        //   name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+        //   value: sharedAppInsightsInstrumentationKey
+        // }
+        // {
+        //   name: 'WEBSITE_NODE_DEFAULT_VERSION'
+        //   value: nodeDefaultVersion
+        // }
       ]
     }
     scmSiteAlsoStopped: false
@@ -192,7 +201,8 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
     redundancyMode: 'None'
     publicNetworkAccess: publicNetworkAccess
     storageAccountRequired: true
-    keyVaultReferenceIdentity: managedIdentityId // 'SystemAssigned'
+    // keyVaultReferenceIdentity: managedIdentityId
+    keyVaultReferenceIdentity: 'SystemAssigned'
   }
 }
 
@@ -310,4 +320,5 @@ output name string = functionAppName
 output insightsName string = functionInsightsName
 output insightsKey string = sharedAppInsightsInstrumentationKey
 output storageAccountName string = functionStorageAccountName
-output functionAppPrincipalId string = managedIdentityPrincipalId
+//output functionAppPrincipalId string = managedIdentityPrincipalId
+output functionAppPrincipalId string = functionAppResource.identity.principalId

@@ -5,13 +5,14 @@ param functionAppName string
 param functionStorageAccountName string
 param functionInsightsKey string
 param customAppSettings object = {}
-param keyVaultName string
 param functionsWorkerRuntime string = 'DOTNET-ISOLATED'
 param functionsExtensionVersion string = '~4'
-param nodeDefaultVersion string = '8.11.1'
 param use32BitProcess string = 'false'
 param netFrameworkVersion string = 'v8.0'
 param usePlaceholderDotNetIsolated string = '1'
+
+//param keyVaultName string
+//param nodeDefaultVersion string = '8.11.1'
 
 param cosmosAccountName string = ''
 
@@ -24,24 +25,24 @@ param OpenAI_Gpt35_ApiKey string = ''
 
 
 // --------------------------------------------------------------------------------
-var useKeyVaultConnection = false
+//var useKeyVaultConnection = false
 
 var addCosmos = !empty(cosmosAccountName)
 var addOpenAI = !empty(OpenAI_Gpt4o_Endpoint) && !empty(OpenAI_Gpt35_Endpoint)
 
 // --------------------------------------------------------------------------------
-resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' existing = { 
-  name: functionStorageAccountName 
-}
+// resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' existing = { 
+//   name: functionStorageAccountName 
+// }
 
 resource cosmosResource 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' existing = if (addCosmos) {
    name: cosmosAccountName
 }
 
-var accountKey = storageAccountResource.listKeys().keys[0].value
-var storageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountResource.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${accountKey}'
+//var accountKey = storageAccountResource.listKeys().keys[0].value
+// var storageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountResource.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${accountKey}'
 
-var functionStorageAccountKeyVaultReference = '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=azurefilesconnectionstring)'
+// var functionStorageAccountKeyVaultReference = '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=azurefilesconnectionstring)'
 
 var cosmosKey = cosmosResource.listKeys().primaryMasterKey
 var cosmosConnectionString = 'AccountEndpoint=https://${cosmosAccountName}.documents.azure.com:443/;AccountKey=${cosmosKey}'
@@ -63,27 +64,21 @@ var openAISettings = addOpenAI ? {
 
 var BASE_SLOT_APPSETTINGS = {
   // See https://learn.microsoft.com/en-us/azure/azure-functions/functions-identity-based-connections-tutorial
-  //AzureWebJobsStorage: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
-  AzureWebJobsStorage__accountName: functionStorageAccountName
-  //AzureWebJobsDashboard: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
-  AzureWebJobsSecretStorageType: 'files'
-
-  WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
-  WEBSITE_CONTENTSHARE: functionAppName
-
-  APPINSIGHTS_INSTRUMENTATIONKEY: functionInsightsKey
   APPLICATIONINSIGHTS_CONNECTION_STRING: 'InstrumentationKey=${functionInsightsKey}'
-
+  AzureWebJobsStorage__accountName: functionStorageAccountName
+  AzureWebJobsSecretStorageType: 'files'
   FUNCTIONS_WORKER_RUNTIME: functionsWorkerRuntime
   FUNCTIONS_EXTENSION_VERSION: functionsExtensionVersion
-
-  WEBSITE_NODE_DEFAULT_VERSION: nodeDefaultVersion
-
   USE32BITWORKERPROCESS: use32BitProcess
-
   NET_FRAMEWORK_VERSION: netFrameworkVersion
-
   WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED: usePlaceholderDotNetIsolated
+
+  //AzureWebJobsDashboard: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
+  //AzureWebJobsStorage: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
+  // WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
+  // WEBSITE_CONTENTSHARE: functionAppName
+  // APPINSIGHTS_INSTRUMENTATIONKEY: functionInsightsKey
+  // WEBSITE_NODE_DEFAULT_VERSION: nodeDefaultVersion
 }
 
 // This *should* work, but I keep getting a "circular dependency detected" error and it doesn't work
