@@ -117,7 +117,7 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
       numberOfWorkers: numberOfWorkers
       linuxFxVersion: linuxFxVersion
       acrUseManagedIdentityCreds: false
-      alwaysOn: false
+      alwaysOn: true
       http20Enabled: false
       functionAppScaleLimit: 200
       minimumElasticInstanceCount: 0
@@ -222,7 +222,7 @@ resource functionAppConfig 'Microsoft.Web/sites/config@2023-01-01' = {
     scmType: 'None'
     use32BitWorkerProcess: false
     webSocketsEnabled: false
-    alwaysOn: false
+    alwaysOn: true
     managedPipelineMode: 'Integrated'
     virtualApplications: [
       {

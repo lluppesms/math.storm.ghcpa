@@ -51,6 +51,7 @@ resource webSiteResource 'Microsoft.Web/sites@2023-01-01' = {
       linuxFxVersion: webAppKind == 'linux' ? 'DOTNETCORE|8.0' : null
       minTlsVersion: '1.2'
       ftpsState: 'FtpsOnly'
+      alwaysOn: true
       remoteDebuggingEnabled: false
       appSettings: [
         { 
