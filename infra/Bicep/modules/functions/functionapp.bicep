@@ -130,6 +130,10 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
           value: sharedAppInsightsConnectionString
         }
         {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: sharedAppInsightsInstrumentationKey
+        }
+        {
           name: 'AzureWebJobsStorage__accountName'
           value: functionStorageAccountName
         }
@@ -180,10 +184,6 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
         // {
         //   name: 'WEBSITE_CONTENTSHARE'
         //   value: toLower(functionAppName)
-        // }
-        // {
-        //   name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-        //   value: sharedAppInsightsInstrumentationKey
         // }
         // {
         //   name: 'WEBSITE_NODE_DEFAULT_VERSION'

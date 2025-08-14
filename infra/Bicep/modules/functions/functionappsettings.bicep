@@ -66,6 +66,7 @@ var openAISettings = addOpenAI ? {
 var BASE_SLOT_APPSETTINGS = {
   // See https://learn.microsoft.com/en-us/azure/azure-functions/functions-identity-based-connections-tutorial
   APPLICATIONINSIGHTS_CONNECTION_STRING: 'InstrumentationKey=${functionInsightsKey}'
+  APPINSIGHTS_INSTRUMENTATIONKEY: functionInsightsKey
   AzureWebJobsStorage__accountName: functionStorageAccountName
   AzureWebJobsSecretStorageType: 'files'
   FUNCTIONS_WORKER_RUNTIME: functionsWorkerRuntime
@@ -78,7 +79,6 @@ var BASE_SLOT_APPSETTINGS = {
   //AzureWebJobsStorage: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
   // WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
   // WEBSITE_CONTENTSHARE: functionAppName
-  // APPINSIGHTS_INSTRUMENTATIONKEY: functionInsightsKey
   // WEBSITE_NODE_DEFAULT_VERSION: nodeDefaultVersion
 }
 

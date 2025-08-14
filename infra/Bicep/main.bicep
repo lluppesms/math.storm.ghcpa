@@ -71,7 +71,8 @@ module logAnalyticsWorkspaceModule 'modules/monitor/loganalytics.bicep' = {
   name: 'logAnalytics${deploymentSuffix}'
   params: {
     newLogAnalyticsName: resourceNames.outputs.logAnalyticsWorkspaceName
-    newApplicationInsightsName: resourceNames.outputs.webSiteAppInsightsName
+    newWebApplicationInsightsName: resourceNames.outputs.webSiteAppInsightsName
+    newFunctionApplicationInsightsName: resourceNames.outputs.functionAppInsightsName
     location: location
     tags: commonTags
   }
@@ -169,11 +170,21 @@ module keyVaultSecretList './modules/security/keyvault-list-secret-names.bicep' 
 
 module keyVaultSecretAppInsights './modules/security/keyvault-secret.bicep' = {
   name: 'keyVaultSecretAppInsights${deploymentSuffix}'
-  dependsOn: [ keyVaultModule, logAnalyticsWorkspaceModule, webSiteModule, functionModule ]
+  dependsOn: [ keyVaultModule, logAnalyticsWorkspaceModule, webSiteModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
-    secretName: 'appInsightsInstrumentationKey'
-    secretValue: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
+    secretName: 'webAppInsightsInstrumentationKey'
+    secretValue: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
+    existingSecretNames: deduplicateKeyVaultSecrets ? keyVaultSecretList!.outputs.secretNameList : ''
+  }
+}  
+module keyVaultSecretAppInsights2 './modules/security/keyvault-secret.bicep' = {
+  name: 'keyVaultSecretAppInsights${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, logAnalyticsWorkspaceModule, functionModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.name
+    secretName: 'functionAppInsightsInstrumentationKey'
+    secretValue: logAnalyticsWorkspaceModule.outputs.functionAppInsightsInstrumentationKey
     existingSecretNames: deduplicateKeyVaultSecrets ? keyVaultSecretList!.outputs.secretNameList : ''
   }
 }  
@@ -217,7 +228,7 @@ module webSiteModule './modules/webapp/website.bicep' = {
     webAppKind: webAppKind
     workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
     appServicePlanName: appServicePlanModule.outputs.name
-    sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
+    sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
     managedIdentityId: identity.outputs.managedIdentityId
     managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
   }
@@ -231,12 +242,12 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
   name: 'webSiteAppSettings${deploymentSuffix}'
   params: {
     webAppName: webSiteModule.outputs.name
-    appInsightsKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
+    appInsightsKey: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
     customAppSettings: {
-      AppSettings__AppInsights_InstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
+      AppSettings__AppInsights_InstrumentationKey: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
       AppSettings__EnvironmentName: environmentCode
       FunctionService__BaseUrl: 'https://${functionModule.outputs.hostname}/api'
-      ConnectionStrings__ApplicationInsights: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
+      ConnectionStrings__ApplicationInsights: logAnalyticsWorkspaceModule.outputs.webAppInsightsConnectionString
     }
   }
 }
@@ -265,8 +276,8 @@ module functionModule './modules/functions/functionapp.bicep' = {
     functionAppServicePlanName: resourceNames.outputs.functionAppServicePlanName
     functionInsightsName: resourceNames.outputs.functionAppInsightsName
     sharedAppServicePlanName: appServicePlanModule.outputs.name
-    sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
-    sharedAppInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
+    sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.functionAppInsightsInstrumentationKey
+    sharedAppInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.functionAppInsightsConnectionString
     // switch to system assigned principal for secure storage access...
     // keyVaultName: keyVaultModule.outputs.name
     // managedIdentityId: identity.outputs.managedIdentityId
@@ -291,7 +302,7 @@ module functionAppSettingsModule './modules/functions/functionappsettings.bicep'
   params: {
     functionAppName: functionModule.outputs.name
     functionStorageAccountName: functionModule.outputs.storageAccountName
-    functionInsightsKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
+    functionInsightsKey: logAnalyticsWorkspaceModule.outputs.functionAppInsightsInstrumentationKey
     // keyVaultName: keyVaultModule.outputs.name
 
     cosmosAccountName: cosmosModule.outputs.name
@@ -308,7 +319,7 @@ module functionAppSettingsModule './modules/functions/functionappsettings.bicep'
       OpenApi__HideDocument: 'false'
       OpenApi__DocTitle: 'MathStorm Game APIs'
       OpenApi__DocDescription: 'This repo is an example of a GitHub Copilot Agent Vibe Coded Game'
-      appInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.appInsightsConnectionString
+      appInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.functionAppInsightsConnectionString
       CosmosDb__DatabaseName: cosmosDatabaseName 
       CosmosDb__ContainerNames__Users: userContainerName
       CosmosDb__ContainerNames__Games: gameContainerName
