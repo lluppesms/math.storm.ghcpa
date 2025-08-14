@@ -74,7 +74,8 @@ var BASE_SLOT_APPSETTINGS = {
   USE32BITWORKERPROCESS: use32BitProcess
   NET_FRAMEWORK_VERSION: netFrameworkVersion
   WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED: usePlaceholderDotNetIsolated
-
+  WEBSITE_RUN_FROM_PACKAGE: '1'
+  
   //AzureWebJobsDashboard: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
   //AzureWebJobsStorage: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
   // WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : storageAccountConnectionString
