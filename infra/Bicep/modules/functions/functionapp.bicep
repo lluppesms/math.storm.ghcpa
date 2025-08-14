@@ -157,11 +157,10 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
           name: 'WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED'
           value: usePlaceholderDotNetIsolated
         }
-
-        // {
-        //   name: 'WEBSITE_RUN_FROM_PACKAGE'
-        //   value: packageUri
-        // }
+        {
+          name: 'WEBSITE_RUN_FROM_PACKAGE'
+          value: '1'
+        }
         // {
         //   name: 'AzureWebJobsStorage'
         //   value: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : functionStorageAccountConnectionString
