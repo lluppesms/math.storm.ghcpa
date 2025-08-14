@@ -168,8 +168,8 @@ module keyVaultSecretList './modules/security/keyvault-list-secret-names.bicep' 
   }
 }
 
-module keyVaultSecretAppInsights './modules/security/keyvault-secret.bicep' = {
-  name: 'keyVaultSecretAppInsights${deploymentSuffix}'
+module keyVaultSecretAppInsights1 './modules/security/keyvault-secret.bicep' = {
+  name: 'keyVaultSecretAppInsights1${deploymentSuffix}'
   dependsOn: [ keyVaultModule, logAnalyticsWorkspaceModule, webSiteModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
@@ -179,7 +179,7 @@ module keyVaultSecretAppInsights './modules/security/keyvault-secret.bicep' = {
   }
 }  
 module keyVaultSecretAppInsights2 './modules/security/keyvault-secret.bicep' = {
-  name: 'keyVaultSecretAppInsights${deploymentSuffix}'
+  name: 'keyVaultSecretAppInsights2${deploymentSuffix}'
   dependsOn: [ keyVaultModule, logAnalyticsWorkspaceModule, functionModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
