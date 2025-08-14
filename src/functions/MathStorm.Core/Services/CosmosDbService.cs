@@ -20,10 +20,10 @@ public class CosmosDbService : ICosmosDbService
         var gamesContainer = configuration["CosmosDb:ContainerNames:Games"] ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Games");
         var leaderboardContainer = configuration["CosmosDb:ContainerNames:Leaderboard"] ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Leaderboard");
 
-        _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Account: {accountName}");
-        _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Endpoint: {endpoint}");
-        _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Database: {databaseName}");
-        _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Containers: Users={usersContainer}, Games={gamesContainer}, Leaderboard={leaderboardContainer}");
+        if (!string.IsNullOrEmpty(accountName)) { _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Account: {accountName} Database: {databaseName}"); }
+        if (!string.IsNullOrEmpty(endpoint)) { _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Endpoint: {endpoint} Database: {databaseName}"); }
+        //_logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Database: {databaseName}");
+        //_logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Containers: Users={usersContainer}, Games={gamesContainer}, Leaderboard={leaderboardContainer}");
 
         cosmosClient.CreateDatabaseIfNotExistsAsync(databaseName).GetAwaiter().GetResult();
         var database = cosmosClient.GetDatabase(databaseName);

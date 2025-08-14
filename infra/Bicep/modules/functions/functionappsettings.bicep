@@ -50,6 +50,7 @@ var cosmosConnectionString = 'AccountEndpoint=https://${cosmosAccountName}.docum
 
 var cosmosSettings = addCosmos ? {
   CosmosDb__ConnectionString: cosmosConnectionString
+  CosmosDb__Endpoint__Save: 'https://${cosmosAccountName}.documents.azure.com:443/'
 } : {}
 
 var openAISettings = addOpenAI ? {
