@@ -87,10 +87,12 @@ var cosmosContainerArray = [
   { name: gameContainerName, partitionKey: '/id' }
   { name: leaderboardContainerName, partitionKey: '/id' }
 ]
-module cosmosModule 'modules/database/cosmosdb.bicep' = if (deployCosmos) {
+module cosmosModule 'modules/database/cosmosdb.bicep' = {
   name: 'cosmos${deploymentSuffix}'
   params: {
-    accountName: resourceNames.outputs.cosmosDatabaseName 
+    accountName: deployCosmos ? resourceNames.outputs.cosmosDatabaseName : ''
+    // if this is no, then use the existing cosmos so you don't have to wait 20 minutes every time...
+    existingAccountName: deployCosmos ? '' : resourceNames.outputs.cosmosDatabaseName
     location: location
     tags: commonTags
     containerArray: cosmosContainerArray
@@ -114,7 +116,7 @@ module appIdentityRoleAssignments './modules/iam/role-assignments.bicep' = if (a
   params: {
     identityPrincipalId: identity.outputs.managedIdentityPrincipalId
     principalType: 'ServicePrincipal'
-    cosmosName: deployCosmos ? cosmosModule.outputs.name : ''
+    cosmosName: cosmosModule.outputs.name
     keyVaultName: keyVaultModule.outputs.name
     storageAccountName: functionStorageModule.outputs.name
   }
@@ -125,7 +127,7 @@ module adminUserRoleAssignments './modules/iam/role-assignments.bicep' = if (add
   params: {
     identityPrincipalId: principalId
     principalType: 'User'
-    cosmosName: deployCosmos ? cosmosModule.outputs.name : ''
+    cosmosName: cosmosModule.outputs.name
     keyVaultName: keyVaultModule.outputs.name
     storageAccountName: functionStorageModule.outputs.name
   }
@@ -136,7 +138,7 @@ module functionAppRoleAssignments './modules/iam/role-assignments.bicep' = if (a
   params: {
     identityPrincipalId: functionModule.outputs.functionAppPrincipalId
     principalType: 'ServicePrincipal'
-    cosmosName: deployCosmos ? cosmosModule.outputs.name : ''
+    cosmosName: cosmosModule.outputs.name
     keyVaultName: keyVaultModule.outputs.name
     storageAccountName: functionStorageModule.outputs.name
   }
@@ -176,7 +178,7 @@ module keyVaultSecretAppInsights './modules/security/keyvault-secret.bicep' = {
   }
 }  
 
-module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = if (deployCosmos) {
+module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = {
   name: 'keyVaultSecretCosmos${deploymentSuffix}'
   dependsOn: [ keyVaultModule, cosmosModule, webSiteModule, functionModule  ]
   params: {
@@ -292,7 +294,7 @@ module functionAppSettingsModule './modules/functions/functionappsettings.bicep'
     functionInsightsKey: logAnalyticsWorkspaceModule.outputs.appInsightsInstrumentationKey
     // keyVaultName: keyVaultModule.outputs.name
 
-    cosmosAccountName: deployCosmos ? cosmosModule.outputs.name : ''
+    cosmosAccountName: cosmosModule.outputs.name
 
     OpenAI_Gpt4o_DeploymentName: 'gpt-4o-mini'
     OpenAI_Gpt4o_Endpoint: OpenAI_Endpoint

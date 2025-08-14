@@ -40,6 +40,10 @@ on:
         description: Build and Deploy Function
         default: true
         type: boolean
+      runDeployCosmos:
+        description: Update Cosmos DB
+        default: false
+        type: boolean
       runSmokeTest:
         description: Run Smoke Tests
         default: false
@@ -92,6 +96,7 @@ jobs:
       requestorName: ${{ github.actor }}
       createResourceGroup: ${{ inputs.createResourceGroup }}
       bicepDeploymentMode: ${{ inputs.bicepDeploymentMode }}
+      deployCosmos: ${{ inputs.runDeployCosmos }}
 
 # ------------------------------------------------------------------------------------------------------------------------
   build-webapp:
