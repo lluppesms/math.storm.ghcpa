@@ -63,7 +63,7 @@ jobs:
   build-webapp:
     name: Build WebApp
     uses: ./.github/workflows/template-webapp-build.yml
-    if: inputs.runBuildDeployWeb || inputs.runSmokeTest
+    if: inputs.runBuildDeployWeb
     secrets: inherit
     with:
       envCode: 'dev'
