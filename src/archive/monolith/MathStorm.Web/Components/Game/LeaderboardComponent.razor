@@ -1,4 +1,7 @@
 @rendermode InteractiveServer
+@inject ICosmosDbService CosmosDbService
+@using MathStorm.Web.Models
+@using MathStorm.Web.Services
 
 @if (LeaderboardEntries != null && LeaderboardEntries.Any())
 {
@@ -20,7 +23,11 @@
                     <tbody>
                         @foreach (var entry in LeaderboardEntries)
                         {
-                            <tr class="@GetRowClass(entry)" id="leaderboard-row-@entry.Rank">
+                            <tr class="@GetRowClass(entry) leaderboard-row" 
+                                id="leaderboard-row-@entry.Rank" 
+                                @onclick="() => ShowGameDetails(entry)"
+                                style="cursor: pointer;"
+                                title="Click to view game details">
                                 <td class="text-center">
                                     @if (entry.Rank <= 3)
                                     {
@@ -40,7 +47,14 @@
                                         <span class="badge bg-success ms-2">You!</span>
                                     }
                                 </td>
-                                <td class="text-end">@entry.Score.ToString("F1")</td>
+                                <td class="text-end">
+                                    <span class="score-cell"
+                                          title="@GetScoreTooltip(entry)"
+                                          data-bs-toggle="tooltip"
+                                          data-bs-placement="top">
+                                        @entry.Score.ToString("F1")
+                                    </span>
+                                </td>
                                 <td class="text-end">@entry.AchievedAt.ToString("MMM dd, yyyy")</td>
                             </tr>
                         }
@@ -57,6 +71,11 @@
             }
         </div>
     </div>
+
+    <!-- Game Summary Modal -->
+    <GameSummaryModal IsVisible="@showModal" 
+                      Game="@selectedGame" 
+                      OnClose="@CloseModal" />
 }
 else
 {
@@ -75,6 +94,9 @@ else
     [Parameter] public string Difficulty { get; set; } = string.Empty;
     [Parameter] public string? CurrentUserId { get; set; }
     [Parameter] public bool UserMadeLeaderboard { get; set; }
+
+    private bool showModal = false;
+    private Game? selectedGame = null;
 
     private string GetRowClass(LeaderboardEntry entry)
     {
@@ -106,5 +128,41 @@ else
             3 => "🥉",
             _ => ""
         };
+    }
+
+    private string GetScoreTooltip(LeaderboardEntry entry)
+    {
+        if (!string.IsNullOrWhiteSpace(entry.Analysis))
+        {
+            // Truncate analysis for tooltip to avoid overwhelming UI
+            var truncated = entry.Analysis.Length > 150 
+                ? entry.Analysis.Substring(0, 150) + "..." 
+                : entry.Analysis;
+            return $"AI Analysis: {truncated}";
+        }
+        return "Click row to view detailed game analysis";
+    }
+
+    private async Task ShowGameDetails(LeaderboardEntry entry)
+    {
+        try
+        {
+            selectedGame = await CosmosDbService.GetGameWithDetailsByIdAsync(entry.GameId);
+            showModal = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            // Handle error gracefully - could add error message display
+            Console.WriteLine($"Error loading game details: {ex.Message}");
+        }
+    }
+
+    private Task CloseModal()
+    {
+        showModal = false;
+        selectedGame = null;
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 }
