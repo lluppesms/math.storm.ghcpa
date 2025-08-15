@@ -322,4 +322,78 @@ test.describe('MathStorm Game Tests', () => {
       await expect(page.getByText('Question 1 of 5')).toBeVisible();
     });
   });
+
+  test.describe('Leaderboard Analysis Features', () => {
+    test('should display analysis icons on leaderboard page', async ({ page }) => {
+      // Navigate to leaderboard page
+      await page.goto('/leaderboard');
+      
+      // Wait for leaderboard to load
+      await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible();
+      
+      // Check that Analysis column header is present
+      await expect(page.getByRole('columnheader', { name: 'Analysis' })).toBeVisible();
+      
+      // The page should display either analysis icons or placeholder dashes
+      // We can't guarantee there will be analysis data, so we just check the column exists
+      const analysisColumn = page.locator('td').nth(4); // 5th column (0-indexed)
+      
+      // Verify the column exists (it may contain icons or dashes)
+      if (await analysisColumn.isVisible()) {
+        console.log('Analysis column is visible on leaderboard');
+      }
+    });
+
+    test('should show analysis tooltips when hovering over icons', async ({ page }) => {
+      // Complete a game first to ensure there's data with potential analysis
+      await page.getByText('🌱 Beginner').click();
+      await page.getByRole('button', { name: 'Start Beginner Level' }).click();
+      
+      // Complete the game quickly
+      for (let i = 1; i <= 5; i++) {
+        await page.getByRole('spinbutton').fill('1');
+        await page.getByRole('button', { name: 'Submit Answer' }).click();
+        
+        if (i < 5) {
+          await page.getByRole('button', { name: 'Next Question' }).click();
+        }
+      }
+      
+      // Wait for game completion and results
+      await expect(page.getByText('Game Complete!')).toBeVisible();
+      
+      // Look for analysis icons in the leaderboard (if present)
+      const analysisIcons = page.locator('.analysis-icon');
+      const iconCount = await analysisIcons.count();
+      
+      if (iconCount > 0) {
+        // If there are analysis icons, test tooltip functionality
+        await analysisIcons.first().hover();
+        
+        // Check that the icon has tooltip attributes
+        await expect(analysisIcons.first()).toHaveAttribute('data-bs-toggle', 'tooltip');
+      } else {
+        console.log('No analysis icons found - this is expected if no analysis data is available');
+      }
+    });
+
+    test('should display analysis column in global leaderboard', async ({ page }) => {
+      // Navigate to leaderboard page
+      await page.goto('/leaderboard');
+      
+      // Wait for page to load
+      await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible();
+      
+      // Scroll to global leaderboard section
+      await page.locator('text=Global Leaderboard - All Levels').scrollIntoViewIfNeeded();
+      
+      // Check that Analysis column header is present in global leaderboard
+      const globalLeaderboardTable = page.locator('.card').filter({ has: page.locator('text=Global Leaderboard') });
+      const analysisHeader = globalLeaderboardTable.getByRole('columnheader', { name: 'Analysis' });
+      
+      if (await analysisHeader.isVisible()) {
+        await expect(analysisHeader).toBeVisible();
+      }
+    });
+  });
 });

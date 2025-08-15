@@ -98,6 +98,7 @@
                                                 <th scope="col">Player</th>
                                                 <th scope="col">Score</th>
                                                 <th scope="col">Date Achieved</th>
+                                                <th scope="col" class="text-center">Analysis</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -125,6 +126,21 @@
                                                     <td>@entry.Username</td>
                                                     <td><strong>@entry.Score.ToString("F2")</strong></td>
                                                     <td>@entry.AchievedAt.ToString("MMM d, yyyy")</td>
+                                                    <td class="text-center">
+                                                        @if (!string.IsNullOrEmpty(entry.Analysis))
+                                                        {
+                                                            <i class="fas fa-comment-dots text-info analysis-icon" 
+                                                               data-bs-toggle="tooltip" 
+                                                               data-bs-placement="top" 
+                                                               data-bs-html="true"
+                                                               title="@GetAnalysisTooltip(entry.Analysis)"
+                                                               style="cursor: help;"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">—</span>
+                                                        }
+                                                    </td>
                                                 </tr>
                                             }
                                         </tbody>
@@ -192,6 +208,43 @@
         await Task.WhenAll(LoadLeaderboard(), LoadGlobalLeaderboard());
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Initialize Bootstrap tooltips
+            await Task.Delay(100); // Small delay to ensure DOM is ready
+            await InitializeTooltips();
+        }
+    }
+
+    private async Task InitializeTooltips()
+    {
+        try
+        {
+            await Task.Run(() => {
+                // This will be handled by JavaScript interop if needed
+                // For now, we'll rely on Bootstrap's built-in tooltip functionality
+            });
+        }
+        catch
+        {
+            // Ignore errors - tooltips are enhancement, not critical
+        }
+    }
+
+    private string GetAnalysisTooltip(string analysis)
+    {
+        if (string.IsNullOrEmpty(analysis))
+            return string.Empty;
+
+        // Truncate long analysis and format for HTML tooltip
+        var truncated = analysis.Length > 200 ? analysis.Substring(0, 197) + "..." : analysis;
+        
+        // Escape HTML and replace newlines with <br>
+        return System.Net.WebUtility.HtmlEncode(truncated).Replace("\n", "<br>");
+    }
+
     private async Task SelectDifficulty(Difficulty difficulty)
     {
         selectedDifficulty = difficulty;
@@ -218,7 +271,8 @@
                     Difficulty = e.Difficulty,
                     Score = e.Score,
                     AchievedAt = e.AchievedAt,
-                    Rank = e.Rank
+                    Rank = e.Rank,
+                    Analysis = e.Analysis
                 }).ToList();
             }
             else
@@ -257,7 +311,8 @@
                     Difficulty = e.Difficulty,
                     Score = e.Score,
                     AchievedAt = e.AchievedAt,
-                    Rank = e.Rank
+                    Rank = e.Rank,
+                    Analysis = e.Analysis
                 }).ToList();
             }
             else

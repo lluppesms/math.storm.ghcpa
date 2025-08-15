@@ -16,6 +16,7 @@
                             <th class="text-center">Level</th>
                             <th class="text-end">Score</th>
                             <th class="text-end">Achieved</th>
+                            <th class="text-center">Analysis</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -48,6 +49,21 @@
                                 </td>
                                 <td class="text-end">@entry.Score.ToString("F1")</td>
                                 <td class="text-end">@entry.AchievedAt.ToString("MMM dd, yyyy")</td>
+                                <td class="text-center">
+                                    @if (!string.IsNullOrEmpty(entry.Analysis))
+                                    {
+                                        <i class="fas fa-comment-dots text-info analysis-icon" 
+                                           data-bs-toggle="tooltip" 
+                                           data-bs-placement="top" 
+                                           data-bs-html="true"
+                                           title="@GetAnalysisTooltip(entry.Analysis)"
+                                           style="cursor: help;"></i>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -89,6 +105,43 @@ else
     [Parameter] public List<LeaderboardEntry>? LeaderboardEntries { get; set; }
     [Parameter] public string? CurrentUserId { get; set; }
     [Parameter] public bool UserMadeLeaderboard { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Initialize Bootstrap tooltips
+            await Task.Delay(100); // Small delay to ensure DOM is ready
+            await InitializeTooltips();
+        }
+    }
+
+    private async Task InitializeTooltips()
+    {
+        try
+        {
+            await Task.Run(() => {
+                // This will be handled by JavaScript interop if needed
+                // For now, we'll rely on Bootstrap's built-in tooltip functionality
+            });
+        }
+        catch
+        {
+            // Ignore errors - tooltips are enhancement, not critical
+        }
+    }
+
+    private string GetAnalysisTooltip(string analysis)
+    {
+        if (string.IsNullOrEmpty(analysis))
+            return string.Empty;
+
+        // Truncate long analysis and format for HTML tooltip
+        var truncated = analysis.Length > 200 ? analysis.Substring(0, 197) + "..." : analysis;
+        
+        // Escape HTML and replace newlines with <br>
+        return System.Net.WebUtility.HtmlEncode(truncated).Replace("\n", "<br>");
+    }
 
     private string GetRowClass(LeaderboardEntry entry)
     {

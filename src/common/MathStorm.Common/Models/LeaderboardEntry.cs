@@ -28,4 +28,7 @@ public class LeaderboardEntry
     
     [JsonProperty("rank")]
     public int Rank { get; set; }
+    
+    [JsonProperty("analysis")]
+    public string? Analysis { get; set; }
 }
