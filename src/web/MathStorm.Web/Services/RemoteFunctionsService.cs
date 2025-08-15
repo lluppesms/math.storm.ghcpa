@@ -8,6 +8,8 @@ namespace MathStorm.Web.Services;
 public interface IRemoteFunctionsService
 {
     Task<GameResponseDto?> GetGameAsync(Difficulty difficulty);
+    Task<Game?> GetGameByIdAsync(string gameId);
+    Task<bool> UpdateGameAnalysisAsync(string gameId, string analysis);
     Task<GameResultsResponseDto?> SubmitGameResultsAsync(GameResultsRequestDto request);
     Task<LeaderboardResponseDto?> GetLeaderboardAsync(string? difficulty = null, int topCount = 10);
     Task<ResultsAnalysisResponseDto?> AnalyzeGameResultsAsync(ResultsAnalysisRequestDto request);
@@ -53,6 +55,55 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             var msg = $"Web: Error getting game from API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
             _logger.LogError(msg);
             return null;
+        }
+    }
+
+    public async Task<Game?> GetGameByIdAsync(string gameId)
+    {
+        var content = string.Empty;
+        var apiUrl = $"/api/game/{gameId}";
+        try
+        {
+            var response = await _httpClient.GetAsync(apiUrl);
+            response.EnsureSuccessStatusCode();
+
+            content = await response.Content.ReadAsStringAsync();
+            if (!string.IsNullOrEmpty(content) && content.Trim().StartsWith("{"))
+            {
+                var game = JsonSerializer.Deserialize<Game>(content);
+                return game;
+            }
+            _logger.LogError($"Web: Error getting game by ID from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            var msg = $"Web: Error getting game by ID from API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            _logger.LogError(msg);
+            return null;
+        }
+    }
+
+    public async Task<bool> UpdateGameAnalysisAsync(string gameId, string analysis)
+    {
+        var responseContent = string.Empty;
+        var apiUrl = $"/api/game/{gameId}/analysis";
+        try
+        {
+            var request = new { Analysis = analysis };
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PutAsync(apiUrl, content);
+            response.EnsureSuccessStatusCode();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            var msg = $"Web: Error updating game analysis via API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            _logger.LogError(msg);
+            return false;
         }
     }
 

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace MathStorm.Common.Models;
 
 public class Game

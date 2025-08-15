@@ -7,3 +7,12 @@
     animation: blink 1s ease-in-out infinite;
     background-color: var(--bs-success-bg-subtle) !important;
 }
+
+.analysis-icon {
+    transition: all 0.2s ease-in-out;
+}
+
+.analysis-icon:hover {
+    transform: scale(1.2);
+    color: var(--bs-info) !important;
+}

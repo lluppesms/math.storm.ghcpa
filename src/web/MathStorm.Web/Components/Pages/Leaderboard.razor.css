@@ -25,3 +25,12 @@
     width: 3rem;
     height: 3rem;
 }
+
+.analysis-icon {
+    transition: all 0.2s ease-in-out;
+}
+
+.analysis-icon:hover {
+    transform: scale(1.2);
+    color: var(--bs-info) !important;
+}

@@ -8,6 +8,15 @@
     font-weight: 500;
 }
 
+.analysis-icon {
+    transition: all 0.2s ease-in-out;
+}
+
+.analysis-icon:hover {
+    transform: scale(1.2);
+    color: var(--bs-info) !important;
+}
+
 @media (max-width: 768px) {
     .table-responsive {
         font-size: 0.9rem;

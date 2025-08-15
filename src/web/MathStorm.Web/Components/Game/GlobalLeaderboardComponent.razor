@@ -1,4 +1,6 @@
 @rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject MathStorm.Web.Services.IRemoteFunctionsService FunctionService
 
 @if (LeaderboardEntries != null && LeaderboardEntries.Any())
 {
@@ -16,6 +18,7 @@
                             <th class="text-center">Level</th>
                             <th class="text-end">Score</th>
                             <th class="text-end">Achieved</th>
+                            <th class="text-center">Analysis</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -48,6 +51,14 @@
                                 </td>
                                 <td class="text-end">@entry.Score.ToString("F1")</td>
                                 <td class="text-end">@entry.AchievedAt.ToString("MMM dd, yyyy")</td>
+                                <td class="text-center">
+                                    <i class="fas fa-comment-dots text-info analysis-icon" 
+                                       @onclick="@(() => ShowAnalysis(entry.GameId))"
+                                       data-bs-toggle="tooltip" 
+                                       data-bs-placement="top" 
+                                       title="Click to view game analysis"
+                                       style="cursor: pointer;"></i>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -90,6 +101,72 @@ else
     [Parameter] public string? CurrentUserId { get; set; }
     [Parameter] public bool UserMadeLeaderboard { get; set; }
 
+    // Modal state
+    private bool showAnalysisModal = false;
+    private bool isLoadingAnalysis = false;
+    private string? currentGameAnalysis = null;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Initialize Bootstrap tooltips
+            await Task.Delay(100); // Small delay to ensure DOM is ready
+            await InitializeTooltips();
+        }
+    }
+
+    private async Task InitializeTooltips()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("initializeTooltips");
+        }
+        catch
+        {
+            // Ignore errors - tooltips are enhancement, not critical
+        }
+    }
+
+    private async Task ShowAnalysis(string gameId)
+    {
+        if (string.IsNullOrEmpty(gameId)) return;
+
+        showAnalysisModal = true;
+        isLoadingAnalysis = true;
+        currentGameAnalysis = null;
+        StateHasChanged();
+
+        try
+        {
+            var game = await FunctionService.GetGameByIdAsync(gameId);
+            if (game != null && !string.IsNullOrEmpty(game.Analysis))
+            {
+                currentGameAnalysis = game.Analysis;
+            }
+            else
+            {
+                currentGameAnalysis = null;
+            }
+        }
+        catch (Exception)
+        {
+            currentGameAnalysis = null;
+        }
+        finally
+        {
+            isLoadingAnalysis = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CloseAnalysisModal()
+    {
+        showAnalysisModal = false;
+        currentGameAnalysis = null;
+        StateHasChanged();
+    }
+
     private string GetRowClass(LeaderboardEntry entry)
     {
         return IsCurrentUserEntry(entry) ? "user-entry" : "";
@@ -98,6 +175,54 @@ else
     private bool IsCurrentUserEntry(LeaderboardEntry entry)
     {
         return !string.IsNullOrEmpty(CurrentUserId) && entry.UserId == CurrentUserId;
+    }
+
+    private string GetRankBadgeClass(int rank)
+    {
+        return rank switch
+        {
+            1 => "badge bg-warning text-dark",
+            2 => "badge bg-secondary",
+            3 => "badge bg-dark",
+            _ => "badge bg-secondary"
+        };
+    }
+
+    private string GetRankIcon(int rank)
+    {
+        return rank switch
+        {
+            1 => "🥇",
+            2 => "🥈", 
+            3 => "🥉",
+            _ => ""
+        };
+    }
+
+    private string GetDifficultyBadgeClass(string difficulty)
+    {
+        return difficulty switch
+        {
+            "Beginner" => "bg-success",
+            "Novice" => "bg-info",
+            "Intermediate" => "bg-warning text-dark",
+            "Expert" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetDifficultyIcon(string difficulty)
+    {
+        return difficulty switch
+        {
+            "Beginner" => "🌱",
+            "Novice" => "🚀",
+            "Intermediate" => "⚡",
+            "Expert" => "🔥",
+            _ => ""
+        };
+    }
+}== CurrentUserId;
     }
 
     private string GetRankBadgeClass(int rank)
