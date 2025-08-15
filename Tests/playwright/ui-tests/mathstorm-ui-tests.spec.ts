@@ -344,7 +344,7 @@ test.describe('MathStorm Game Tests', () => {
       }
     });
 
-    test('should show analysis tooltips when hovering over icons', async ({ page }) => {
+    test('should show analysis modal when clicking on icons', async ({ page }) => {
       // Complete a game first to ensure there's data with potential analysis
       await page.getByText('🌱 Beginner').click();
       await page.getByRole('button', { name: 'Start Beginner Level' }).click();
@@ -362,22 +362,61 @@ test.describe('MathStorm Game Tests', () => {
       // Wait for game completion and results
       await expect(page.getByText('Game Complete!')).toBeVisible();
       
-      // Look for analysis icons in the leaderboard (if present)
+      // Look for analysis icons in the leaderboard
       const analysisIcons = page.locator('.analysis-icon');
       const iconCount = await analysisIcons.count();
       
       if (iconCount > 0) {
-        // If there are analysis icons, test tooltip functionality
-        await analysisIcons.first().hover();
+        // Click on the first analysis icon
+        await analysisIcons.first().click();
         
-        // Check that the icon has tooltip attributes
-        await expect(analysisIcons.first()).toHaveAttribute('data-bs-toggle', 'tooltip');
+        // Verify modal opens
+        await expect(page.locator('.modal')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Game Analysis' })).toBeVisible();
+        
+        // Close modal
+        await page.getByRole('button', { name: 'Close' }).click();
+        
+        // Verify modal is closed
+        await expect(page.locator('.modal')).not.toBeVisible();
       } else {
         console.log('No analysis icons found - this is expected if no analysis data is available');
       }
     });
 
-    test('should display analysis column in global leaderboard', async ({ page }) => {
+    test('should open analysis modal from main leaderboard page', async ({ page }) => {
+      // Navigate to leaderboard page
+      await page.goto('/leaderboard');
+      
+      // Wait for leaderboard to load
+      await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible();
+      
+      // Look for analysis icons in the selected difficulty leaderboard
+      const analysisIcons = page.locator('.analysis-icon');
+      const iconCount = await analysisIcons.count();
+      
+      if (iconCount > 0) {
+        // Click on the first analysis icon
+        await analysisIcons.first().click();
+        
+        // Verify modal opens
+        await expect(page.locator('.modal')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Game Analysis' })).toBeVisible();
+        
+        // Verify modal content area exists
+        await expect(page.locator('.modal-body')).toBeVisible();
+        
+        // Close modal using the close button
+        await page.getByRole('button', { name: 'Close' }).click();
+        
+        // Verify modal is closed
+        await expect(page.locator('.modal')).not.toBeVisible();
+      } else {
+        console.log('No analysis icons found on main leaderboard - this may be expected if no games have been played');
+      }
+    });
+
+    test('should display analysis column with clickable icons in global leaderboard', async ({ page }) => {
       // Navigate to leaderboard page
       await page.goto('/leaderboard');
       
@@ -393,6 +432,11 @@ test.describe('MathStorm Game Tests', () => {
       
       if (await analysisHeader.isVisible()) {
         await expect(analysisHeader).toBeVisible();
+        
+        // Look for analysis icons in global leaderboard
+        const globalAnalysisIcons = globalLeaderboardTable.locator('.analysis-icon');
+        const globalIconCount = await globalAnalysisIcons.count();
+        console.log(`Found ${globalIconCount} analysis icons in global leaderboard`);
       }
     });
   });
