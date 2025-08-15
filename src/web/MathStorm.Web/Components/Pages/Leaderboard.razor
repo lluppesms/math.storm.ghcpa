@@ -1,6 +1,7 @@
 @page "/leaderboard"
 @rendermode InteractiveServer
 @inject MathStorm.Web.Services.IRemoteFunctionsService FunctionService
+@inject IJSRuntime JSRuntime
 @using MathStorm.Web.Services
 @using MathStorm.Web.Components.Game
 @using MathStorm.Common.DTOs
@@ -222,10 +223,7 @@
     {
         try
         {
-            await Task.Run(() => {
-                // This will be handled by JavaScript interop if needed
-                // For now, we'll rely on Bootstrap's built-in tooltip functionality
-            });
+            await JSRuntime.InvokeVoidAsync("initializeTooltips");
         }
         catch
         {
@@ -289,6 +287,10 @@
         {
             isLoading = false;
             StateHasChanged();
+            
+            // Re-initialize tooltips after data loads
+            await Task.Delay(50);
+            await InitializeTooltips();
         }
     }
 
@@ -329,6 +331,10 @@
         {
             isLoadingGlobalLeaderboard = false;
             StateHasChanged();
+            
+            // Re-initialize tooltips after data loads
+            await Task.Delay(50);
+            await InitializeTooltips();
         }
     }
 }
