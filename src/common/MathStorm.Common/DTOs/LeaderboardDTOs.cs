@@ -22,5 +22,4 @@ public class LeaderboardEntryDto
     public double Score { get; set; }
     public DateTime AchievedAt { get; set; }
     public int Rank { get; set; }
-    public string? Analysis { get; set; }
 }

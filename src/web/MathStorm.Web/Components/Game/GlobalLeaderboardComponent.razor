@@ -1,5 +1,6 @@
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
+@inject MathStorm.Web.Services.IRemoteFunctionsService FunctionService
 
 @if (LeaderboardEntries != null && LeaderboardEntries.Any())
 {
@@ -51,19 +52,12 @@
                                 <td class="text-end">@entry.Score.ToString("F1")</td>
                                 <td class="text-end">@entry.AchievedAt.ToString("MMM dd, yyyy")</td>
                                 <td class="text-center">
-                                    @if (!string.IsNullOrEmpty(entry.Analysis))
-                                    {
-                                        <i class="fas fa-comment-dots text-info analysis-icon" 
-                                           data-bs-toggle="tooltip" 
-                                           data-bs-placement="top" 
-                                           data-bs-html="true"
-                                           title="@GetAnalysisTooltip(entry.Analysis)"
-                                           style="cursor: help;"></i>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">—</span>
-                                    }
+                                    <i class="fas fa-comment-dots text-info analysis-icon" 
+                                       @onclick="@(() => ShowAnalysis(entry.GameId))"
+                                       data-bs-toggle="tooltip" 
+                                       data-bs-placement="top" 
+                                       title="Click to view game analysis"
+                                       style="cursor: pointer;"></i>
                                 </td>
                             </tr>
                         }
@@ -107,6 +101,11 @@ else
     [Parameter] public string? CurrentUserId { get; set; }
     [Parameter] public bool UserMadeLeaderboard { get; set; }
 
+    // Modal state
+    private bool showAnalysisModal = false;
+    private bool isLoadingAnalysis = false;
+    private string? currentGameAnalysis = null;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -129,16 +128,43 @@ else
         }
     }
 
-    private string GetAnalysisTooltip(string analysis)
+    private async Task ShowAnalysis(string gameId)
     {
-        if (string.IsNullOrEmpty(analysis))
-            return string.Empty;
+        if (string.IsNullOrEmpty(gameId)) return;
 
-        // Truncate long analysis and format for HTML tooltip
-        var truncated = analysis.Length > 200 ? analysis.Substring(0, 197) + "..." : analysis;
-        
-        // Escape HTML and replace newlines with <br>
-        return System.Net.WebUtility.HtmlEncode(truncated).Replace("\n", "<br>");
+        showAnalysisModal = true;
+        isLoadingAnalysis = true;
+        currentGameAnalysis = null;
+        StateHasChanged();
+
+        try
+        {
+            var game = await FunctionService.GetGameByIdAsync(gameId);
+            if (game != null && !string.IsNullOrEmpty(game.Analysis))
+            {
+                currentGameAnalysis = game.Analysis;
+            }
+            else
+            {
+                currentGameAnalysis = null;
+            }
+        }
+        catch (Exception)
+        {
+            currentGameAnalysis = null;
+        }
+        finally
+        {
+            isLoadingAnalysis = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CloseAnalysisModal()
+    {
+        showAnalysisModal = false;
+        currentGameAnalysis = null;
+        StateHasChanged();
     }
 
     private string GetRowClass(LeaderboardEntry entry)
@@ -149,6 +175,54 @@ else
     private bool IsCurrentUserEntry(LeaderboardEntry entry)
     {
         return !string.IsNullOrEmpty(CurrentUserId) && entry.UserId == CurrentUserId;
+    }
+
+    private string GetRankBadgeClass(int rank)
+    {
+        return rank switch
+        {
+            1 => "badge bg-warning text-dark",
+            2 => "badge bg-secondary",
+            3 => "badge bg-dark",
+            _ => "badge bg-secondary"
+        };
+    }
+
+    private string GetRankIcon(int rank)
+    {
+        return rank switch
+        {
+            1 => "🥇",
+            2 => "🥈", 
+            3 => "🥉",
+            _ => ""
+        };
+    }
+
+    private string GetDifficultyBadgeClass(string difficulty)
+    {
+        return difficulty switch
+        {
+            "Beginner" => "bg-success",
+            "Novice" => "bg-info",
+            "Intermediate" => "bg-warning text-dark",
+            "Expert" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetDifficultyIcon(string difficulty)
+    {
+        return difficulty switch
+        {
+            "Beginner" => "🌱",
+            "Novice" => "🚀",
+            "Intermediate" => "⚡",
+            "Expert" => "🔥",
+            _ => ""
+        };
+    }
+}== CurrentUserId;
     }
 
     private string GetRankBadgeClass(int rank)
