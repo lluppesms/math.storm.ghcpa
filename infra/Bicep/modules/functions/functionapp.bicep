@@ -29,7 +29,7 @@ param functionsWorkerRuntime string = 'DOTNET-ISOLATED'
 param functionsExtensionVersion string = '~4'
 //param nodeDefaultVersion string = '8.11.1'
 param use32BitProcess string = 'false'
-param netFrameworkVersion string = 'v4.0'
+param netFrameworkVersion string = 'v8.0'
 param usePlaceholderDotNetIsolated string = '1'
 
 param workerSizeId int = 0
