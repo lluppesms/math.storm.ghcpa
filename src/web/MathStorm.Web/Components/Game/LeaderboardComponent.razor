@@ -115,20 +115,37 @@ else
                                         <p><strong>Difficulty:</strong> <span class="badge @GetDifficultyBadgeClass(currentGame.Difficulty)">@currentGame.Difficulty</span></p>
                                         <p><strong>Total Score:</strong> @currentGame.TotalScore.ToString("F1")</p>
                                         <p><strong>Completed:</strong> @currentGame.CompletedAt.ToString("MMM dd, yyyy HH:mm")</p>
-                                        <p><strong>Questions:</strong> @currentGame.Questions.Count</p>
+                                        <p class="mb-0"><strong>Questions:</strong> @currentGame.Questions.Count</p>
                                     </div>
                                 </div>
 
+                                <!-- Scoring Information -->
+                                <h6><i class="fas fa-info-circle"></i> Scoring Information</h6>
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <ul class="list-unstyled mb-0 small">
+                                            <li><i class="fas fa-check text-success"></i> <strong>Perfect answers (0% error):</strong> Score = Time × 10</li>
+                                            <li><i class="fas fa-exclamation text-warning"></i> <strong>Close answers (1-10% error):</strong> Low accuracy penalty</li>
+                                            <li><i class="fas fa-times text-danger"></i> <strong>Incorrect answers (>10% error):</strong> High accuracy penalty</li>
+                                            <li><i class="fas fa-clock text-info"></i> <strong>Speed matters:</strong> Faster answers get lower scores</li>
+                                            <li><i class="fas fa-calculator text-primary"></i> <strong>Formula:</strong> (Error% × Time) + (Time × 10)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Question Details and AI Analysis -->
+                            <div class="col-md-6">
                                 <!-- Question Details -->
                                 <h6><i class="fas fa-list"></i> Question Details</h6>
-                                <div style="max-height: 300px; overflow-y: auto;">
+                                <div style="max-height: 250px; overflow-y: auto;" class="mb-3">
                                     @foreach (var question in currentGame.Questions)
                                     {
-                                        <div class="card mb-2">
+                                        <div class="card mb-2 @GetQuestionCardClass(question.PercentageDifference)">
                                             <div class="card-body p-2">
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <div>
-                                                        <strong>@question.Number1 @question.Operation @question.Number2 = ?</strong>
+                                                        <strong>@GetOperationSymbol(question.Operation) @question.Number1 @GetOperationString(question.Operation) @question.Number2 = ?</strong>
                                                     </div>
                                                     <div class="text-end">
                                                         <small class="text-muted">@question.TimeInSeconds.ToString("F1")s</small>
@@ -136,17 +153,20 @@ else
                                                 </div>
                                                 <div class="row mt-1">
                                                     <div class="col-6">
-                                                        <small><strong>Correct:</strong> @question.CorrectAnswer</small>
+                                                        <small><strong>Correct:</strong> @FormatAnswer(question.CorrectAnswer, question.Operation)</small>
                                                     </div>
                                                     <div class="col-6">
-                                                        <small><strong>Your Answer:</strong> @question.UserAnswer</small>
+                                                        <small><strong>Your Answer:</strong> @FormatAnswer(question.UserAnswer ?? 0, question.Operation)</small>
                                                     </div>
                                                 </div>
                                                 <div class="row">
-                                                    <div class="col-6">
+                                                    <div class="col-4">
+                                                        <small><strong>Error:</strong> <span class="badge @GetErrorBadgeClass(question.PercentageDifference)">@question.PercentageDifference.ToString("F1")%</span></small>
+                                                    </div>
+                                                    <div class="col-4">
                                                         <small><strong>Score:</strong> @question.Score.ToString("F1")</small>
                                                     </div>
-                                                    <div class="col-6">
+                                                    <div class="col-4">
                                                         <small><strong>Accuracy:</strong> @((100 - question.PercentageDifference).ToString("F1"))%</small>
                                                     </div>
                                                 </div>
@@ -154,16 +174,14 @@ else
                                         </div>
                                     }
                                 </div>
-                            </div>
 
-                            <!-- AI Analysis -->
-                            <div class="col-md-6">
+                                <!-- AI Analysis -->
                                 <h6><i class="fas fa-robot"></i> AI Analysis</h6>
                                 @if (!string.IsNullOrEmpty(currentGame.Analysis))
                                 {
                                     <div class="card">
                                         <div class="card-body">
-                                            <div class="analysis-content" style="max-height: 400px; overflow-y: auto;">
+                                            <div class="analysis-content" style="max-height: 200px; overflow-y: auto;">
                                                 @((MarkupString)currentGame.Analysis.Replace("\n", "<br />"))
                                             </div>
                                         </div>
@@ -185,7 +203,8 @@ else
                     {
                         <div class="text-center text-muted">
                             <i class="fas fa-exclamation-triangle"></i>
-                            <p class="mb-0">Game details could not be loaded.</p>
+                            <p class="mb-2">Game details could not be loaded.</p>
+                            <small class="text-muted">This may be due to a connectivity issue with the game API. Please check that the Function App is running and properly configured.</small>
                         </div>
                     }
                 </div>
@@ -245,9 +264,11 @@ else
             var game = await FunctionService.GetGameByIdAsync(gameId);
             currentGame = game;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             currentGame = null;
+            // Log the error for debugging
+            System.Console.WriteLine($"Error loading game details for gameId {gameId}: {ex.Message}");
         }
         finally
         {
@@ -304,6 +325,59 @@ else
             "Intermediate" => "bg-warning text-dark",
             "Expert" => "bg-danger",
             _ => "bg-secondary"
+        };
+    }
+
+    private string GetOperationSymbol(string operation)
+    {
+        return operation switch
+        {
+            "Addition" => "➕",
+            "Subtraction" => "➖",
+            "Multiplication" => "✖️",
+            "Division" => "➗",
+            _ => "❓"
+        };
+    }
+
+    private string GetOperationString(string operation)
+    {
+        return operation switch
+        {
+            "Addition" => "+",
+            "Subtraction" => "-",
+            "Multiplication" => "×",
+            "Division" => "÷",
+            _ => "?"
+        };
+    }
+
+    private string FormatAnswer(double answer, string operation)
+    {
+        return operation switch
+        {
+            "Division" => answer.ToString("F1"),
+            _ => answer.ToString("F0")
+        };
+    }
+
+    private string GetQuestionCardClass(double errorPercentage)
+    {
+        return errorPercentage switch
+        {
+            0 => "border-success",
+            <= 10 => "border-warning",
+            _ => "border-danger"
+        };
+    }
+
+    private string GetErrorBadgeClass(double errorPercentage)
+    {
+        return errorPercentage switch
+        {
+            0 => "bg-success",
+            <= 10 => "bg-warning text-dark",
+            _ => "bg-danger"
         };
     }
 }

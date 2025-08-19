@@ -65,6 +65,13 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         try
         {
             var response = await _httpClient.GetAsync(apiUrl);
+            
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _logger.LogWarning($"Web: Game with ID {gameId} not found. API URL: {BaseFunctionUrl}{apiUrl}");
+                return null;
+            }
+            
             response.EnsureSuccessStatusCode();
 
             content = await response.Content.ReadAsStringAsync();
@@ -74,6 +81,12 @@ public class RemoteFunctionsService : IRemoteFunctionsService
                 return game;
             }
             _logger.LogError($"Web: Error getting game by ID from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
+            return null;
+        }
+        catch (HttpRequestException ex)
+        {
+            var msg = $"Web: Network error getting game by ID from API {BaseFunctionUrl}{apiUrl}. Check if Function App is running and BaseUrl is correct: {ExceptionHelper.GetExceptionMessage(ex)}";
+            _logger.LogError(msg);
             return null;
         }
         catch (Exception ex)
