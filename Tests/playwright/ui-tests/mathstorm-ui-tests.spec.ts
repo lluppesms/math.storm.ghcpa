@@ -372,7 +372,7 @@ test.describe('MathStorm Game Tests', () => {
         
         // Verify modal opens
         await expect(page.locator('.modal')).toBeVisible();
-        await expect(page.getByRole('heading', { name: 'Game Analysis' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Game Details & Analysis' })).toBeVisible();
         
         // Close modal
         await page.getByRole('button', { name: 'Close' }).click();
@@ -401,7 +401,7 @@ test.describe('MathStorm Game Tests', () => {
         
         // Verify modal opens
         await expect(page.locator('.modal')).toBeVisible();
-        await expect(page.getByRole('heading', { name: 'Game Analysis' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Game Details & Analysis' })).toBeVisible();
         
         // Verify modal content area exists
         await expect(page.locator('.modal-body')).toBeVisible();
