@@ -194,11 +194,11 @@
 @if (showAnalysisModal)
 {
     <div class="modal fade show" style="display: block;" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="fas fa-robot"></i> Game Analysis
+                        <i class="fas fa-gamepad"></i> Game Details & Analysis
                     </h5>
                     <button type="button" class="btn-close" @onclick="CloseAnalysisModal"></button>
                 </div>
@@ -209,18 +209,93 @@
                             <div class="spinner-border text-info" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
-                            <p class="mt-2">Loading game analysis...</p>
+                            <p class="mt-2">Loading game details...</p>
                         </div>
                     }
-                    else if (!string.IsNullOrEmpty(currentGameAnalysis))
+                    else if (currentGame != null)
                     {
-                        <div class="analysis-content">
-                            @((MarkupString)currentGameAnalysis.Replace("\n", "<br />"))
+                        <div class="row">
+                            <!-- Game Summary -->
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-chart-line"></i> Game Summary</h6>
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <p><strong>Username:</strong> @currentGame.Username</p>
+                                        <p><strong>Difficulty:</strong> <span class="badge @GetDifficultyBadgeClass(currentGame.Difficulty)">@currentGame.Difficulty</span></p>
+                                        <p><strong>Total Score:</strong> @currentGame.TotalScore.ToString("F1")</p>
+                                        <p><strong>Completed:</strong> @currentGame.CompletedAt.ToString("MMM dd, yyyy HH:mm")</p>
+                                        <p><strong>Questions:</strong> @currentGame.Questions.Count</p>
+                                    </div>
+                                </div>
+
+                                <!-- Question Details -->
+                                <h6><i class="fas fa-list"></i> Question Details</h6>
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    @foreach (var question in currentGame.Questions)
+                                    {
+                                        <div class="card mb-2">
+                                            <div class="card-body p-2">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <strong>@question.Number1 @question.Operation @question.Number2 = ?</strong>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <small class="text-muted">@question.TimeInSeconds.ToString("F1")s</small>
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-1">
+                                                    <div class="col-6">
+                                                        <small><strong>Correct:</strong> @question.CorrectAnswer</small>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <small><strong>Your Answer:</strong> @question.UserAnswer</small>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <small><strong>Score:</strong> @question.Score.ToString("F1")</small>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <small><strong>Accuracy:</strong> @((100 - question.PercentageDifference).ToString("F1"))%</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- AI Analysis -->
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-robot"></i> AI Analysis</h6>
+                                @if (!string.IsNullOrEmpty(currentGame.Analysis))
+                                {
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="analysis-content" style="max-height: 400px; overflow-y: auto;">
+                                                @((MarkupString)currentGame.Analysis.Replace("\n", "<br />"))
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="card">
+                                        <div class="card-body text-center text-muted">
+                                            <i class="fas fa-exclamation-circle"></i>
+                                            <p class="mb-0">No AI analysis available for this game.</p>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
                         </div>
                     }
                     else
                     {
-                        <p class="text-muted">No analysis available for this game.</p>
+                        <div class="text-center text-muted">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p class="mb-0">Game details could not be loaded.</p>
+                        </div>
                     }
                 </div>
                 <div class="modal-footer">
@@ -242,7 +317,7 @@
     // Modal state
     private bool showAnalysisModal = false;
     private bool isLoadingAnalysis = false;
-    private string? currentGameAnalysis = null;
+    private Game? currentGame = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -277,24 +352,17 @@
 
         showAnalysisModal = true;
         isLoadingAnalysis = true;
-        currentGameAnalysis = null;
+        currentGame = null;
         StateHasChanged();
 
         try
         {
             var game = await FunctionService.GetGameByIdAsync(gameId);
-            if (game != null && !string.IsNullOrEmpty(game.Analysis))
-            {
-                currentGameAnalysis = game.Analysis;
-            }
-            else
-            {
-                currentGameAnalysis = null;
-            }
+            currentGame = game;
         }
         catch (Exception)
         {
-            currentGameAnalysis = null;
+            currentGame = null;
         }
         finally
         {
@@ -306,7 +374,7 @@
     private void CloseAnalysisModal()
     {
         showAnalysisModal = false;
-        currentGameAnalysis = null;
+        currentGame = null;
         StateHasChanged();
     }
 
@@ -401,5 +469,17 @@
             await Task.Delay(50);
             await InitializeTooltips();
         }
+    }
+
+    private string GetDifficultyBadgeClass(string difficulty)
+    {
+        return difficulty switch
+        {
+            "Beginner" => "bg-success",
+            "Novice" => "bg-info",
+            "Intermediate" => "bg-warning text-dark",
+            "Expert" => "bg-danger",
+            _ => "bg-secondary"
+        };
     }
 }
