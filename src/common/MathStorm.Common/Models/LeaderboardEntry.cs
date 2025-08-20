@@ -5,27 +5,27 @@ namespace MathStorm.Common.Models;
 
 public class LeaderboardEntry
 {
-    [JsonProperty("id")]
+    [JsonPropertyName("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString();
     
-    [JsonProperty("difficulty")]
+    [JsonPropertyName("difficulty")]
     public string Difficulty { get; set; } = string.Empty;
     
-    [JsonProperty("username")]
+    [JsonPropertyName("username")]
     public string Username { get; set; } = string.Empty;
     
-    [JsonProperty("userId")]
+    [JsonPropertyName("userId")]
     public string UserId { get; set; } = string.Empty;
     
-    [JsonProperty("gameId")]
+    [JsonPropertyName("gameId")]
     public string GameId { get; set; } = string.Empty;
     
-    [JsonProperty("score")]
+    [JsonPropertyName("score")]
     public double Score { get; set; }
     
-    [JsonProperty("achievedAt")]
+    [JsonPropertyName("achievedAt")]
     public DateTime AchievedAt { get; set; } = DateTime.UtcNow;
     
-    [JsonProperty("rank")]
+    [JsonPropertyName("rank")]
     public int Rank { get; set; }
 }

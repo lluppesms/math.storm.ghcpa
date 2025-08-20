@@ -4,57 +4,57 @@ namespace MathStorm.Common.Models;
 
 public class Game
 {
-    [JsonProperty("id")]
+    [JsonPropertyName("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
-    [JsonProperty("userId")]
+    [JsonPropertyName("userId")]
     public string UserId { get; set; } = string.Empty;
 
-    [JsonProperty("username")]
+    [JsonPropertyName("username")]
     public string Username { get; set; } = string.Empty;
 
-    [JsonProperty("difficulty")]
+    [JsonPropertyName("difficulty")]
     public string Difficulty { get; set; } = string.Empty;
 
-    [JsonProperty("totalScore")]
+    [JsonPropertyName("totalScore")]
     public double TotalScore { get; set; }
 
-    [JsonProperty("completedAt")]
+    [JsonPropertyName("completedAt")]
     public DateTime CompletedAt { get; set; } = DateTime.UtcNow;
 
-    [JsonProperty("analysis")]
+    [JsonPropertyName("analysis")]
     public string? Analysis { get; set; }
 
-    [JsonProperty("questions")]
+    [JsonPropertyName("questions")]
     public List<GameQuestion> Questions { get; set; } = [];
 }
 
 public class GameQuestion
 {
-    [JsonProperty("id")]
+    [JsonPropertyName("id")]
     public int Id { get; set; }
 
-    [JsonProperty("number1")]
+    [JsonPropertyName("number1")]
     public int Number1 { get; set; }
 
-    [JsonProperty("number2")]
+    [JsonPropertyName("number2")]
     public int Number2 { get; set; }
 
-    [JsonProperty("operation")]
+    [JsonPropertyName("operation")]
     public string Operation { get; set; } = string.Empty;
 
-    [JsonProperty("correctAnswer")]
+    [JsonPropertyName("correctAnswer")]
     public double CorrectAnswer { get; set; }
 
-    [JsonProperty("userAnswer")]
+    [JsonPropertyName("userAnswer")]
     public double? UserAnswer { get; set; }
 
-    [JsonProperty("timeInSeconds")]
+    [JsonPropertyName("timeInSeconds")]
     public double TimeInSeconds { get; set; }
 
-    [JsonProperty("percentageDifference")]
+    [JsonPropertyName("percentageDifference")]
     public double PercentageDifference { get; set; }
 
-    [JsonProperty("score")]
+    [JsonPropertyName("score")]
     public double Score { get; set; }
 }
