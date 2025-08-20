@@ -74,6 +74,24 @@ public class MockCosmosDbService : ICosmosDbService
         return Task.FromResult(game);
     }
 
+    public Task<Game?> GetGameByIdAsync(string gameId)
+    {
+        // This is an alias to GetGameAsync for consistency with the web service interface
+        return GetGameAsync(gameId);
+    }
+
+    public Task<bool> UpdateGameAnalysisAsync(string gameId, string analysis)
+    {
+        var game = _games.FirstOrDefault(g => g.Id == gameId);
+        if (game == null)
+        {
+            return Task.FromResult(false);
+        }
+
+        game.Analysis = analysis;
+        return Task.FromResult(true);
+    }
+
     public Task<List<LeaderboardEntry>> GetLeaderboardAsync(string difficulty, int topCount = 10)
     {
         var entries = _leaderboard

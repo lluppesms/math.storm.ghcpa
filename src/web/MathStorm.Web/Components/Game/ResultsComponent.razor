@@ -62,7 +62,7 @@
                             {
                                 <tr class="@GetRowClass(question)">
                                     <td><span class="me-2 @GetOperationColorClass(question.Operation)">@GetOperationSymbol(question.Operation)</span>@question.QuestionText</td>
-                                    <td class="text-end">@(question.UserAnswer.HasValue ? FormatAnswer(question.UserAnswer.Value, question.Operation) : "N/A")</td>
+                                    <td class="text-end">@(question.UserAnswer.HasValue? FormatAnswer(question.UserAnswer.Value, question.Operation) : "N/A")</td>
                                     <td class="text-end">@FormatAnswer(question.CorrectAnswer, question.Operation)</td>
                                     <td class="text-end">
                                         <span class="badge @GetErrorBadgeClass(question.PercentageDifference)">
@@ -153,19 +153,29 @@
 
         try
         {
-            // Start analysis in background
-            var analysisTask = StartGameAnalysisBackground();
+            // // Step 1: Submit game results and store game record
+            // var gameId = await SubmitGameResults();
+            // // Step 2: Start analysis in background (async, don't wait)
+            // if (!string.IsNullOrEmpty(gameId))
+            // {
+            //     _ = Task.Run(async () => await ProcessAnalysisInBackground(gameId));
+            // }
 
             // Submit game results and get leaderboard
-            await SubmitGameResults();
+            var gameId = await SubmitGameResults();
 
-            // Wait for analysis to complete
-            await analysisTask;
+            // Start analysis in background
+            if (!string.IsNullOrEmpty(gameId))
+            {
+                var analysisTask = ProcessAnalysisInBackground(gameId);
+                // Wait for analysis to complete
+                await analysisTask;
+            }
         }
         catch (Exception ex)
         {
             // Handle gracefully - log error but don't show to user
-            // Analysis or leaderboard failure shouldn't break the results display
+            // Game submission or leaderboard failure shouldn't break the results display
         }
         finally
         {
@@ -174,16 +184,18 @@
         }
     }
 
-    private async Task SubmitGameResults()
+    private async Task<string?> SubmitGameResults()
     {
-        if (CurrentUser == null) return;
+        if (CurrentUser == null) return null;
 
         try
         {
+            var gameId = Guid.NewGuid().ToString();
+
             // Create request DTO
             var request = new GameResultsRequestDto
             {
-                GameId = Guid.NewGuid().ToString(),
+                GameId = gameId,
                 UserId = CurrentUser.UserId,
                 Username = CurrentUser.Username,
                 Difficulty = GameSession.Difficulty.ToString(),
@@ -199,7 +211,7 @@
                     PercentageDifference = q.PercentageDifference,
                     Score = q.Score
                 }).ToList(),
-                Analysis = analysisResult // Will be null initially, but we'll update the game record later
+                Analysis = null // Analysis will be added later when it comes back from LLM
             };
 
             // Submit game results to Function API (if available)
@@ -233,6 +245,7 @@
 
                 showLeaderboard = true;
                 StateHasChanged();
+                return gameId;
             }
             else
             {
@@ -246,7 +259,7 @@
                         Id = Guid.NewGuid().ToString(),
                         UserId = CurrentUser.UserId,
                         Username = CurrentUser.Username,
-                        GameId = request.GameId,
+                        GameId = gameId,
                         Difficulty = GameSession.Difficulty.ToString(),
                         Score = GameSession.TotalScore,
                         AchievedAt = DateTime.UtcNow,
@@ -255,31 +268,29 @@
                 };
                 showLeaderboard = true;
                 StateHasChanged();
+                return gameId;
             }
         }
         catch (Exception)
         {
             // Handle error gracefully - still show results even if leaderboard fails
             showLeaderboard = false;
+            return null;
         }
     }
 
-    private async Task RestartGame()
+    private async Task ProcessAnalysisInBackground(string gameId)
     {
-        await OnRestartGame.InvokeAsync();
-    }
-
-    private async Task StartGameAnalysisBackground()
-    {
-        if (CurrentUser == null) return;
+        if (CurrentUser == null || string.IsNullOrEmpty(gameId)) return;
 
         try
         {
+            // Step 1: Start analysis loading state
             isAnalysisLoading = true;
             StateHasChanged();
 
+            // Step 2: Request analysis from LLM
             var personality = GetRandomPersonality();
-            var gameId = Guid.NewGuid().ToString();
 
             var analysisRequest = new ResultsAnalysisRequestDto
             {
@@ -308,6 +319,9 @@
             if (analysisResponse != null && !string.IsNullOrEmpty(analysisResponse.Analysis))
             {
                 analysisResult = analysisResponse.Analysis;
+
+                // Step 3: Update the game record with the analysis
+                await FunctionService.UpdateGameAnalysisAsync(gameId, analysisResponse.Analysis);
             }
             else
             {
@@ -315,8 +329,11 @@
                 analysisResult = $"Great job completing the {GameSession.Difficulty} level game, {CurrentUser.Username}! " +
                                $"You scored {GameSession.TotalScore:F1} points. " +
                                $"Keep practicing to improve your math skills! " +
-                               $"(Note: AI analysis service is currently unavailable)";
+                               $"(Note: Yes - this analysis is lame because all of our actual analysts are currently unavailable!)";
                 selectedPersonalityDisplay = "System";
+
+                // Still try to update the game record with mock analysis
+                await FunctionService.UpdateGameAnalysisAsync(gameId, analysisResult);
             }
         }
         catch (Exception)
@@ -331,6 +348,11 @@
             isAnalysisLoading = false;
             StateHasChanged();
         }
+    }
+
+    private async Task RestartGame()
+    {
+        await OnRestartGame.InvokeAsync();
     }
 
     private string GetRowClass(MathQuestion question)

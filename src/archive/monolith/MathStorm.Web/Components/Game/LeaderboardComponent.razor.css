@@ -7,3 +7,25 @@
     animation: blink 1s ease-in-out infinite;
     background-color: var(--bs-success-bg-subtle) !important;
 }
+
+.leaderboard-row:hover {
+    background-color: var(--bs-primary-bg-subtle);
+    transform: translateY(-1px);
+    transition: all 0.2s ease-in-out;
+}
+
+.score-cell {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: var(--bs-secondary);
+    font-weight: bold;
+}
+
+.score-cell:hover {
+    text-decoration-color: var(--bs-primary);
+}
+
+.user-entry:hover {
+    background-color: var(--bs-success-bg-subtle) !important;
+    opacity: 0.8;
+}

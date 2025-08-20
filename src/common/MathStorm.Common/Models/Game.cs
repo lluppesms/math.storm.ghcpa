@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+
 namespace MathStorm.Common.Models;
 
 public class Game

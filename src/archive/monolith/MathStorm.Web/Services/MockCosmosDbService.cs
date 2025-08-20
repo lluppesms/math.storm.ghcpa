@@ -33,26 +33,58 @@ public class MockCosmosDbService : ICosmosDbService
         var sampleEntries = new[]
         {
             // Beginner difficulty (at least 3 entries)
-            new LeaderboardEntry { Id = "1", UserId = "1", Username = "MathWiz", Difficulty = "Beginner", Score = 45.2, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-1) },
-            new LeaderboardEntry { Id = "2", UserId = "4", Username = "QuickMath", Difficulty = "Beginner", Score = 52.7, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-2) },
-            new LeaderboardEntry { Id = "3", UserId = "5", Username = "CalcMaster", Difficulty = "Beginner", Score = 58.9, Rank = 3, AchievedAt = DateTime.UtcNow.AddDays(-3) },
+            new LeaderboardEntry { Id = "1", UserId = "1", Username = "MathWiz", GameId = "game_1", Difficulty = "Beginner", Score = 45.2, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-1), Analysis = "Excellent performance! You showed great accuracy and speed in solving basic arithmetic problems. Your quick thinking really paid off!" },
+            new LeaderboardEntry { Id = "2", UserId = "4", Username = "QuickMath", GameId = "game_2", Difficulty = "Beginner", Score = 52.7, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-2), Analysis = "Good job! You're getting the hang of mental math. A few more practice sessions and you'll be even faster!" },
+            new LeaderboardEntry { Id = "3", UserId = "5", Username = "CalcMaster", GameId = "game_3", Difficulty = "Beginner", Score = 58.9, Rank = 3, AchievedAt = DateTime.UtcNow.AddDays(-3), Analysis = "Nice work! Your calculation skills are solid. Focus on improving your speed for even better scores." },
             
             // Novice difficulty (at least 3 entries)
-            new LeaderboardEntry { Id = "4", UserId = "2", Username = "SpeedyCalc", Difficulty = "Novice", Score = 67.3, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-1) },
-            new LeaderboardEntry { Id = "5", UserId = "6", Username = "FastFigures", Difficulty = "Novice", Score = 72.1, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-2) },
-            new LeaderboardEntry { Id = "6", UserId = "3", Username = "NumberNinja", Difficulty = "Novice", Score = 78.4, Rank = 3, AchievedAt = DateTime.UtcNow.AddDays(-4) },
+            new LeaderboardEntry { Id = "4", UserId = "2", Username = "SpeedyCalc", GameId = "game_4", Difficulty = "Novice", Score = 67.3, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-1), Analysis = "Outstanding! You're mastering all four operations with impressive speed and accuracy. Keep up the great work!" },
+            new LeaderboardEntry { Id = "5", UserId = "6", Username = "FastFigures", GameId = "game_5", Difficulty = "Novice", Score = 72.1, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-2), Analysis = "Well done! Your multiplication and division skills are really improving. Just a bit more practice on speed!" },
+            new LeaderboardEntry { Id = "6", UserId = "3", Username = "NumberNinja", GameId = "game_6", Difficulty = "Novice", Score = 78.4, Rank = 3, AchievedAt = DateTime.UtcNow.AddDays(-4), Analysis = "Good progress! You're handling the mix of operations well. Keep working on those mental calculation shortcuts." },
             
             // Intermediate difficulty (at least 3 entries)
-            new LeaderboardEntry { Id = "7", UserId = "1", Username = "MathWiz", Difficulty = "Intermediate", Score = 98.4, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-1) },
-            new LeaderboardEntry { Id = "8", UserId = "2", Username = "SpeedyCalc", Difficulty = "Intermediate", Score = 112.7, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-2) },
-            new LeaderboardEntry { Id = "9", UserId = "5", Username = "CalcMaster", Difficulty = "Intermediate", Score = 125.6, Rank = 3, AchievedAt = DateTime.UtcNow.AddDays(-3) },
+            new LeaderboardEntry { Id = "7", UserId = "1", Username = "MathWiz", GameId = "game_7", Difficulty = "Intermediate", Score = 98.4, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-1), Analysis = "Phenomenal! Your ability to handle 3-digit calculations quickly and accurately is truly impressive. You're a math champion!" },
+            new LeaderboardEntry { Id = "8", UserId = "2", Username = "SpeedyCalc", GameId = "game_8", Difficulty = "Intermediate", Score = 112.7, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-2), Analysis = "Excellent work! You're tackling intermediate problems with confidence. Your calculation strategies are paying off." },
+            new LeaderboardEntry { Id = "9", UserId = "5", Username = "CalcMaster", GameId = "game_9", Difficulty = "Intermediate", Score = 125.6, Rank = 3, AchievedAt = DateTime.UtcNow.AddDays(-3), Analysis = "Great job! You're showing steady improvement in handling complex calculations. Keep practicing!" },
             
             // Expert difficulty (at least 3 entries)
-            new LeaderboardEntry { Id = "10", UserId = "1", Username = "MathWiz", Difficulty = "Expert", Score = 156.7, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-2) },
-            new LeaderboardEntry { Id = "11", UserId = "2", Username = "SpeedyCalc", Difficulty = "Expert", Score = 189.3, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-1) },
-            new LeaderboardEntry { Id = "12", UserId = "3", Username = "NumberNinja", Difficulty = "Expert", Score = 203.1, Rank = 3, AchievedAt = DateTime.UtcNow.AddDays(-3) }
+            new LeaderboardEntry { Id = "10", UserId = "1", Username = "MathWiz", GameId = "game_10", Difficulty = "Expert", Score = 156.7, Rank = 1, AchievedAt = DateTime.UtcNow.AddDays(-2), Analysis = "Absolutely incredible! You've mastered the most challenging level with exceptional skill. You're truly an expert mathematician!" },
+            new LeaderboardEntry { Id = "11", UserId = "2", Username = "SpeedyCalc", GameId = "game_11", Difficulty = "Expert", Score = 189.3, Rank = 2, AchievedAt = DateTime.UtcNow.AddDays(-1), Analysis = "Impressive performance! Handling 4-digit calculations at this speed shows remarkable mathematical ability." },
+            new LeaderboardEntry { Id = "12", UserId = "3", Username = "NumberNinja", GameId = "game_12", Difficulty = "Expert", Score = 203.1, Rank = 3, AchievedAt = DateTime.UtcNow.AddDays(-3), Analysis = "Excellent work on the expert level! Your persistence and skill are evident in this challenging performance." }
         };
         _leaderboard.AddRange(sampleEntries);
+
+        // Add sample game data with questions for testing modal functionality
+        var sampleGames = new[]
+        {
+            new Game 
+            { 
+                Id = "game_1", UserId = "1", Username = "MathWiz", Difficulty = "Beginner", TotalScore = 45.2, 
+                CompletedAt = DateTime.UtcNow.AddDays(-1),
+                Analysis = "Excellent performance! You showed great accuracy and speed in solving basic arithmetic problems. Your quick thinking really paid off!",
+                Questions = 
+                [
+                    new GameQuestion { Id = 1, Number1 = 23, Number2 = 17, Operation = "Addition", CorrectAnswer = 40, UserAnswer = 40, TimeInSeconds = 2.1, PercentageDifference = 0, Score = 8.5 },
+                    new GameQuestion { Id = 2, Number1 = 45, Number2 = 28, Operation = "Subtraction", CorrectAnswer = 17, UserAnswer = 17, TimeInSeconds = 1.8, Score = 7.2 },
+                    new GameQuestion { Id = 3, Number1 = 34, Number2 = 19, Operation = "Addition", CorrectAnswer = 53, UserAnswer = 53, TimeInSeconds = 2.3, Score = 9.1 },
+                    new GameQuestion { Id = 4, Number1 = 67, Number2 = 29, Operation = "Subtraction", CorrectAnswer = 38, UserAnswer = 38, TimeInSeconds = 1.9, Score = 8.7 },
+                    new GameQuestion { Id = 5, Number1 = 56, Number2 = 34, Operation = "Addition", CorrectAnswer = 90, UserAnswer = 90, TimeInSeconds = 2.0, Score = 11.7 }
+                ]
+            },
+            new Game 
+            { 
+                Id = "game_7", UserId = "1", Username = "MathWiz", Difficulty = "Intermediate", TotalScore = 98.4, 
+                CompletedAt = DateTime.UtcNow.AddDays(-1),
+                Analysis = "Phenomenal! Your ability to handle 3-digit calculations quickly and accurately is truly impressive. You're a math champion!",
+                Questions = 
+                [
+                    new GameQuestion { Id = 1, Number1 = 234, Number2 = 167, Operation = "Addition", CorrectAnswer = 401, UserAnswer = 401, TimeInSeconds = 3.2, Score = 12.1 },
+                    new GameQuestion { Id = 2, Number1 = 456, Number2 = 289, Operation = "Subtraction", CorrectAnswer = 167, UserAnswer = 167, TimeInSeconds = 2.8, Score = 10.5 },
+                    new GameQuestion { Id = 3, Number1 = 123, Number2 = 45, Operation = "Multiplication", CorrectAnswer = 5535, UserAnswer = 5535, TimeInSeconds = 4.1, Score = 15.3 }
+                ]
+            }
+        };
+        _games.AddRange(sampleGames);
     }
 
     public async Task<GameUser?> GetUserByUsernameAsync(string username)
@@ -97,6 +129,11 @@ public class MockCosmosDbService : ICosmosDbService
     {
         await Task.Delay(50);
         return _games.FirstOrDefault(g => g.Id == gameId);
+    }
+
+    public async Task<Game?> GetGameWithDetailsByIdAsync(string gameId)
+    {
+        return await GetGameAsync(gameId);
     }
 
     public async Task<List<LeaderboardEntry>> GetLeaderboardAsync(string difficulty, int topCount = 10)

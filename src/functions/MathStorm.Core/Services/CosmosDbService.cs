@@ -157,6 +157,33 @@ public class CosmosDbService : ICosmosDbService
         }
     }
 
+    public async Task<Game?> GetGameByIdAsync(string gameId)
+    {
+        // This is an alias to GetGameAsync for consistency with the web service interface
+        return await GetGameAsync(gameId);
+    }
+
+    public async Task<bool> UpdateGameAnalysisAsync(string gameId, string analysis)
+    {
+        try
+        {
+            var game = await GetGameAsync(gameId);
+            if (game == null)
+            {
+                return false;
+            }
+
+            game.Analysis = analysis;
+            var response = await _gamesContainer.ReplaceItemAsync(game, game.Id);
+            return response.StatusCode == System.Net.HttpStatusCode.OK;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Cosmos: Error updating game analysis: {GameId}", gameId);
+            return false;
+        }
+    }
+
     public async Task<List<LeaderboardEntry>> GetLeaderboardAsync(string difficulty, int topCount = 10)
     {
         try

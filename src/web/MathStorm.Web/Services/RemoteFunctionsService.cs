@@ -1,5 +1,5 @@
 using System.Text;
-using System.Text.Json;
+using Newtonsoft.Json;
 using MathStorm.Common.DTOs;
 using MathStorm.Common.Models;
 
@@ -8,6 +8,8 @@ namespace MathStorm.Web.Services;
 public interface IRemoteFunctionsService
 {
     Task<GameResponseDto?> GetGameAsync(Difficulty difficulty);
+    Task<Game?> GetGameByIdAsync(string gameId);
+    Task<bool> UpdateGameAnalysisAsync(string gameId, string analysis);
     Task<GameResultsResponseDto?> SubmitGameResultsAsync(GameResultsRequestDto request);
     Task<LeaderboardResponseDto?> GetLeaderboardAsync(string? difficulty = null, int topCount = 10);
     Task<ResultsAnalysisResponseDto?> AnalyzeGameResultsAsync(ResultsAnalysisRequestDto request);
@@ -42,7 +44,7 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             content = await response.Content.ReadAsStringAsync();
             if (!string.IsNullOrEmpty(content) && content.Trim().StartsWith("{"))
             {
-                var game = JsonSerializer.Deserialize<GameResponseDto>(content);
+                var game = JsonConvert.DeserializeObject<GameResponseDto>(content);
                 return game;
             }
             _logger.LogError($"Web: Error getting game from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
@@ -56,13 +58,75 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         }
     }
 
+    public async Task<Game?> GetGameByIdAsync(string gameId)
+    {
+        var content = string.Empty;
+        var apiUrl = $"/api/game/{gameId}";
+        try
+        {
+            var response = await _httpClient.GetAsync(apiUrl);
+            
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _logger.LogWarning($"Web: Game with ID {gameId} not found. API URL: {BaseFunctionUrl}{apiUrl}");
+                return null;
+            }
+            
+            response.EnsureSuccessStatusCode();
+
+            content = await response.Content.ReadAsStringAsync();
+            if (!string.IsNullOrEmpty(content) && content.Trim().StartsWith("{"))
+            {
+                var game = JsonConvert.DeserializeObject<Game>(content);
+                return game;
+            }
+            _logger.LogError($"Web: Error getting game by ID from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
+            return null;
+        }
+        catch (HttpRequestException ex)
+        {
+            var msg = $"Web: Network error getting game by ID from API {BaseFunctionUrl}{apiUrl}. Check if Function App is running and BaseUrl is correct: {ExceptionHelper.GetExceptionMessage(ex)}";
+            _logger.LogError(msg);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            var msg = $"Web: Error getting game by ID from API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            _logger.LogError(msg);
+            return null;
+        }
+    }
+
+    public async Task<bool> UpdateGameAnalysisAsync(string gameId, string analysis)
+    {
+        var responseContent = string.Empty;
+        var apiUrl = $"/api/game/{gameId}/analysis";
+        try
+        {
+            var request = new { Analysis = analysis };
+            var json = JsonConvert.SerializeObject(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PutAsync(apiUrl, content);
+            response.EnsureSuccessStatusCode();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            var msg = $"Web: Error updating game analysis via API {BaseFunctionUrl}{apiUrl}: Ex: {ExceptionHelper.GetExceptionMessage(ex)}";
+            _logger.LogError(msg);
+            return false;
+        }
+    }
+
     public async Task<GameResultsResponseDto?> SubmitGameResultsAsync(GameResultsRequestDto request)
     {
         var responseContent = string.Empty;
         var apiUrl = "/api/game/results";
         try
         {
-            var json = JsonSerializer.Serialize(request);
+            var json = JsonConvert.SerializeObject(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync(apiUrl, content);
@@ -71,7 +135,7 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             responseContent = await response.Content.ReadAsStringAsync();
             if (!string.IsNullOrEmpty(responseContent) && responseContent.Trim().StartsWith("{"))
             {
-                return JsonSerializer.Deserialize<GameResultsResponseDto>(responseContent);
+                return JsonConvert.DeserializeObject<GameResultsResponseDto>(responseContent);
             }
             _logger.LogError($"Web: Error submitting game results to API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
             return null;
@@ -101,7 +165,7 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             content = await response.Content.ReadAsStringAsync();
             if (!string.IsNullOrEmpty(content) && content.Trim().StartsWith("{"))
             {
-                return JsonSerializer.Deserialize<LeaderboardResponseDto>(content);
+                return JsonConvert.DeserializeObject<LeaderboardResponseDto>(content);
             }
             _logger.LogError($"Web: Error getting leaderboard from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
             return null;
@@ -120,7 +184,7 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         var apiUrl = "/api/game/analysis";
         try
         {
-            var json = JsonSerializer.Serialize(request);
+            var json = JsonConvert.SerializeObject(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync(apiUrl, content);
@@ -129,7 +193,7 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             responseContent = await response.Content.ReadAsStringAsync();
             if (!string.IsNullOrEmpty(responseContent) && responseContent.Trim().StartsWith("{"))
             {
-                return JsonSerializer.Deserialize<ResultsAnalysisResponseDto>(responseContent);
+                return JsonConvert.DeserializeObject<ResultsAnalysisResponseDto>(responseContent);
             }
             _logger.LogError($"Web: Error analyzing game results via API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
             return null;
@@ -148,7 +212,7 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         var apiUrl = "/api/user/auth";
         try
         {
-            var json = JsonSerializer.Serialize(request);
+            var json = JsonConvert.SerializeObject(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync(apiUrl, content);
@@ -157,7 +221,7 @@ public class RemoteFunctionsService : IRemoteFunctionsService
             responseContent = await response.Content.ReadAsStringAsync();
             if (!string.IsNullOrEmpty(responseContent) && responseContent.Trim().StartsWith("{"))
             {
-                return JsonSerializer.Deserialize<UserAuthResponseDto>(responseContent);
+                return JsonConvert.DeserializeObject<UserAuthResponseDto>(responseContent);
             }
             _logger.LogError($"Web: Error authenticating user from API {BaseFunctionUrl}{apiUrl}! Status: {response.StatusCode}");
             return null;

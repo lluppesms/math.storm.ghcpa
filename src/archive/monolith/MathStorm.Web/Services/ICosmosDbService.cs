@@ -10,6 +10,7 @@ public interface ICosmosDbService
     
     Task<Game> CreateGameAsync(Game game);
     Task<Game?> GetGameAsync(string gameId);
+    Task<Game?> GetGameWithDetailsByIdAsync(string gameId);
     
     Task<List<LeaderboardEntry>> GetLeaderboardAsync(string difficulty, int topCount = 10);
     Task<List<LeaderboardEntry>> GetGlobalLeaderboardAsync(int topCount = 10);

@@ -110,6 +110,11 @@ public class CosmosDbService : ICosmosDbService
         }
     }
 
+    public async Task<Game?> GetGameWithDetailsByIdAsync(string gameId)
+    {
+        return await GetGameAsync(gameId);
+    }
+
     public async Task<List<LeaderboardEntry>> GetLeaderboardAsync(string difficulty, int topCount = 10)
     {
         try
@@ -127,10 +132,22 @@ public class CosmosDbService : ICosmosDbService
                 results.AddRange(response);
             }
             
-            // Update ranks
+            // Update ranks and fetch analysis for each entry
             for (int i = 0; i < results.Count; i++)
             {
                 results[i].Rank = i + 1;
+                
+                // Fetch the game data to get analysis
+                try
+                {
+                    var game = await GetGameAsync(results[i].GameId);
+                    results[i].Analysis = game?.Analysis;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not fetch game analysis for GameId: {GameId}", results[i].GameId);
+                    results[i].Analysis = null;
+                }
             }
             
             return results;
@@ -158,10 +175,22 @@ public class CosmosDbService : ICosmosDbService
                 results.AddRange(response);
             }
             
-            // Update ranks
+            // Update ranks and fetch analysis for each entry
             for (int i = 0; i < results.Count; i++)
             {
                 results[i].Rank = i + 1;
+                
+                // Fetch the game data to get analysis
+                try
+                {
+                    var game = await GetGameAsync(results[i].GameId);
+                    results[i].Analysis = game?.Analysis;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not fetch game analysis for GameId: {GameId}", results[i].GameId);
+                    results[i].Analysis = null;
+                }
             }
             
             return results;

@@ -4,11 +4,13 @@ public class GameFunctions
 {
     private readonly ILogger<GameFunctions> _logger;
     private readonly IGameService _gameService;
+    private readonly ICosmosDbService _cosmosDbService;
 
-    public GameFunctions(ILogger<GameFunctions> logger, IGameService gameService)
+    public GameFunctions(ILogger<GameFunctions> logger, IGameService gameService, ICosmosDbService cosmosDbService)
     {
         _logger = logger;
         _gameService = gameService;
+        _cosmosDbService = cosmosDbService;
     }
 
     [Function("HelloGame")]
@@ -78,6 +80,108 @@ public class GameFunctions
         catch (Exception ex)
         {
             _logger.LogError(ex, "Func: Error in GetGame function");
+            var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse.WriteStringAsync($"Error: {ex.Message}");
+            return errorResponse;
+        }
+    }
+
+    [Function("GetGameById")]
+    [OpenApiOperation(operationId: "GetGameById", tags: new[] { "Game" }, Summary = "Get game by ID", Description = "Retrieves a specific game record by its ID, including questions, answers, and analysis.")]
+    [OpenApiParameter(name: "gameId", In = ParameterLocation.Path, Required = true, Type = typeof(string), Summary = "Game ID", Description = "The unique identifier for the game.")]
+    [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(Game), Summary = "Game retrieved successfully", Description = "Returns the complete game record including questions, answers, scores, and analysis.")]
+    [OpenApiResponseWithBody(statusCode: HttpStatusCode.NotFound, contentType: "text/plain", bodyType: typeof(string), Summary = "Game not found", Description = "The specified game ID was not found.")]
+    [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while retrieving the game.")]
+    public async Task<HttpResponseData> GetGameById([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "game/{gameId}")] HttpRequestData req, string gameId)
+    {
+        _logger.LogInformation($"GetGameById function triggered for gameId: {gameId}");
+
+        try
+        {
+            if (string.IsNullOrEmpty(gameId))
+            {
+                var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequest.WriteStringAsync("Game ID is required");
+                return badRequest;
+            }
+
+            var game = await _cosmosDbService.GetGameByIdAsync(gameId);
+            if (game == null)
+            {
+                var notFound = req.CreateResponse(HttpStatusCode.NotFound);
+                await notFound.WriteStringAsync($"Game with ID {gameId} not found");
+                return notFound;
+            }
+
+            var httpResponse = req.CreateResponse(HttpStatusCode.OK);
+            httpResponse.Headers.Add("Content-Type", "application/json");
+
+            var jsonResponse = JsonConvert.SerializeObject(game);
+
+            await httpResponse.WriteStringAsync(jsonResponse);
+            return httpResponse;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Func: Error in GetGameById function for gameId: {gameId}");
+            var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse.WriteStringAsync($"Error: {ex.Message}");
+            return errorResponse;
+        }
+    }
+
+    [Function("UpdateGameAnalysis")]
+    [OpenApiOperation(operationId: "UpdateGameAnalysis", tags: new[] { "Game" }, Summary = "Update game analysis", Description = "Updates the analysis field for a specific game record.")]
+    [OpenApiParameter(name: "gameId", In = ParameterLocation.Path, Required = true, Type = typeof(string), Summary = "Game ID", Description = "The unique identifier for the game.")]
+    [OpenApiRequestBody(contentType: "application/json", bodyType: typeof(object), Required = true, Description = "Analysis data containing the analysis text")]
+    [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(object), Summary = "Analysis updated successfully", Description = "Returns success confirmation.")]
+    [OpenApiResponseWithBody(statusCode: HttpStatusCode.NotFound, contentType: "text/plain", bodyType: typeof(string), Summary = "Game not found", Description = "The specified game ID was not found.")]
+    [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while updating the analysis.")]
+    public async Task<HttpResponseData> UpdateGameAnalysis([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "game/{gameId}/analysis")] HttpRequestData req, string gameId)
+    {
+        _logger.LogInformation($"UpdateGameAnalysis function triggered for gameId: {gameId}");
+
+        try
+        {
+            if (string.IsNullOrEmpty(gameId))
+            {
+                var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequest.WriteStringAsync("Game ID is required");
+                return badRequest;
+            }
+
+            // Parse request body
+            var body = await new StreamReader(req.Body).ReadToEndAsync();
+            var request = JsonConvert.DeserializeObject<dynamic>(body);
+
+            if (request?.Analysis == null)
+            {
+                var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequest.WriteStringAsync("Analysis is required in the request body");
+                return badRequest;
+            }
+
+            string analysis = request.Analysis.ToString();
+
+            var success = await _cosmosDbService.UpdateGameAnalysisAsync(gameId, analysis);
+            if (!success)
+            {
+                var notFound = req.CreateResponse(HttpStatusCode.NotFound);
+                await notFound.WriteStringAsync($"Game with ID {gameId} not found or could not be updated");
+                return notFound;
+            }
+
+            var httpResponse = req.CreateResponse(HttpStatusCode.OK);
+            httpResponse.Headers.Add("Content-Type", "application/json");
+
+            var jsonResponse = JsonConvert.SerializeObject(new { success = true, message = "Analysis updated successfully" });
+
+            await httpResponse.WriteStringAsync(jsonResponse);
+            return httpResponse;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Func: Error in UpdateGameAnalysis function for gameId: {gameId}");
             var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
             await errorResponse.WriteStringAsync($"Error: {ex.Message}");
             return errorResponse;

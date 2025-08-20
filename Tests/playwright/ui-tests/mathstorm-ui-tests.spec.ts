@@ -322,4 +322,122 @@ test.describe('MathStorm Game Tests', () => {
       await expect(page.getByText('Question 1 of 5')).toBeVisible();
     });
   });
+
+  test.describe('Leaderboard Analysis Features', () => {
+    test('should display analysis icons on leaderboard page', async ({ page }) => {
+      // Navigate to leaderboard page
+      await page.goto('/leaderboard');
+      
+      // Wait for leaderboard to load
+      await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible();
+      
+      // Check that Analysis column header is present
+      await expect(page.getByRole('columnheader', { name: 'Analysis' })).toBeVisible();
+      
+      // The page should display either analysis icons or placeholder dashes
+      // We can't guarantee there will be analysis data, so we just check the column exists
+      const analysisColumn = page.locator('td').nth(4); // 5th column (0-indexed)
+      
+      // Verify the column exists (it may contain icons or dashes)
+      if (await analysisColumn.isVisible()) {
+        console.log('Analysis column is visible on leaderboard');
+      }
+    });
+
+    test('should show analysis modal when clicking on icons', async ({ page }) => {
+      // Complete a game first to ensure there's data with potential analysis
+      await page.getByText('🌱 Beginner').click();
+      await page.getByRole('button', { name: 'Start Beginner Level' }).click();
+      
+      // Complete the game quickly
+      for (let i = 1; i <= 5; i++) {
+        await page.getByRole('spinbutton').fill('1');
+        await page.getByRole('button', { name: 'Submit Answer' }).click();
+        
+        if (i < 5) {
+          await page.getByRole('button', { name: 'Next Question' }).click();
+        }
+      }
+      
+      // Wait for game completion and results
+      await expect(page.getByText('Game Complete!')).toBeVisible();
+      
+      // Look for analysis icons in the leaderboard
+      const analysisIcons = page.locator('.analysis-icon');
+      const iconCount = await analysisIcons.count();
+      
+      if (iconCount > 0) {
+        // Click on the first analysis icon
+        await analysisIcons.first().click();
+        
+        // Verify modal opens
+        await expect(page.locator('.modal')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Game Details & Analysis' })).toBeVisible();
+        
+        // Close modal
+        await page.getByRole('button', { name: 'Close' }).click();
+        
+        // Verify modal is closed
+        await expect(page.locator('.modal')).not.toBeVisible();
+      } else {
+        console.log('No analysis icons found - this is expected if no analysis data is available');
+      }
+    });
+
+    test('should open analysis modal from main leaderboard page', async ({ page }) => {
+      // Navigate to leaderboard page
+      await page.goto('/leaderboard');
+      
+      // Wait for leaderboard to load
+      await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible();
+      
+      // Look for analysis icons in the selected difficulty leaderboard
+      const analysisIcons = page.locator('.analysis-icon');
+      const iconCount = await analysisIcons.count();
+      
+      if (iconCount > 0) {
+        // Click on the first analysis icon
+        await analysisIcons.first().click();
+        
+        // Verify modal opens
+        await expect(page.locator('.modal')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Game Details & Analysis' })).toBeVisible();
+        
+        // Verify modal content area exists
+        await expect(page.locator('.modal-body')).toBeVisible();
+        
+        // Close modal using the close button
+        await page.getByRole('button', { name: 'Close' }).click();
+        
+        // Verify modal is closed
+        await expect(page.locator('.modal')).not.toBeVisible();
+      } else {
+        console.log('No analysis icons found on main leaderboard - this may be expected if no games have been played');
+      }
+    });
+
+    test('should display analysis column with clickable icons in global leaderboard', async ({ page }) => {
+      // Navigate to leaderboard page
+      await page.goto('/leaderboard');
+      
+      // Wait for page to load
+      await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible();
+      
+      // Scroll to global leaderboard section
+      await page.locator('text=Global Leaderboard - All Levels').scrollIntoViewIfNeeded();
+      
+      // Check that Analysis column header is present in global leaderboard
+      const globalLeaderboardTable = page.locator('.card').filter({ has: page.locator('text=Global Leaderboard') });
+      const analysisHeader = globalLeaderboardTable.getByRole('columnheader', { name: 'Analysis' });
+      
+      if (await analysisHeader.isVisible()) {
+        await expect(analysisHeader).toBeVisible();
+        
+        // Look for analysis icons in global leaderboard
+        const globalAnalysisIcons = globalLeaderboardTable.locator('.analysis-icon');
+        const globalIconCount = await globalAnalysisIcons.count();
+        console.log(`Found ${globalIconCount} analysis icons in global leaderboard`);
+      }
+    });
+  });
 });

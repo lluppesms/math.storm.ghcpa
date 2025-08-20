@@ -1,0 +1,120 @@
+@rendermode InteractiveServer
+@using MathStorm.Web.Models
+
+<div class="modal @(IsVisible ? "d-block" : "d-none")" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-chart-line"></i> Game Summary - @Game?.Username
+                </h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (Game != null)
+                {
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-cog"></i> Game Details</h6>
+                            <p><strong>Difficulty:</strong> @Game.Difficulty</p>
+                            <p><strong>Total Score:</strong> @Game.TotalScore.ToString("F2")</p>
+                            <p><strong>Completed:</strong> @Game.CompletedAt.ToString("MMM dd, yyyy HH:mm")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-chart-bar"></i> Performance Stats</h6>
+                            <p><strong>Questions:</strong> @Game.Questions.Count</p>
+                            <p><strong>Correct Answers:</strong> @CorrectAnswersCount</p>
+                            <p><strong>Accuracy:</strong> @(Game.Questions.Count > 0 ? (CorrectAnswersCount * 100.0 / Game.Questions.Count).ToString("F1") : "0")%</p>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Game.Analysis))
+                    {
+                        <div class="mb-3">
+                            <h6><i class="fas fa-brain"></i> AI Analysis</h6>
+                            <div class="alert alert-info">
+                                @((MarkupString)Game.Analysis.Replace("\n", "<br>"))
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <h6><i class="fas fa-list"></i> Question Breakdown</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Question</th>
+                                        <th>Your Answer</th>
+                                        <th>Correct</th>
+                                        <th>Time</th>
+                                        <th>Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var question in Game.Questions)
+                                    {
+                                        <tr class="@(IsCorrectAnswer(question) ? "table-success" : "table-danger")">
+                                            <td>@question.Id</td>
+                                            <td>@question.Number1 @GetOperationSymbol(question.Operation) @question.Number2 =</td>
+                                            <td>@(question.UserAnswer?.ToString("F0") ?? "No Answer")</td>
+                                            <td>@question.CorrectAnswer.ToString("F0")</td>
+                                            <td>@question.TimeInSeconds.ToString("F1")s</td>
+                                            <td>@question.Score.ToString("F2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading game details...</p>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Close">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public Game? Game { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private int CorrectAnswersCount => Game?.Questions.Count(q => IsCorrectAnswer(q)) ?? 0;
+
+    private bool IsCorrectAnswer(GameQuestion question)
+    {
+        return question.UserAnswer.HasValue && 
+               Math.Abs(question.UserAnswer.Value - question.CorrectAnswer) < 0.01;
+    }
+
+    private string GetOperationSymbol(string operation)
+    {
+        return operation.ToLower() switch
+        {
+            "addition" => "+",
+            "subtraction" => "-",
+            "multiplication" => "×",
+            "division" => "÷",
+            _ => operation
+        };
+    }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}
