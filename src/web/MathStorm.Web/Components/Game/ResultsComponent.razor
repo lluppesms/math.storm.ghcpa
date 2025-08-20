@@ -62,7 +62,7 @@
                             {
                                 <tr class="@GetRowClass(question)">
                                     <td><span class="me-2 @GetOperationColorClass(question.Operation)">@GetOperationSymbol(question.Operation)</span>@question.QuestionText</td>
-                                    <td class="text-end">@(question.UserAnswer.HasValue ? FormatAnswer(question.UserAnswer.Value, question.Operation) : "N/A")</td>
+                                    <td class="text-end">@(question.UserAnswer.HasValue? FormatAnswer(question.UserAnswer.Value, question.Operation) : "N/A")</td>
                                     <td class="text-end">@FormatAnswer(question.CorrectAnswer, question.Operation)</td>
                                     <td class="text-end">
                                         <span class="badge @GetErrorBadgeClass(question.PercentageDifference)">
@@ -153,13 +153,23 @@
 
         try
         {
-            // Step 1: Submit game results and store game record
+            // // Step 1: Submit game results and store game record
+            // var gameId = await SubmitGameResults();
+            // // Step 2: Start analysis in background (async, don't wait)
+            // if (!string.IsNullOrEmpty(gameId))
+            // {
+            //     _ = Task.Run(async () => await ProcessAnalysisInBackground(gameId));
+            // }
+
+            // Submit game results and get leaderboard
             var gameId = await SubmitGameResults();
 
-            // Step 2: Start analysis in background (async, don't wait)
+            // Start analysis in background
             if (!string.IsNullOrEmpty(gameId))
             {
-                _ = Task.Run(async () => await ProcessAnalysisInBackground(gameId));
+                var analysisTask = ProcessAnalysisInBackground(gameId);
+                // Wait for analysis to complete
+                await analysisTask;
             }
         }
         catch (Exception ex)
@@ -309,7 +319,7 @@
             if (analysisResponse != null && !string.IsNullOrEmpty(analysisResponse.Analysis))
             {
                 analysisResult = analysisResponse.Analysis;
-                
+
                 // Step 3: Update the game record with the analysis
                 await FunctionService.UpdateGameAnalysisAsync(gameId, analysisResponse.Analysis);
             }
@@ -319,9 +329,9 @@
                 analysisResult = $"Great job completing the {GameSession.Difficulty} level game, {CurrentUser.Username}! " +
                                $"You scored {GameSession.TotalScore:F1} points. " +
                                $"Keep practicing to improve your math skills! " +
-                               $"(Note: AI analysis service is currently unavailable)";
+                               $"(Note: Yes - this analysis is lame because all of our actual analysts are currently unavailable!)";
                 selectedPersonalityDisplay = "System";
-                
+
                 // Still try to update the game record with mock analysis
                 await FunctionService.UpdateGameAnalysisAsync(gameId, analysisResult);
             }
