@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Newtonsoft.Json;
 using Microsoft.JSInterop;
 using MathStorm.Common.DTOs;
 
@@ -36,7 +36,7 @@ public class UserProfileService : IUserProfileService
                 return null;
             }
 
-            return JsonSerializer.Deserialize<UserProfileDto>(json);
+            return JsonConvert.DeserializeObject<UserProfileDto>(json);
         }
         catch (Exception ex)
         {
@@ -51,7 +51,7 @@ public class UserProfileService : IUserProfileService
         {
             if (profile.RememberMe)
             {
-                var json = JsonSerializer.Serialize(profile);
+                var json = JsonConvert.SerializeObject(profile);
                 await _jsRuntime.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
             }
             else

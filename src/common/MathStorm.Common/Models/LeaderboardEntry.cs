@@ -1,31 +1,31 @@
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 
 namespace MathStorm.Common.Models;
 
 public class LeaderboardEntry
 {
-    [JsonPropertyName("id")]
+    [JsonProperty("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString();
     
-    [JsonPropertyName("difficulty")]
+    [JsonProperty("difficulty")]
     public string Difficulty { get; set; } = string.Empty;
     
-    [JsonPropertyName("username")]
+    [JsonProperty("username")]
     public string Username { get; set; } = string.Empty;
     
-    [JsonPropertyName("userId")]
+    [JsonProperty("userId")]
     public string UserId { get; set; } = string.Empty;
     
-    [JsonPropertyName("gameId")]
+    [JsonProperty("gameId")]
     public string GameId { get; set; } = string.Empty;
     
-    [JsonPropertyName("score")]
+    [JsonProperty("score")]
     public double Score { get; set; }
     
-    [JsonPropertyName("achievedAt")]
+    [JsonProperty("achievedAt")]
     public DateTime AchievedAt { get; set; } = DateTime.UtcNow;
     
-    [JsonPropertyName("rank")]
+    [JsonProperty("rank")]
     public int Rank { get; set; }
 }
