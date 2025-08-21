@@ -201,6 +201,17 @@ module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = 
   }
 }
 
+module keyVaultSecretFunctionKey './modules/security/keyvault-function-secret.bicep' = {
+  name: 'keyVaultSecretFunctionKey${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, functionModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.name
+    secretName: 'functionAppApiKey'
+    functionAppName: functionModule.outputs.name
+    existingSecretNames: deduplicateKeyVaultSecrets ? keyVaultSecretList!.outputs.secretNameList : ''
+  }
+}
+
 // --------------------------------------------------------------------------------
 // Service Plan SHARED by webapp and function app
 // --------------------------------------------------------------------------------
@@ -240,13 +251,15 @@ module webSiteModule './modules/webapp/website.bicep' = {
 // NOTE: See https://learn.microsoft.com/en-us/azure/app-service/configure-common?tabs=portal  
 module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
   name: 'webSiteAppSettings${deploymentSuffix}'
+  dependsOn: [ keyVaultSecretFunctionKey ]
   params: {
     webAppName: webSiteModule.outputs.name
     appInsightsKey: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
     customAppSettings: {
       AppSettings__AppInsights_InstrumentationKey: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
       AppSettings__EnvironmentName: environmentCode
-      FunctionService__BaseUrl: 'https://${functionModule.outputs.hostname}/api'
+      FunctionService__BaseUrl: 'https://${functionModule.outputs.hostname}'
+      FunctionService__APIKey: functionModule.outputs.functionMasterKey
       ConnectionStrings__ApplicationInsights: logAnalyticsWorkspaceModule.outputs.webAppInsightsConnectionString
     }
   }

@@ -17,7 +17,7 @@ public class GameResultsFunctions
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(GameResultsResponseDto), Summary = "Results submitted successfully", Description = "Returns the processed game results including total score and leaderboard information.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.BadRequest, contentType: "text/plain", bodyType: typeof(string), Summary = "Bad request", Description = "Invalid request body or missing required fields.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while processing the game results.")]
-    public async Task<HttpResponseData> SubmitGameResults([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "game/results")] HttpRequestData req)
+    public async Task<HttpResponseData> SubmitGameResults([HttpTrigger(AuthorizationLevel.Function, "post", Route = "game/results")] HttpRequestData req)
     {
         _logger.LogInformation("SubmitGameResults function triggered.");
 

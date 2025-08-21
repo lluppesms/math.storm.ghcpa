@@ -19,7 +19,7 @@ public class ResultsAnalysisFunctions
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(ResultsAnalysisResponseDto), Summary = "Analysis completed successfully", Description = "Returns AI-generated analysis and commentary on the game performance.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.BadRequest, contentType: "text/plain", bodyType: typeof(string), Summary = "Bad request", Description = "Invalid request body or missing required fields.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while analyzing the game results.")]
-    public async Task<HttpResponseData> AnalyzeGameResults([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "game/analysis")] HttpRequestData req)
+    public async Task<HttpResponseData> AnalyzeGameResults([HttpTrigger(AuthorizationLevel.Function, "post", Route = "game/analysis")] HttpRequestData req)
     {
         _logger.LogInformation("AnalyzeGameResults function triggered.");
 

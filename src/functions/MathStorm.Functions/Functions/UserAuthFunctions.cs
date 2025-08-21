@@ -17,7 +17,7 @@ public class UserAuthFunctions
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(UserAuthResponseDto), Summary = "Authentication result", Description = "Returns authentication status and user information.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.BadRequest, contentType: "text/plain", bodyType: typeof(string), Summary = "Bad request", Description = "Invalid request body or missing required fields.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while processing the authentication request.")]
-    public async Task<HttpResponseData> AuthenticateUser([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "user/auth")] HttpRequestData req)
+    public async Task<HttpResponseData> AuthenticateUser([HttpTrigger(AuthorizationLevel.Function, "post", Route = "user/auth")] HttpRequestData req)
     {
         _logger.LogInformation("AuthenticateUser function triggered.");
 
