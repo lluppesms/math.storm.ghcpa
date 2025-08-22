@@ -165,30 +165,6 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
           name: 'WEBSITE_RUN_FROM_PACKAGE'
           value: '1'
         }
-        // {
-        //   name: 'AzureWebJobsStorage'
-        //   value: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : functionStorageAccountConnectionString
-        // }
-        // {
-        //   name: 'AzureWebJobsDashboard'
-        //   value: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : functionStorageAccountConnectionString
-        // }
-        // {
-        //   name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-        //   value: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : functionStorageAccountConnectionString
-        // }
-        // {
-        //   name: 'StorageAccountConnectionString'
-        //   value: useKeyVaultConnection ? functionStorageAccountKeyVaultReference : functionStorageAccountConnectionString
-        // }
-        // {
-        //   name: 'WEBSITE_CONTENTSHARE'
-        //   value: toLower(functionAppName)
-        // }
-        // {
-        //   name: 'WEBSITE_NODE_DEFAULT_VERSION'
-        //   value: nodeDefaultVersion
-        // }
       ]
     }
     scmSiteAlsoStopped: false
@@ -200,7 +176,6 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
     redundancyMode: 'None'
     publicNetworkAccess: publicNetworkAccess
     storageAccountRequired: true
-    // keyVaultReferenceIdentity: managedIdentityId
     keyVaultReferenceIdentity: 'SystemAssigned'
   }
 }
@@ -319,4 +294,8 @@ output name string = functionAppName
 output insightsName string = functionInsightsName
 output insightsKey string = sharedAppInsightsInstrumentationKey
 output storageAccountName string = functionStorageAccountName
+//output functionAppPrincipalId string = managedIdentityPrincipalId
 output functionAppPrincipalId string = functionAppResource.identity.principalId
+
+@secure() 
+output functionMasterKey string = functionAppResource.listKeys().masterKey
