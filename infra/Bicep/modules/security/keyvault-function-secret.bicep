@@ -29,8 +29,8 @@ resource functionApp 'Microsoft.Web/sites@2024-11-01' existing = {
 //var functionAppKey = functionApp.listKeys().keys[0].masterKey  // (Code: BadRequest)
 //var functionAppKey = functionApp.listKeys().keys[0].value  // (Code: BadRequest)
 //var functionAppKey = functionApp.listKeys('${functionApp.id}/host/default', functionApp.apiVersion).functionKeys.default
-
-var functionAppKey = functionApp.listKeys().functionKeys.default
+//var functionAppKey = functionApp.listKeys().functionKeys.default
+var functionAppKey = 'unfathomable' // I wish I could figure out how to retrieve the function app key!!
 
 // --------------------------------------------------------------------------------
 resource keyVaultResource 'Microsoft.KeyVault/vaults@2022-07-01' existing = {

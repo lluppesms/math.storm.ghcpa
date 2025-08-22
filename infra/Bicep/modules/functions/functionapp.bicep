@@ -297,6 +297,5 @@ output storageAccountName string = functionStorageAccountName
 //output functionAppPrincipalId string = managedIdentityPrincipalId
 output functionAppPrincipalId string = functionAppResource.identity.principalId
 
-@secure() 
-output functionMasterKey string = functionAppResource.listKeys().functionKeys.default
-// output functionMasterKey2 string = functionAppResource.listKeys('${functionAppResource.id}/host/default', functionAppResource.apiVersion).functionKeys.default
+// @secure() 
+// output functionMasterKey string = functionAppResource.listKeys().functionKeys.default
