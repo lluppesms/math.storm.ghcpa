@@ -56,11 +56,11 @@ var useExistingServicePlan = !empty(sharedAppServicePlanName)
 // var functionStorageAccountKeyVaultReference = '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=azurefilesconnectionstring)'
 
 // Use the existing shared App Service Plan
-resource sharedAppServiceResource 'Microsoft.Web/serverfarms@2021-03-01' existing = if (useExistingServicePlan) {
+resource sharedAppServiceResource 'Microsoft.Web/serverfarms@2024-11-01' existing = if (useExistingServicePlan) {
   name: sharedAppServicePlanName
 }
 
-resource appServiceResource 'Microsoft.Web/serverfarms@2021-03-01' =  if (!useExistingServicePlan) {
+resource appServiceResource 'Microsoft.Web/serverfarms@2024-11-01' =  if (!useExistingServicePlan) {
   name: functionAppServicePlanName
   location: location
   kind: functionHostKind
@@ -86,7 +86,7 @@ resource appServiceResource 'Microsoft.Web/serverfarms@2021-03-01' =  if (!useEx
   }
 }
 
-resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
+resource functionAppResource 'Microsoft.Web/sites@2024-11-01' = {
   name: functionAppName
   location: location
   kind: functionKind
@@ -180,7 +180,7 @@ resource functionAppResource 'Microsoft.Web/sites@2023-01-01' = {
   }
 }
 
-resource functionAppConfig 'Microsoft.Web/sites/config@2023-01-01' = {
+resource functionAppConfig 'Microsoft.Web/sites/config@2024-11-01' = {
   parent: functionAppResource
   name: 'web'
   properties: {
@@ -250,7 +250,7 @@ resource functionAppConfig 'Microsoft.Web/sites/config@2023-01-01' = {
   }
 }
 
-resource functionAppBinding 'Microsoft.Web/sites/hostNameBindings@2018-11-01' = {
+resource functionAppBinding 'Microsoft.Web/sites/hostNameBindings@2024-11-01' = {
     name: '${functionAppResource.name}.azurewebsites.net'
     parent: functionAppResource
     properties: {
@@ -298,4 +298,5 @@ output storageAccountName string = functionStorageAccountName
 output functionAppPrincipalId string = functionAppResource.identity.principalId
 
 @secure() 
-output functionMasterKey string = functionAppResource.listKeys().masterKey
+output functionMasterKey string = functionAppResource.listKeys().functionKeys.default
+// output functionMasterKey2 string = functionAppResource.listKeys('${functionAppResource.id}/host/default', functionAppResource.apiVersion).functionKeys.default

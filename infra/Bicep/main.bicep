@@ -207,8 +207,8 @@ module keyVaultSecretFunctionKey './modules/security/keyvault-function-secret.bi
   params: {
     keyVaultName: keyVaultModule.outputs.name
     secretName: 'functionAppApiKey'
-    secretValue: functionModule.outputs.functionMasterKey
-    //functionAppName: functionModule.outputs.name
+    //secretValue: functionModule.outputs.functionMasterKey
+    functionAppName: functionModule.outputs.name
     existingSecretNames: deduplicateKeyVaultSecrets ? keyVaultSecretList!.outputs.secretNameList : ''
   }
 }
