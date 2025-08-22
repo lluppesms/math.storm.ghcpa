@@ -14,7 +14,7 @@ public class GameFunctions
     }
 
     [Function("HelloGame")]
-    public IActionResult HelloGame([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+    public IActionResult Hello([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function GameFunctions.Hello");
         return new OkObjectResult("Welcome to GameFunctions.Hello!");
@@ -33,12 +33,12 @@ public class GameFunctions
         {
             // Parse query parameters more safely using built-in query parsing
             var difficultyParam = "Expert";
-            
+
             _logger.LogInformation($"GetGame called with query: {req.Url.Query}");
 
             // Use Microsoft.AspNetCore.WebUtilities.QueryHelpers for safer parsing
             var queryCollection = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(req.Url.Query);
-            
+
             if (queryCollection.ContainsKey("difficulty"))
             {
                 difficultyParam = queryCollection["difficulty"].FirstOrDefault() ?? "Expert";

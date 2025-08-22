@@ -12,7 +12,7 @@ public class LeaderboardFunctions
     }
 
     [Function("HelloLeaders")]
-    public IActionResult HelloLeaders([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+    public IActionResult Hello([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function LeaderboardFunctions.Hello");
         return new OkObjectResult("Welcome to LeaderboardFunctions.Hello!");

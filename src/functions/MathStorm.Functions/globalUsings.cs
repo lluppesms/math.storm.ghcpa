@@ -20,6 +20,4 @@ global using Azure.AI.OpenAI;
 global using Azure;
 global using Azure.Identity;
 global using OpenAI.Chat;
-
-//global using System.Text.Json;
 global using Newtonsoft.Json;

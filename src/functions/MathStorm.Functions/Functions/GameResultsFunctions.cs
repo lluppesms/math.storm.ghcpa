@@ -11,6 +11,13 @@ public class GameResultsFunctions
         _cosmosDbService = cosmosDbService;
     }
 
+    [Function("HelloGameResults")]
+    public IActionResult Hello([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+    {
+        _logger.LogInformation("C# HTTP trigger function GameResultsFunctions.Hello");
+        return new OkObjectResult("Welcome to GameResultsFunctions.Hello!");
+    }
+
     [Function("SubmitGameResults")]
     [OpenApiOperation(operationId: "SubmitGameResults", tags: new[] { "Game" }, Summary = "Submit game results", Description = "Processes completed game results, saves scores, and updates the leaderboard.")]
     [OpenApiRequestBody(contentType: "application/json", bodyType: typeof(GameResultsRequestDto), Required = true, Description = "Game results including player answers and scores")]

@@ -14,6 +14,23 @@
 @baseUrl = {{localBaseUrl}}
 
 ### ---------------------------------------------------------------------------
+### 0. Hello there!
+### ---------------------------------------------------------------------------
+
+### Hello Game
+GET {{baseUrl}}/hellogame HTTP/1.1
+Content-Type: application/json
+### Hello Results
+GET {{baseUrl}}/hellogameresults HTTP/1.1
+Content-Type: application/json
+### Hello Leaderboard
+GET {{baseUrl}}/helloleaders HTTP/1.1
+Content-Type: application/json
+### Hello Analysis
+GET {{baseUrl}}/helloresultsanalysis HTTP/1.1
+Content-Type: application/json
+
+### ---------------------------------------------------------------------------
 ### 1. GET GAME - Generate new game questions
 ### ---------------------------------------------------------------------------
 
