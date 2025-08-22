@@ -251,7 +251,6 @@ module webSiteModule './modules/webapp/website.bicep' = {
 // NOTE: See https://learn.microsoft.com/en-us/azure/app-service/configure-common?tabs=portal  
 module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
   name: 'webSiteAppSettings${deploymentSuffix}'
-  dependsOn: [ keyVaultSecretFunctionKey ]
   params: {
     webAppName: webSiteModule.outputs.name
     appInsightsKey: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
@@ -259,7 +258,7 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
       AppSettings__AppInsights_InstrumentationKey: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
       AppSettings__EnvironmentName: environmentCode
       FunctionService__BaseUrl: 'https://${functionModule.outputs.hostname}'
-      FunctionService__APIKey: functionModule.outputs.functionMasterKey
+      FunctionService__APIKey: keyVaultSecretFunctionKey.outputs.secretUri
       ConnectionStrings__ApplicationInsights: logAnalyticsWorkspaceModule.outputs.webAppInsightsConnectionString
     }
   }

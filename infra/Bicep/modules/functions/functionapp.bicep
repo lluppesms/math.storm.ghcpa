@@ -319,6 +319,4 @@ output name string = functionAppName
 output insightsName string = functionInsightsName
 output insightsKey string = sharedAppInsightsInstrumentationKey
 output storageAccountName string = functionStorageAccountName
-//output functionAppPrincipalId string = managedIdentityPrincipalId
 output functionAppPrincipalId string = functionAppResource.identity.principalId
-output functionMasterKey string = functionAppResource.listKeys().masterKey
