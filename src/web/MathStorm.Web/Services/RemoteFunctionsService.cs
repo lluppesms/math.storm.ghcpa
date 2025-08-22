@@ -21,6 +21,7 @@ public class RemoteFunctionsService : IRemoteFunctionsService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<RemoteFunctionsService> _logger;
+    private readonly string? _apiKey;
     public string? BaseFunctionUrl { get; set; }
 
     public RemoteFunctionsService(HttpClient httpClient, ILogger<RemoteFunctionsService> logger, IConfiguration config)
@@ -28,9 +29,20 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         _httpClient = httpClient;
         _logger = logger;
         BaseFunctionUrl = config.GetValue<string>("FunctionService:BaseUrl");
+        _apiKey = config.GetValue<string>("FunctionService:APIKey");
     }
 
     public string GetBaseURL() => string.IsNullOrEmpty(BaseFunctionUrl) ? BaseFunctionUrl : "";
+
+    private HttpRequestMessage CreateRequestWithAuth(HttpMethod method, string url)
+    {
+        var request = new HttpRequestMessage(method, url);
+        if (!string.IsNullOrEmpty(_apiKey))
+        {
+            request.Headers.Add("x-functions-key", _apiKey);
+        }
+        return request;
+    }
 
     public async Task<GameResponseDto?> GetGameAsync(Difficulty difficulty)
     {
@@ -38,7 +50,8 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         var apiUrl = $"/api/game?difficulty={difficulty}";
         try
         {
-            var response = await _httpClient.GetAsync(apiUrl);
+            var request = CreateRequestWithAuth(HttpMethod.Get, apiUrl);
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
             content = await response.Content.ReadAsStringAsync();
@@ -64,7 +77,8 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         var apiUrl = $"/api/game/{gameId}";
         try
         {
-            var response = await _httpClient.GetAsync(apiUrl);
+            var request = CreateRequestWithAuth(HttpMethod.Get, apiUrl);
+            var response = await _httpClient.SendAsync(request);
             
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -103,11 +117,12 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         var apiUrl = $"/api/game/{gameId}/analysis";
         try
         {
-            var request = new { Analysis = analysis };
-            var json = JsonConvert.SerializeObject(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var request = CreateRequestWithAuth(HttpMethod.Put, apiUrl);
+            var requestObj = new { Analysis = analysis };
+            var json = JsonConvert.SerializeObject(requestObj);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PutAsync(apiUrl, content);
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
             return true;
@@ -126,10 +141,11 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         var apiUrl = "/api/game/results";
         try
         {
+            var httpRequest = CreateRequestWithAuth(HttpMethod.Post, apiUrl);
             var json = JsonConvert.SerializeObject(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            httpRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync(apiUrl, content);
+            var response = await _httpClient.SendAsync(httpRequest);
             response.EnsureSuccessStatusCode();
 
             responseContent = await response.Content.ReadAsStringAsync();
@@ -159,7 +175,8 @@ public class RemoteFunctionsService : IRemoteFunctionsService
                 apiUrl += $"&difficulty={difficulty}";
             }
 
-            var response = await _httpClient.GetAsync(apiUrl);
+            var request = CreateRequestWithAuth(HttpMethod.Get, apiUrl);
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
             content = await response.Content.ReadAsStringAsync();
@@ -184,10 +201,11 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         var apiUrl = "/api/game/analysis";
         try
         {
+            var httpRequest = CreateRequestWithAuth(HttpMethod.Post, apiUrl);
             var json = JsonConvert.SerializeObject(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            httpRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync(apiUrl, content);
+            var response = await _httpClient.SendAsync(httpRequest);
             response.EnsureSuccessStatusCode();
 
             responseContent = await response.Content.ReadAsStringAsync();
@@ -212,10 +230,11 @@ public class RemoteFunctionsService : IRemoteFunctionsService
         var apiUrl = "/api/user/auth";
         try
         {
+            var httpRequest = CreateRequestWithAuth(HttpMethod.Post, apiUrl);
             var json = JsonConvert.SerializeObject(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            httpRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync(apiUrl, content);
+            var response = await _httpClient.SendAsync(httpRequest);
             response.EnsureSuccessStatusCode();
 
             responseContent = await response.Content.ReadAsStringAsync();

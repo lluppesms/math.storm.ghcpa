@@ -12,7 +12,7 @@ public class LeaderboardFunctions
     }
 
     [Function("HelloLeaders")]
-    public IActionResult HelloLeaders([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
+    public IActionResult Hello([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function LeaderboardFunctions.Hello");
         return new OkObjectResult("Welcome to LeaderboardFunctions.Hello!");
@@ -24,7 +24,7 @@ public class LeaderboardFunctions
     [OpenApiParameter(name: "topCount", In = ParameterLocation.Query, Required = false, Type = typeof(int), Summary = "Number of entries", Description = "Number of top entries to retrieve. Defaults to 10 if not specified.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(LeaderboardResponseDto), Summary = "Leaderboard retrieved successfully", Description = "Returns the requested leaderboard entries.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while retrieving the leaderboard.")]
-    public async Task<HttpResponseData> GetLeaderboard([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "leaderboard")] HttpRequestData req)
+    public async Task<HttpResponseData> GetLeaderboard([HttpTrigger(AuthorizationLevel.Function, "get", Route = "leaderboard")] HttpRequestData req)
     {
         _logger.LogInformation("GetLeaderboard function triggered.");
 

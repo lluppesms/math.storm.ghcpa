@@ -201,6 +201,17 @@ module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = 
   }
 }
 
+module keyVaultSecretFunctionKey './modules/security/keyvault-function-secret.bicep' = {
+  name: 'keyVaultSecretFunctionKey${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, functionModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.name
+    secretName: 'functionAppApiKey'
+    functionAppName: functionModule.outputs.name
+    existingSecretNames: deduplicateKeyVaultSecrets ? keyVaultSecretList!.outputs.secretNameList : ''
+  }
+}
+
 // --------------------------------------------------------------------------------
 // Service Plan SHARED by webapp and function app
 // --------------------------------------------------------------------------------
@@ -246,7 +257,8 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
     customAppSettings: {
       AppSettings__AppInsights_InstrumentationKey: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
       AppSettings__EnvironmentName: environmentCode
-      FunctionService__BaseUrl: 'https://${functionModule.outputs.hostname}/api'
+      FunctionService__BaseUrl: 'https://${functionModule.outputs.hostname}'
+      FunctionService__APIKey: keyVaultSecretFunctionKey.outputs.secretUri
       ConnectionStrings__ApplicationInsights: logAnalyticsWorkspaceModule.outputs.webAppInsightsConnectionString
     }
   }

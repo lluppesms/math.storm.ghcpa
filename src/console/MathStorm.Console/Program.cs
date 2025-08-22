@@ -23,6 +23,9 @@ services.AddSingleton(new HttpClient
     BaseAddress = new Uri(baseUrl)
 });
 
+// Add configuration
+services.AddSingleton<IConfiguration>(configuration);
+
 // Add our services
 services.AddScoped<IConsoleMathStormService, ConsoleMathStormService>();
 services.AddScoped<MathStorm.Console.GameLogic>();

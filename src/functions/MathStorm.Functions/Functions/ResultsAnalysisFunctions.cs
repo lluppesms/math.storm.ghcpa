@@ -11,6 +11,13 @@ public class ResultsAnalysisFunctions
         _analysisService = analysisService;
     }
 
+    [Function("HelloResultsAnalysis")]
+    public IActionResult Hello([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+    {
+        _logger.LogInformation("C# HTTP trigger function ResultsAnalysisFunctions.Hello");
+        return new OkObjectResult("Welcome to ResultsAnalysisFunctions.Hello!");
+    }
+
     [Function("AnalyzeGameResults")]
     [OpenApiOperation(operationId: "AnalyzeGameResults", tags: new[] { "Game" }, Summary = "Analyze game results with AI commentary", Description = "Analyzes completed game results and provides personalized commentary using various AI personalities.")]
     [OpenApiRequestBody(contentType: "application/json", bodyType: typeof(ResultsAnalysisRequestDto), Required = true, Description = "Game results data for analysis")]
@@ -19,7 +26,7 @@ public class ResultsAnalysisFunctions
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(ResultsAnalysisResponseDto), Summary = "Analysis completed successfully", Description = "Returns AI-generated analysis and commentary on the game performance.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.BadRequest, contentType: "text/plain", bodyType: typeof(string), Summary = "Bad request", Description = "Invalid request body or missing required fields.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while analyzing the game results.")]
-    public async Task<HttpResponseData> AnalyzeGameResults([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "game/analysis")] HttpRequestData req)
+    public async Task<HttpResponseData> AnalyzeGameResults([HttpTrigger(AuthorizationLevel.Function, "post", Route = "game/analysis")] HttpRequestData req)
     {
         _logger.LogInformation("AnalyzeGameResults function triggered.");
 
@@ -45,7 +52,7 @@ public class ResultsAnalysisFunctions
 
             if (queryCollection.ContainsKey("model"))
             {
-                request.Model = queryCollection["model"].FirstOrDefault() ?? "gpt_4o_mini";
+                request.Model = queryCollection["model"].FirstOrDefault() ?? "gpt-4o-mini";
             }
 
             // Validate personality
@@ -99,7 +106,7 @@ public class ResultsAnalysisFunctions
 
     private static bool IsValidModel(string model)
     {
-        var validModels = new[] { "gpt_4o_mini", "gpt_4o", "gpt_4", "gpt_5_mini", "gpt_35_turbo" };
+        var validModels = new[] { "gpt-4o-mini", "gpt-4o", "gpt-4", "gpt-5-mini", "gpt-35-turbo" };
         return validModels.Contains(model.ToLowerInvariant());
     }
 }

@@ -11,13 +11,20 @@ public class GameResultsFunctions
         _cosmosDbService = cosmosDbService;
     }
 
+    [Function("HelloGameResults")]
+    public IActionResult Hello([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+    {
+        _logger.LogInformation("C# HTTP trigger function GameResultsFunctions.Hello");
+        return new OkObjectResult("Welcome to GameResultsFunctions.Hello!");
+    }
+
     [Function("SubmitGameResults")]
     [OpenApiOperation(operationId: "SubmitGameResults", tags: new[] { "Game" }, Summary = "Submit game results", Description = "Processes completed game results, saves scores, and updates the leaderboard.")]
     [OpenApiRequestBody(contentType: "application/json", bodyType: typeof(GameResultsRequestDto), Required = true, Description = "Game results including player answers and scores")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(GameResultsResponseDto), Summary = "Results submitted successfully", Description = "Returns the processed game results including total score and leaderboard information.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.BadRequest, contentType: "text/plain", bodyType: typeof(string), Summary = "Bad request", Description = "Invalid request body or missing required fields.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while processing the game results.")]
-    public async Task<HttpResponseData> SubmitGameResults([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "game/results")] HttpRequestData req)
+    public async Task<HttpResponseData> SubmitGameResults([HttpTrigger(AuthorizationLevel.Function, "post", Route = "game/results")] HttpRequestData req)
     {
         _logger.LogInformation("SubmitGameResults function triggered.");
 
