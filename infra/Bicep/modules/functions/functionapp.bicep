@@ -91,19 +91,19 @@ resource functionAppResource 'Microsoft.Web/sites@2024-11-01' = {
   location: location
   kind: functionKind
   tags: functionTags
-  // identity: {
-  //   type: 'UserAssigned'
-  //   userAssignedIdentities: { '${managedIdentityId}': {} }
-  // }
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: { '${managedIdentityId}': {} }
+  }
   // identity: {
   //   type: 'SystemAssigned'
   // }
-  identity: {
-    //disable-next-line BCP036
-    type: 'SystemAssigned, UserAssigned'
-    //disable-next-line BCP036
-    userAssignedIdentities: { '${managedIdentityId}': {} }
-  }
+  // identity: {
+  //   //disable-next-line BCP036
+  //   type: 'SystemAssigned, UserAssigned'
+  //   //disable-next-line BCP036
+  //   userAssignedIdentities: { '${managedIdentityId}': {} }
+  // }
   properties: {
     enabled: true
     serverFarmId: (useExistingServicePlan ? sharedAppServiceResource.id : appServiceResource.id)
