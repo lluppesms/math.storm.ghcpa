@@ -91,13 +91,13 @@ resource functionAppResource 'Microsoft.Web/sites@2024-11-01' = {
   location: location
   kind: functionKind
   tags: functionTags
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: { '${managedIdentityId}': {} }
-  }
   // identity: {
-  //   type: 'SystemAssigned'
+  //   type: 'UserAssigned'
+  //   userAssignedIdentities: { '${managedIdentityId}': {} }
   // }
+  identity: {
+    type: 'SystemAssigned'
+  }
   // identity: {
   //   //disable-next-line BCP036
   //   type: 'SystemAssigned, UserAssigned'
@@ -298,4 +298,4 @@ output functionAppUMIPrincipalId string = managedIdentityPrincipalId
 output functionAppPrincipalId string = functionAppResource.identity.principalId
 
 // @secure() 
-output functionMasterKey string = functionAppResource.listKeys().functionKeys.default
+// output functionMasterKey string = functionAppResource.listKeys().functionKeys.default

@@ -260,7 +260,7 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
       AppSettings__EnvironmentName: environmentCode
       FunctionService__BaseUrl: 'https://${functionModule.outputs.hostname}'
       FunctionService__APIKey: keyVaultSecretFunctionKey.outputs.secretUri
-      FunctionService__MasterKey: functionModule.outputs.functionMasterKey
+      FunctionService__MasterKey: 'unknown'
       ConnectionStrings__ApplicationInsights: logAnalyticsWorkspaceModule.outputs.webAppInsightsConnectionString
     }
   }
