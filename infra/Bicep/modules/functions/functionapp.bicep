@@ -13,8 +13,8 @@ param functionStorageAccountName string
 param location string = resourceGroup().location
 param commonTags object = {}
 
-// param managedIdentityId string
-// param managedIdentityPrincipalId string
+param managedIdentityId string
+param managedIdentityPrincipalId string
 // param keyVaultName string
 
 @allowed([ 'functionapp', 'functionapp,linux' ])
@@ -95,15 +95,15 @@ resource functionAppResource 'Microsoft.Web/sites@2024-11-01' = {
   //   type: 'UserAssigned'
   //   userAssignedIdentities: { '${managedIdentityId}': {} }
   // }
-  identity: {
-    type: 'SystemAssigned'
-  }
   // identity: {
-  //   //disable-next-line BCP036
-  //   type: 'SystemAssigned, UserAssigned'
-  //   //disable-next-line BCP036
-  //   userAssignedIdentities: { '${managedIdentityId}': {} }
+  //   type: 'SystemAssigned'
   // }
+  identity: {
+    //disable-next-line BCP036
+    type: 'SystemAssigned, UserAssigned'
+    //disable-next-line BCP036
+    userAssignedIdentities: { '${managedIdentityId}': {} }
+  }
   properties: {
     enabled: true
     serverFarmId: (useExistingServicePlan ? sharedAppServiceResource.id : appServiceResource.id)
@@ -294,8 +294,8 @@ output name string = functionAppName
 output insightsName string = functionInsightsName
 output insightsKey string = sharedAppInsightsInstrumentationKey
 output storageAccountName string = functionStorageAccountName
-//output functionAppPrincipalId string = managedIdentityPrincipalId
+output functionAppUMIPrincipalId string = managedIdentityPrincipalId
 output functionAppPrincipalId string = functionAppResource.identity.principalId
 
 // @secure() 
-// output functionMasterKey string = functionAppResource.listKeys().functionKeys.default
+output functionMasterKey string = functionAppResource.listKeys().functionKeys.default

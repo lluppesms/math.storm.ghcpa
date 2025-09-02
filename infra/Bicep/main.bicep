@@ -217,7 +217,7 @@ module keyVaultSecretFunctionKey './modules/security/keyvault-function-secret.bi
 // Service Plan SHARED by webapp and function app
 // --------------------------------------------------------------------------------
 module appServicePlanModule './modules/webapp/websiteserviceplan.bicep' = {
-  name: 'appService${deploymentSuffix}'
+  name: 'appServicePlan${deploymentSuffix}'
   params: {
     location: location
     commonTags: commonTags
@@ -260,6 +260,7 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
       AppSettings__EnvironmentName: environmentCode
       FunctionService__BaseUrl: 'https://${functionModule.outputs.hostname}'
       FunctionService__APIKey: keyVaultSecretFunctionKey.outputs.secretUri
+      FunctionService__MasterKey: functionModule.outputs.functionMasterKey
       ConnectionStrings__ApplicationInsights: logAnalyticsWorkspaceModule.outputs.webAppInsightsConnectionString
     }
   }
@@ -293,8 +294,8 @@ module functionModule './modules/functions/functionapp.bicep' = {
     sharedAppInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.functionAppInsightsConnectionString
     // switch to system assigned principal for secure storage access...
     // keyVaultName: keyVaultModule.outputs.name
-    // managedIdentityId: identity.outputs.managedIdentityId
-    // managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
+    managedIdentityId: identity.outputs.managedIdentityId
+    managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
 
     location: location
     commonTags: commonTags
