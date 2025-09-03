@@ -1,5 +1,8 @@
 *.json
+# disallow scripts in the root
 *.ps1
+# Exception: Allow Scripts in scripts folder
+!scripts/*.ps1
 !main.parameters.json
 !main.azdo.parameters.json
 !main.gha.parameters.json
@@ -9,3 +12,4 @@
 !resourceAbbreviations.json
 !abbreviation.json
 !roleDefinitions.json
+

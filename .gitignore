@@ -377,9 +377,9 @@ appsettings.development.json
 local.settings.development.json
 e2e/example.spec.ts
 tests-examples/demo-todo-app.spec.ts
+Tests/API/test.with.keys.http
 
 # Build info file generated during deployment
 buildinfo.json
 # Exception: Allow default buildinfo.json in wwwroot
 !src/web/MathStorm.Web/wwwroot/buildinfo.json
-Tests/API/test.with.keys.http
