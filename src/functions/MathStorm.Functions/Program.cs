@@ -39,10 +39,22 @@ var host = new HostBuilder()
         if (!string.IsNullOrEmpty(cosmosEndpoint))
         {
             Console.WriteLine($"Connecting to Cosmos endpoint {cosmosEndpoint} with managed identity...");
-            var endpointUri = Environment.GetEnvironmentVariable("CosmosDb:Endpoint");
             services.AddSingleton<CosmosClient>(provider =>
             {
-                var cosmosClient = new CosmosClient(endpointUri, new DefaultAzureCredential(), cosmosClientOptions);
+                var creds = new DefaultAzureCredential();
+                // for some local development, you need to specify the AD Tenant to make the creds work...
+                var visualStudioTenantId = context.Configuration["VisualStudioTenantId"];
+                if (!string.IsNullOrEmpty(visualStudioTenantId))
+                {
+                    Console.WriteLine($"Overwriting tenant for managed identity credentials...");
+                    creds = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                    {
+                        ExcludeEnvironmentCredential = true,
+                        ExcludeManagedIdentityCredential = true,
+                        TenantId = visualStudioTenantId
+                    });
+                }
+                var cosmosClient = new CosmosClient(cosmosEndpoint, creds, cosmosClientOptions);
                 return cosmosClient;
             });
             services.AddScoped<ICosmosDbService, CosmosDbService>();

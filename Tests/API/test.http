@@ -1,17 +1,19 @@
 # MathStorm Azure Function API Tests
 # Use with REST Client extension in VS Code or similar tools
-# You can also use the Swagger UI when deployed: https://[your-function-app].azurewebsites.net/api/swagger/ui
+# You can also use the Swagger UI when deployed: https://mathstorm-func-dev.azurewebsites.net/api/swagger/ui
+# curl -X GET "https://mathstorm-func-dev.azurewebsites.net/api/leaderboard?difficulty=Beginner" -H "x-functions-key: XXX
+
 
 ### Environment Configuration
 # Local development
-@localBaseUrl = http://localhost:7071/api
+@localBaseUrl=http://localhost:7071/api
 
 # Production (update with your actual Function App URL)
-@prodBaseUrl = https://mathstorm-func-dev.azurewebsites.net/api
-@apiKey = xxxxxx
+@prodBaseUrl=https://mathstorm-func-dev.azurewebsites.net/api
+@apiKey=x
 
 # Use local for development, switch to prod for production testing
-@baseUrl = {{localBaseUrl}}
+@baseUrl={{localBaseUrl}}
 
 ### ---------------------------------------------------------------------------
 ### 0. Hello there!
@@ -34,20 +36,34 @@ Content-Type: application/json
 ### 1. GET GAME - Generate new game questions
 ### ---------------------------------------------------------------------------
 
-### Get game with default difficulty (Expert)
+### Get game with default difficulty (Expert) - no API Key
 GET {{baseUrl}}/game HTTP/1.1
 Content-Type: application/json
 
-### Get game with Beginner difficulty
+### Get game with default difficulty (Expert) with API Key
+GET {{baseUrl}}/game HTTP/1.1
+x-functions-key: {{apiKey}}
+Content-Type: application/json
+
+### Get game with Beginner difficulty with API Key
 GET {{baseUrl}}/game?difficulty=Beginner HTTP/1.1
+x-functions-key: {{apiKey}}
 Content-Type: application/json
 
-### Get game with Novice difficulty
+
+### Get game with Beginner difficulty with API Key
+GET {{baseUrl}}/game?difficulty=Beginner HTTP/1.1
+x-functions-key: {{apiKey}}
+Content-Type: application/json
+
+### Get game with Novice difficulty with API Key
 GET {{baseUrl}}/game?difficulty=Novice HTTP/1.1
+x-functions-key: {{apiKey}}
 Content-Type: application/json
 
-### Get game with Intermediate difficulty
+### Get game with Intermediate difficulty with API Key
 GET {{baseUrl}}/game?difficulty=Intermediate HTTP/1.1
+x-functions-key: {{apiKey}}
 Content-Type: application/json
 
 ### Get game with Expert difficulty
@@ -225,8 +241,9 @@ Content-Type: application/json
 GET {{baseUrl}}/leaderboard HTTP/1.1
 Content-Type: application/json
 
-### Get global leaderboard with specific count
+### Get global leaderboard with specific count with API Key
 GET {{baseUrl}}/leaderboard?topCount=5 HTTP/1.1
+x-functions-key: {{apiKey}}
 Content-Type: application/json
 
 ### Get Beginner difficulty leaderboard

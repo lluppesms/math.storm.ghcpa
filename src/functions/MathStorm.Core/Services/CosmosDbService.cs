@@ -14,14 +14,18 @@ public class CosmosDbService : ICosmosDbService
 
         var endpoint = configuration["CosmosDb:Endpoint"];
         var connectionString = configuration["CosmosDb:ConnectionString"];
-        var accountName = connectionString?[..connectionString.IndexOf("AccountKey")].Replace("AccountEndpoint=https://", "").Replace(".documents.azure.com:443/;", "").Replace("/;", "");
+        
+        // var accountName = string.IsNullOrEmpty(connectionString) ? connectionString?[..connectionString.IndexOf("AccountKey")].Replace("AccountEndpoint=https://", "").Replace(".documents.azure.com:443/;", "").Replace("/;", "") : endpoint;
+        var accountName = string.IsNullOrEmpty(connectionString) ? endpoint : connectionString?[..connectionString.IndexOf("AccountKey")];
+        accountName = accountName.Replace("https://", "").Replace(".documents.azure.com:443/", "").Replace("/;", "").Replace(";", "");
+
         var databaseName = configuration["CosmosDb:DatabaseName"]; //  ?? Environment.GetEnvironmentVariable("CosmosDb__DatabaseName");
         var usersContainer = configuration["CosmosDb:ContainerNames:Users"]; //  ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Users");
         var gamesContainer = configuration["CosmosDb:ContainerNames:Games"]; //  ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Games");
         var leaderboardContainer = configuration["CosmosDb:ContainerNames:Leaderboard"]; //  ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Leaderboard");
 
-        if (!string.IsNullOrEmpty(accountName)) { _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Account: {accountName} Database: {databaseName}"); }
-        if (!string.IsNullOrEmpty(endpoint)) { _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Endpoint: {endpoint} Database: {databaseName}"); }
+        if (!string.IsNullOrEmpty(connectionString)) { _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Account: {accountName} Database: {databaseName}"); }
+        if (!string.IsNullOrEmpty(endpoint)) { _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Endpoint: {accountName} Database: {databaseName}"); }
         //_logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Database: {databaseName}");
         //_logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Containers: Users={usersContainer}, Games={gamesContainer}, Leaderboard={leaderboardContainer}");
 
