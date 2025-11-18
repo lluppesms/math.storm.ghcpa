@@ -45,7 +45,7 @@ jobs:
       name: ${{ inputs.envCode }}
     env:
       CONFIGURATION: Release
-      DOTNET_CORE_VERSION: 8.0.x
+      DOTNET_CORE_VERSION: 10.0.x
       artifactName: functionapp
       AZURE_WEBAPP_PACKAGE_PATH: ./output
 

@@ -47,8 +47,8 @@ resource webSiteResource 'Microsoft.Web/sites@2023-01-01' = {
     httpsOnly: true
     clientAffinityEnabled: false
     siteConfig: {
-      netFrameworkVersion: webAppKind == 'windows' ? 'v8.0' : null
-      linuxFxVersion: webAppKind == 'linux' ? 'DOTNETCORE|8.0' : null
+      netFrameworkVersion: webAppKind == 'windows' ? 'v10.0' : null
+      linuxFxVersion: webAppKind == 'linux' ? 'DOTNETCORE|10.0' : null
       minTlsVersion: '1.2'
       ftpsState: 'FtpsOnly'
       alwaysOn: true
