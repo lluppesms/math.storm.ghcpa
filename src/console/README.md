@@ -13,7 +13,7 @@ A beautiful command-line interface for the Math Storm game built with [Spectre.C
 
 ## Prerequisites
 
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - Math Storm Functions API running (see [Functions README](../functions/README.md))
 
 ## Configuration

@@ -14,10 +14,10 @@ public class CosmosDbService : ICosmosDbService
 
         var endpoint = configuration["CosmosDb:Endpoint"];
         var connectionString = configuration["CosmosDb:ConnectionString"];
-        
+
         // var accountName = string.IsNullOrEmpty(connectionString) ? connectionString?[..connectionString.IndexOf("AccountKey")].Replace("AccountEndpoint=https://", "").Replace(".documents.azure.com:443/;", "").Replace("/;", "") : endpoint;
         var accountName = string.IsNullOrEmpty(connectionString) ? endpoint : connectionString?[..connectionString.IndexOf("AccountKey")];
-        accountName = accountName.Replace("https://", "").Replace(".documents.azure.com:443/", "").Replace("/;", "").Replace(";", "");
+        accountName = accountName?.Replace("https://", "").Replace(".documents.azure.com:443/", "").Replace("/;", "").Replace(";", "");
 
         var databaseName = configuration["CosmosDb:DatabaseName"]; //  ?? Environment.GetEnvironmentVariable("CosmosDb__DatabaseName");
         var usersContainer = configuration["CosmosDb:ContainerNames:Users"]; //  ?? Environment.GetEnvironmentVariable("CosmosDb__ContainerNames__Users");

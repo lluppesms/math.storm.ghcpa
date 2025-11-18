@@ -8,7 +8,7 @@ param customAppSettings object = {}
 param functionsWorkerRuntime string = 'DOTNET-ISOLATED'
 param functionsExtensionVersion string = '~4'
 param use32BitProcess string = 'false'
-param netFrameworkVersion string = 'v8.0'
+param netFrameworkVersion string = 'v10.0'
 param usePlaceholderDotNetIsolated string = '1'
 
 //param keyVaultName string

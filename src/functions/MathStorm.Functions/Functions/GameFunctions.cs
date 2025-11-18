@@ -22,7 +22,8 @@ public class GameFunctions
 
     [Function("GetGame")]
     [OpenApiOperation(operationId: "GetGame", tags: new[] { "Game" }, Summary = "Generate a new math game", Description = "Creates a new game session with questions based on the specified difficulty level.")]
-    [OpenApiParameter(name: "difficulty", In = ParameterLocation.Query, Required = false, Type = typeof(string), Summary = "Difficulty level", Description = "The difficulty level for the game (Beginner, Novice, Intermediate, Expert). Defaults to Expert if not specified.")]
+    [OpenApiParameter(name: "difficulty", Required = false, Type = typeof(string), Summary = "Difficulty level", Description = "The difficulty level for the game (Beginner, Novice, Intermediate, Expert). Defaults to Expert if not specified.")]
+    // In = ParameterLocation.Query,
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(GameResponseDto), Summary = "Game created successfully", Description = "Returns a new game session with questions for the specified difficulty level.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while creating the game.")]
     public async Task<HttpResponseData> GetGame([HttpTrigger(AuthorizationLevel.Function, "get", Route = "game")] HttpRequestData req)
@@ -88,7 +89,7 @@ public class GameFunctions
 
     [Function("GetGameById")]
     [OpenApiOperation(operationId: "GetGameById", tags: new[] { "Game" }, Summary = "Get game by ID", Description = "Retrieves a specific game record by its ID, including questions, answers, and analysis.")]
-    [OpenApiParameter(name: "gameId", In = ParameterLocation.Path, Required = true, Type = typeof(string), Summary = "Game ID", Description = "The unique identifier for the game.")]
+    [OpenApiParameter(name: "gameId", Required = true, Type = typeof(string), Summary = "Game ID", Description = "The unique identifier for the game.")] // In = ParameterLocation.Path,
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(Game), Summary = "Game retrieved successfully", Description = "Returns the complete game record including questions, answers, scores, and analysis.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.NotFound, contentType: "text/plain", bodyType: typeof(string), Summary = "Game not found", Description = "The specified game ID was not found.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while retrieving the game.")]
@@ -132,7 +133,7 @@ public class GameFunctions
 
     [Function("UpdateGameAnalysis")]
     [OpenApiOperation(operationId: "UpdateGameAnalysis", tags: new[] { "Game" }, Summary = "Update game analysis", Description = "Updates the analysis field for a specific game record.")]
-    [OpenApiParameter(name: "gameId", In = ParameterLocation.Path, Required = true, Type = typeof(string), Summary = "Game ID", Description = "The unique identifier for the game.")]
+    [OpenApiParameter(name: "gameId", Required = true, Type = typeof(string), Summary = "Game ID", Description = "The unique identifier for the game.")] // In = ParameterLocation.Path,
     [OpenApiRequestBody(contentType: "application/json", bodyType: typeof(object), Required = true, Description = "Analysis data containing the analysis text")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(object), Summary = "Analysis updated successfully", Description = "Returns success confirmation.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.NotFound, contentType: "text/plain", bodyType: typeof(string), Summary = "Game not found", Description = "The specified game ID was not found.")]

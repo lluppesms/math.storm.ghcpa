@@ -21,8 +21,10 @@ public class ResultsAnalysisFunctions
     [Function("AnalyzeGameResults")]
     [OpenApiOperation(operationId: "AnalyzeGameResults", tags: new[] { "Game" }, Summary = "Analyze game results with AI commentary", Description = "Analyzes completed game results and provides personalized commentary using various AI personalities.")]
     [OpenApiRequestBody(contentType: "application/json", bodyType: typeof(ResultsAnalysisRequestDto), Required = true, Description = "Game results data for analysis")]
-    [OpenApiParameter(name: "personality", In = ParameterLocation.Query, Required = false, Type = typeof(string), Summary = "AI personality style", Description = "The personality style for analysis (default, comedyroast, pirate, limerick, sportsbroadcaster, haiku, australian, yourmother). Defaults to 'default' if not specified.")]
-    [OpenApiParameter(name: "model", In = ParameterLocation.Query, Required = false, Type = typeof(string), Summary = "AI model to use", Description = "The AI model to use for analysis (gpt-4o-mini, gpt-4o, gpt-4). Defaults to the configured default model if not specified.")]
+    [OpenApiParameter(name: "personality", Required = false, Type = typeof(string), Summary = "AI personality style", Description = "The personality style for analysis (default, comedyroast, pirate, limerick, sportsbroadcaster, haiku, australian, yourmother). Defaults to 'default' if not specified.")]
+    // In = ParameterLocation.Query,
+    [OpenApiParameter(name: "model", Required = false, Type = typeof(string), Summary = "AI model to use", Description = "The AI model to use for analysis (gpt-4o-mini, gpt-4o, gpt-4). Defaults to the configured default model if not specified.")]
+    // In = ParameterLocation.Query,
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(ResultsAnalysisResponseDto), Summary = "Analysis completed successfully", Description = "Returns AI-generated analysis and commentary on the game performance.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.BadRequest, contentType: "text/plain", bodyType: typeof(string), Summary = "Bad request", Description = "Invalid request body or missing required fields.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while analyzing the game results.")]

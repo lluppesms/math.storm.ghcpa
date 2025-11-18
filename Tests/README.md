@@ -129,7 +129,7 @@ npx playwright test
 ## Test Environment Setup
 
 ### Prerequisites
-- .NET 8.0 SDK
+- .NET 10.0 SDK
 - Node.js (for Playwright)
 - Browser for manual testing
 

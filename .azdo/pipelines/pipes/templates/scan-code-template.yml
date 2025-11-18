@@ -166,9 +166,9 @@ jobs:
     #   inputs:
     #     version: 6.0.x
     - task: UseDotNet@2
-      displayName: 'Use dotnet 8.0'
+      displayName: 'Use dotnet 10.0'
       inputs:
-        version: 8.0.x
+        version: 10.0.x
 
     - task: MicrosoftSecurityDevOps@1
       displayName: 'Run Microsoft Security DevOps'
