@@ -5,7 +5,7 @@
 
 ![Math Storm Logo](https://img.shields.io/badge/🧮-Math%20Storm-blue?style=for-the-badge&labelColor=darkblue)
 ![AI Generated](https://img.shields.io/badge/🤖-99.9%25%20AI%20Generated-green?style=for-the-badge&labelColor=darkgreen)
-![.NET 8](https://img.shields.io/badge/.NET-8-purple?style=for-the-badge&logo=dotnet&labelColor=darkpurple)
+![.NET 10](https://img.shields.io/badge/.NET-10-purple?style=for-the-badge&logo=dotnet&labelColor=darkpurple)
 ![Azure](https://img.shields.io/badge/☁️-Azure%20Cloud-blue?style=for-the-badge&labelColor=darkblue)
 
 [![Build & Deploy](https://github.com/lluppesms/math.storm.ghcpa/actions/workflows/4-bicep-build-deploy-both.yml/badge.svg)](https://github.com/lluppesms/math.storm.ghcpa/actions/workflows/4-bicep-build-deploy-both.yml)
@@ -23,7 +23,7 @@ Too often these days we let computers, calculators, and phones do all our mental
 
 ## ⚡ **Repository Goal**
 
-This repository is an example of deploying a .NET 8 application suite into Azure. This project is intended to be a good example of using Infrastructure as Code (IaC) to deploy and manage the Azure resources, utilizing [Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview) to deploy Azure resources declaratively.
+This repository is an example of deploying a .NET 10 application suite into Azure. This project is intended to be a good example of using Infrastructure as Code (IaC) to deploy and manage the Azure resources, utilizing [Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview) to deploy Azure resources declaratively.
 
 
 ## 🔍 **Key Technologies Demonstrated**
@@ -31,7 +31,7 @@ This repository is an example of deploying a .NET 8 application suite into Azure
 | Category | Technologies |
 |----------|-------------|
 | **🖥️ Frontend** | Blazor Server, HTML5, CSS3, JavaScript, Bootstrap |
-| **🔧 Backend** | .NET 8, Azure Functions, ASP.NET Core |
+| **🔧 Backend** | .NET 10, Azure Functions, ASP.NET Core |
 | **☁️ Cloud** | Azure App Service, Azure Functions, Azure Storage |
 | **📊 Data** | Azure Table Storage, Cosmos Database |
 | **🧪 Testing** | xUnit, Playwright, Integration Tests |
@@ -76,7 +76,7 @@ Math Storm offers two distinct interfaces to match your preferred style of inter
 
 ### 💻 **Console Application** 
 *[📂 src/console](src/console/)*
-- **Technology:** .NET 8 with Spectre.Console
+- **Technology:** .NET 10 with Spectre.Console
 - **Features:** Colorful terminal interface, ASCII art, cross-platform
 - **Perfect for:** Developers, CLI enthusiasts, automation scenarios
 - **Highlights:** Beautiful terminal graphics, keyboard shortcuts, performance metrics
@@ -84,7 +84,7 @@ Math Storm offers two distinct interfaces to match your preferred style of inter
 ## 🛠️ **Development Workflow**
 
 #### 🔄 **Local Development**
-1. **Prerequisites:** .NET 8 SDK, Azure Functions Core Tools, Cosmos Emulator
+1. **Prerequisites:** .NET 10 SDK, Azure Functions Core Tools, Cosmos Emulator
 2. **Setup:** Clone repository → Restore packages → Configure local settings
 3. **Run Locally:** Start Azure Functions → Launch web app → Test console app
 4. **Development:** Edit code → Run tests → Debug → Iterate

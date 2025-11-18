@@ -12,7 +12,7 @@ The Math Storm application has been architected with a true API-first approach:
 
 ## Prerequisites
 
-- .NET 8 SDK
+- .NET 10 SDK
 - Azure Functions Core Tools (`npm install -g azure-functions-core-tools@4 --unsafe-perm true`)
 - Visual Studio 2022 or VS Code with C# extension
 
@@ -91,5 +91,5 @@ For development convenience, the Function app uses mock implementations of exter
 
 ### Build Errors
 - Ensure all NuGet packages are restored: `dotnet restore`
-- Make sure you're using .NET 8 SDK
+- Make sure you're using .NET 10 SDK
 - Check that the MathStorm.Shared project builds successfully first
