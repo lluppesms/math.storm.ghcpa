@@ -20,8 +20,10 @@ public class LeaderboardFunctions
 
     [Function("GetLeaderboard")]
     [OpenApiOperation(operationId: "GetLeaderboard", tags: new[] { "Leaderboard" }, Summary = "Get leaderboard entries", Description = "Retrieves leaderboard entries for a specific difficulty level or global leaderboard.")]
-    [OpenApiParameter(name: "difficulty", In = ParameterLocation.Query, Required = false, Type = typeof(string), Summary = "Difficulty level", Description = "The difficulty level to filter leaderboard entries (Beginner, Novice, Intermediate, Expert). If not specified, returns global leaderboard.")]
-    [OpenApiParameter(name: "topCount", In = ParameterLocation.Query, Required = false, Type = typeof(int), Summary = "Number of entries", Description = "Number of top entries to retrieve. Defaults to 10 if not specified.")]
+    [OpenApiParameter(name: "difficulty", Required = false, Type = typeof(string), Summary = "Difficulty level", Description = "The difficulty level to filter leaderboard entries (Beginner, Novice, Intermediate, Expert). If not specified, returns global leaderboard.")]
+    // In = ParameterLocation.Query,
+    [OpenApiParameter(name: "topCount", Required = false, Type = typeof(int), Summary = "Number of entries", Description = "Number of top entries to retrieve. Defaults to 10 if not specified.")]
+    // In = ParameterLocation.Query,
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(LeaderboardResponseDto), Summary = "Leaderboard retrieved successfully", Description = "Returns the requested leaderboard entries.")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.InternalServerError, contentType: "text/plain", bodyType: typeof(string), Summary = "Internal server error", Description = "An error occurred while retrieving the leaderboard.")]
     public async Task<HttpResponseData> GetLeaderboard([HttpTrigger(AuthorizationLevel.Function, "get", Route = "leaderboard")] HttpRequestData req)
@@ -32,7 +34,7 @@ public class LeaderboardFunctions
         {
             // Parse query parameters more safely using built-in query parsing
             string? difficulty = null;
-            var topCount = 10;
+            int topCount = 10;
 
             _logger.LogInformation($"GetLeaderboard called with query: {req.Url.Query}");
 
