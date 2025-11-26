@@ -60,6 +60,8 @@
   "eventGridSystemTopic": "evgst-",
   "eventHubNamespaces": "evhns-",
   "eventHubNamespacesEventHubs": "evh-",
+  "functionApp": "func",
+  "functionFlexApp": "flex",
   "hdInsightClustersHadoop": "hadoop-",
   "hdInsightClustersHbase": "hbase-",
   "hdInsightClustersKafka": "kafka-",

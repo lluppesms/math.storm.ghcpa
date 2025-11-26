@@ -3,21 +3,22 @@
 // --------------------------------------------------------------------------------
 param webSiteName string = ''
 param location string = resourceGroup().location
+//param appInsightsLocation string = resourceGroup().location
 param environmentCode string = 'dev'
 param commonTags object = {}
+param managedIdentityId string
+param managedIdentityPrincipalId string
 
 @description('The workspace to store audit logs.')
 param workspaceId string = ''
 
 @description('The Name of the service plan to deploy into.')
 param appServicePlanName string
-param webAppKind string = 'linux' //  'linux' or 'windows'  (needs to be windows to use my shared app plan right now...)
+param appServicePlanResourceGroupName string = resourceGroup().name
+param webAppKind string = 'linux'
 
 @description('Shared Application Insights instrumentation key')
 param sharedAppInsightsInstrumentationKey string
-
-param managedIdentityId string
-param managedIdentityPrincipalId string
 
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~website.bicep'}
@@ -28,6 +29,7 @@ var webSiteTags = union(commonTags, templateTag, azdTag)
 
 resource appServiceResource 'Microsoft.Web/serverfarms@2023-01-01' existing = {
   name: appServicePlanName
+  scope: resourceGroup(appServicePlanResourceGroupName)
 }
 
 resource webSiteResource 'Microsoft.Web/sites@2023-01-01' = {
@@ -47,12 +49,13 @@ resource webSiteResource 'Microsoft.Web/sites@2023-01-01' = {
     httpsOnly: true
     clientAffinityEnabled: false
     siteConfig: {
-      netFrameworkVersion: webAppKind == 'windows' ? 'v10.0' : null
       linuxFxVersion: webAppKind == 'linux' ? 'DOTNETCORE|10.0' : null
+      netFrameworkVersion: webAppKind == 'windows' ? 'v10.0' : null
       minTlsVersion: '1.2'
       ftpsState: 'FtpsOnly'
       alwaysOn: true
       remoteDebuggingEnabled: false
+      minimumElasticInstanceCount: 1
       appSettings: [
         { 
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
@@ -144,24 +147,27 @@ resource webSiteAuditLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-p
   }
 }
 
-resource appServiceMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: '${appServiceResource.name}-metrics'
-  scope: appServiceResource
-  properties: {
-    workspaceId: workspaceId
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
-        // retentionPolicy: {
-        //   days: 30
-        //   enabled: true 
-        // }
-      }
-    ]
-  }
-}
-//output principalId string = webSiteResource.identity.principalId
+// resource appServiceMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+//   name: '${appServiceResource.name}-metrics'
+//   scope: appServiceResource
+//   properties: {
+//     workspaceId: workspaceId
+//     metrics: [
+//       {
+//         category: 'AllMetrics'
+//         enabled: true
+//       }
+//     ]
+//     //    this should be right but it's not supported... :(
+//     // logs: [
+//     //   {
+//     //     category: 'AppRequests'
+//     //     enabled: true
+//     //   }
+//     // ]    
+//   }
+// }
+output principalId string = webSiteResource.identity.principalId
 output name string = webSiteName
 output hostName string = webSiteResource.properties.defaultHostName
 output webappAppPrincipalId string = managedIdentityPrincipalId

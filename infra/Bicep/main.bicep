@@ -9,14 +9,17 @@
 param appName string = ''
 param environmentCode string = 'azd'
 param location string = resourceGroup().location
-param webSiteSku string = 'B1'
 param servicePlanName string = ''
+param servicePlanResourceGroupName string = '' // if using an existing service plan in a different resource group
+
 param webAppKind string = 'linux' // 'linux' or 'windows'
+param webSiteSku string = 'B1'
 
 param storageSku string = 'Standard_LRS'
 param functionAppSku string = 'B1'
 param functionAppSkuFamily string = ''
 param functionAppSkuTier string = 'Dynamic'
+param environmentSpecificFunctionName string = ''
 
 param OpenAI_Endpoint string
 @secure()
@@ -25,8 +28,6 @@ param OpenAI_ApiKey string
 // --------------------------------------------------------------------------------------------------------------
 // Run Settings Parameters
 // --------------------------------------------------------------------------------------------------------------
-@description('Should we run a script to dedupe the KeyVault secrets? (this fails on private networks right now)')
-param deduplicateKeyVaultSecrets bool = true
 @description('Add Role Assignments for the user assigned identity?')
 param addRoleAssignments bool = true
 @description('Should resources be created with public access?')
@@ -45,6 +46,7 @@ param principalId string = ''
 // --------------------------------------------------------------------------------------------------------------
 // Misc. Parameters
 // --------------------------------------------------------------------------------------------------------------
+// calculated variables disguised as parameters
 param runDateTime string = utcNow()
 
 // --------------------------------------------------------------------------------
@@ -57,13 +59,13 @@ var commonTags = {
 var resourceGroupName = resourceGroup().name
 // var resourceToken = toLower(uniqueString(resourceGroup().id, location))
 
-
 // --------------------------------------------------------------------------------
 module resourceNames 'resourcenames.bicep' = {
   name: 'resourcenames${deploymentSuffix}'
   params: {
     appName: appName
     environmentCode: environmentCode
+    environmentSpecificFunctionName: environmentSpecificFunctionName
   }
 }
 // --------------------------------------------------------------------------------
@@ -137,7 +139,7 @@ module adminUserRoleAssignments './modules/iam/role-assignments.bicep' = if (add
 module functionAppRoleAssignments './modules/iam/role-assignments.bicep' = if (addRoleAssignments) {
   name: 'function-roles${deploymentSuffix}'
   params: {
-    identityPrincipalId: functionModule.outputs.functionAppPrincipalId
+    identityPrincipalId: functionFlexModule.outputs.functionAppPrincipalId
     principalType: 'ServicePrincipal'
     cosmosName: cosmosModule.outputs.name
     keyVaultName: keyVaultModule.outputs.name
@@ -151,20 +153,12 @@ module keyVaultModule './modules/security/keyvault.bicep' = {
   params: {
     location: location
     commonTags: commonTags
-    keyVaultName: resourceNames.outputs.keyVaultName
-    keyVaultOwnerUserId: principalId
-    adminUserObjectIds: [ identity.outputs.managedIdentityPrincipalId ]
-    publicNetworkAccess: publicAccessEnabled ? 'Enabled' : 'Disabled'
-    keyVaultOwnerIpAddress: myIpAddress
-    createUserAssignedIdentity: false
-  }
-}
-module keyVaultSecretList './modules/security/keyvault-list-secret-names.bicep' = if (deduplicateKeyVaultSecrets) {
-  name: 'keyVault-Secret-List-Names${deploymentSuffix}'
-  params: {
-    keyVaultName: keyVaultModule.outputs.name
-    location: location
-    userManagedIdentityId: identity.outputs.managedIdentityId
+    adminUserObjectIds: [ principalId ]
+    applicationUserObjectIds: [ identity.outputs.managedIdentityPrincipalId ]
+    workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
+    publicNetworkAccess: 'Enabled'
+    //allowNetworkAccess: 'Allow'
+    useRBAC: true
   }
 }
 
@@ -175,41 +169,36 @@ module keyVaultSecretAppInsights1 './modules/security/keyvault-secret.bicep' = {
     keyVaultName: keyVaultModule.outputs.name
     secretName: 'webAppInsightsInstrumentationKey'
     secretValue: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
-    existingSecretNames: deduplicateKeyVaultSecrets ? keyVaultSecretList!.outputs.secretNameList : ''
   }
 }  
 module keyVaultSecretAppInsights2 './modules/security/keyvault-secret.bicep' = {
   name: 'keyVaultSecretAppInsights2${deploymentSuffix}'
-  dependsOn: [ keyVaultModule, logAnalyticsWorkspaceModule, functionModule ]
+  dependsOn: [ keyVaultModule, logAnalyticsWorkspaceModule, functionFlexModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
     secretName: 'functionAppInsightsInstrumentationKey'
     secretValue: logAnalyticsWorkspaceModule.outputs.functionAppInsightsInstrumentationKey
-    existingSecretNames: deduplicateKeyVaultSecrets ? keyVaultSecretList!.outputs.secretNameList : ''
   }
 }  
 
 module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = {
   name: 'keyVaultSecretCosmos${deploymentSuffix}'
-  dependsOn: [ keyVaultModule, cosmosModule, webSiteModule, functionModule  ]
+  dependsOn: [ keyVaultModule, cosmosModule, webSiteModule, functionFlexModule  ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
     accountKeySecretName: 'cosmosAccountKey'
     connectionStringSecretName: 'cosmosConnectionString'
     cosmosAccountName: cosmosModule.outputs.name
-    existingSecretNames: deduplicateKeyVaultSecrets ? keyVaultSecretList!.outputs.secretNameList : ''
   }
 }
 
 module keyVaultSecretFunctionKey './modules/security/keyvault-function-secret.bicep' = {
   name: 'keyVaultSecretFunctionKey${deploymentSuffix}'
-  dependsOn: [ keyVaultModule, functionModule ]
+  dependsOn: [ keyVaultModule, functionFlexModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
     secretName: 'functionAppApiKey'
-    //secretValue: functionModule.outputs.functionMasterKey
-    functionAppName: functionModule.outputs.name
-    existingSecretNames: deduplicateKeyVaultSecrets ? keyVaultSecretList!.outputs.secretNameList : ''
+    functionAppName: functionFlexModule.outputs.name
   }
 }
 
@@ -225,6 +214,7 @@ module appServicePlanModule './modules/webapp/websiteserviceplan.bicep' = {
     environmentCode: environmentCode
     appServicePlanName: servicePlanName == '' ? resourceNames.outputs.webSiteAppServicePlanName : servicePlanName
     existingServicePlanName: servicePlanName
+    existingServicePlanResourceGroupName: servicePlanResourceGroupName
     webAppKind: webAppKind
   }
 }
@@ -238,11 +228,12 @@ module webSiteModule './modules/webapp/website.bicep' = {
     commonTags: commonTags
     environmentCode: environmentCode
     webAppKind: webAppKind
-    workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
-    appServicePlanName: appServicePlanModule.outputs.name
-    sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
     managedIdentityId: identity.outputs.managedIdentityId
     managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
+    workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
+    appServicePlanName: appServicePlanModule.outputs.name
+    appServicePlanResourceGroupName: appServicePlanModule.outputs.resourceGroupName
+    sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
   }
 }
 
@@ -258,7 +249,7 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
     customAppSettings: {
       AppSettings__AppInsights_InstrumentationKey: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
       AppSettings__EnvironmentName: environmentCode
-      FunctionService__BaseUrl: 'https://${functionModule.outputs.hostname}'
+      FunctionService__BaseUrl: 'https://${functionFlexModule.outputs.hostname}'
       FunctionService__APIKey: keyVaultSecretFunctionKey.outputs.secretUri
       FunctionService__MasterKey: 'unknown'
       ConnectionStrings__ApplicationInsights: logAnalyticsWorkspaceModule.outputs.webAppInsightsConnectionString
@@ -282,40 +273,57 @@ module functionStorageModule './modules/storage/storage-account.bicep' = {
   }
 }
 
-module functionModule './modules/functions/functionapp.bicep' = {
-  name: 'function${deploymentSuffix}'
+//--------------------------------------------------------------------------------
+module functionFlexModule 'modules/functions/functionflex.bicep' = {
+  name: 'functionFlex${deploymentSuffix}'
   dependsOn: [ appIdentityRoleAssignments ]
   params: {
-    functionAppName: resourceNames.outputs.functionAppName
-    functionAppServicePlanName: resourceNames.outputs.functionAppServicePlanName
-    functionInsightsName: resourceNames.outputs.functionAppInsightsName
-    sharedAppServicePlanName: appServicePlanModule.outputs.name
-    sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.functionAppInsightsInstrumentationKey
-    sharedAppInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.functionAppInsightsConnectionString
-    // switch to system assigned principal for secure storage access...
-    // keyVaultName: keyVaultModule.outputs.name
-    managedIdentityId: identity.outputs.managedIdentityId
-    managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
-
+    functionAppName: resourceNames.outputs.functionFlexAppName
+    functionAppServicePlanName: resourceNames.outputs.functionFlexAppServicePlanName
+    functionInsightsName: resourceNames.outputs.functionFlexInsightsName
+    functionStorageAccountName: resourceNames.outputs.functionFlexStorageName
     location: location
     commonTags: commonTags
-
-    functionKind: 'functionapp,linux'
-    functionAppSku: functionAppSku
-    functionAppSkuFamily: functionAppSkuFamily
-    functionAppSkuTier: functionAppSkuTier
-    functionStorageAccountName: functionStorageModule.outputs.name
     workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
+    adminPrincipalId: principalId
+    deploymentSuffix: deploymentSuffix
   }
 }
+
+// module functionModule './modules/functions/functionapp.bicep' = {
+//   name: 'function${deploymentSuffix}'
+//   dependsOn: [ appIdentityRoleAssignments ]
+//   params: {
+//     functionAppName: resourceNames.outputs.functionAppName
+//     functionAppServicePlanName: resourceNames.outputs.functionAppServicePlanName
+//     functionInsightsName: resourceNames.outputs.functionAppInsightsName
+//     sharedAppServicePlanName: appServicePlanModule.outputs.name
+//     sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.functionAppInsightsInstrumentationKey
+//     sharedAppInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.functionAppInsightsConnectionString
+//     // switch to system assigned principal for secure storage access...
+//     // keyVaultName: keyVaultModule.outputs.name
+//     managedIdentityId: identity.outputs.managedIdentityId
+//     managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
+
+//     location: location
+//     commonTags: commonTags
+
+//     functionKind: 'functionapp,linux'
+//     functionAppSku: functionAppSku
+//     functionAppSkuFamily: functionAppSkuFamily
+//     functionAppSkuTier: functionAppSkuTier
+//     functionStorageAccountName: functionStorageModule.outputs.name
+//     workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
+//   }
+// }
 // resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' existing = {
 //   name: keyVaultModule.outputs.name
 // } 
 module functionAppSettingsModule './modules/functions/functionappsettings.bicep' = {
   name: 'functionAppSettings${deploymentSuffix}'
   params: {
-    functionAppName: functionModule.outputs.name
-    functionStorageAccountName: functionModule.outputs.storageAccountName
+    functionAppName: functionFlexModule.outputs.name
+    functionStorageAccountName: functionFlexModule.outputs.storageAccountName
     functionInsightsKey: logAnalyticsWorkspaceModule.outputs.functionAppInsightsInstrumentationKey
     // keyVaultName: keyVaultModule.outputs.name
 
@@ -348,4 +356,5 @@ module functionAppSettingsModule './modules/functions/functionappsettings.bicep'
 output SUBSCRIPTION_ID string = subscription().subscriptionId
 output RESOURCE_GROUP_NAME string = resourceGroupName
 output WEB_HOST_NAME string = webSiteModule.outputs.hostName
-output FUNCTION_HOST_NAME string = functionModule.outputs.hostname
+//output FUNCTION_HOST_NAME string = functionModule.outputs.hostname
+output FLEX_FUNCTION_HOST_NAME string = functionFlexModule.outputs.hostname

@@ -5,23 +5,26 @@
 param appServicePlanName string = ''
 @description('The name of a pre-existing app service plan')
 param existingServicePlanName string = ''
+@description('The resource group name of a pre-existing app service plan')
+param existingServicePlanResourceGroupName string = ''
 
 param location string = resourceGroup().location
 param environmentCode string = 'dev'
 param commonTags object = {}
 @allowed(['F1','B1','B2','S1','S2','S3'])
 param sku string = 'B1'
-param webAppKind string = 'linux'  // 'linux' or 'windows'
+param webAppKind string = 'linux'
 
 // --------------------------------------------------------------------------------
 var templateTag = { TemplateFile: '~website.bicep'}
-var azdTag = environmentCode == 'azd' ? { 'azd-service-name': 'web-plan' } : {}
+var azdTag = environmentCode == 'azd' ? { 'azd-service-name': 'web' } : {}
 var tags = union(commonTags, templateTag, azdTag)
 
 // --------------------------------------------------------------------------------
 
 resource existingAppServiceResource 'Microsoft.Web/serverfarms@2023-01-01' existing = if (!empty(existingServicePlanName)) {
   name: existingServicePlanName
+  scope: resourceGroup(existingServicePlanResourceGroupName == '' ? resourceGroup().name : existingServicePlanResourceGroupName)
 }
 
 resource appServiceResource 'Microsoft.Web/serverfarms@2023-01-01' = if (empty(existingServicePlanName)) {
@@ -38,3 +41,4 @@ resource appServiceResource 'Microsoft.Web/serverfarms@2023-01-01' = if (empty(e
 }
 output name string = empty(existingServicePlanName) ? appServiceResource.name : existingAppServiceResource.name
 output id string = empty(existingServicePlanName) ? appServiceResource.id : existingAppServiceResource.id
+output resourceGroupName string = empty(existingServicePlanName) ? resourceGroup().name : existingServicePlanResourceGroupName
