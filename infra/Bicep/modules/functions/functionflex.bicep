@@ -154,4 +154,4 @@ output name string = functionAppName
 output insightsName string = functionInsightsName
 output insightsKey string = applicationInsights.outputs.instrumentationKey
 output storageAccountName string = functionStorageAccountName
-output functionAppPrincipalId string = functionAppResource.identity.userAssignedIdentities.values[0].principalId
+output functionAppPrincipalId string = functionAppResource.outputs.?systemAssignedMIPrincipalId ?? ''
