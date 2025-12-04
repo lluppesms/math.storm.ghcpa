@@ -3,7 +3,6 @@ namespace MathStorm.Core.DTOs;
 public class UserAuthRequestDto
 {
     public string Username { get; set; } = string.Empty;
-    public string? Pin { get; set; }
 }
 
 public class UserAuthResponseDto
@@ -18,6 +17,5 @@ public class UserAuthResponseDto
 public class UserProfileDto
 {
     public string Username { get; set; } = string.Empty;
-    public string? Pin { get; set; }
     public bool RememberMe { get; set; } = true;
 }

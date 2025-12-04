@@ -65,14 +65,13 @@ public class CosmosDbService : ICosmosDbService
         }
     }
 
-    public async Task<GameUser> CreateUserAsync(string username, string? pin = null)
+    public async Task<GameUser> CreateUserAsync(string username)
     {
         try
         {
             var user = new GameUser
             {
                 Username = username,
-                Pin = pin,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -83,32 +82,6 @@ public class CosmosDbService : ICosmosDbService
         {
             _logger.LogError(ex, "Cosmos: Error creating user: {Username}", username);
             throw;
-        }
-    }
-
-    public async Task<bool> ValidateUserAsync(string username, string? pin)
-    {
-        try
-        {
-            var user = await GetUserByUsernameAsync(username);
-            if (user == null)
-            {
-                return false;
-            }
-
-            // If user has no PIN set, they can log in without PIN
-            if (string.IsNullOrEmpty(user.Pin))
-            {
-                return true;
-            }
-
-            // If user has PIN set, provided PIN must match
-            return user.Pin == pin;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Cosmos: Error validating user: {Username}", username);
-            return false;
         }
     }
 
