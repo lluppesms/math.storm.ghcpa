@@ -135,6 +135,9 @@ module adminUserRoleAssignments './modules/iam/role-assignments.bicep' = if (add
 module keyVaultModule './modules/security/keyvault.bicep' = {
   name: 'keyvault${deploymentSuffix}'
   params: {
+    keyVaultName: resourceNames.outputs.keyVaultName
+    // keyVaultOwnerUserId: principalId
+    // keyVaultOwnerIpAddress: myIpAddress
     location: location
     commonTags: commonTags
     adminUserObjectIds: [ principalId ]
