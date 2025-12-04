@@ -36,10 +36,10 @@ on:
         description: Build and Deploy Web App
         default: true
         type: boolean
-      runBuildDeployFunction:
-        description: Build and Deploy Function
-        default: true
-        type: boolean
+      # runBuildDeployFunction:
+      #   description: Build and Deploy Function
+      #   default: true
+      #   type: boolean
       runDeployCosmos:
         description: Update Cosmos DB
         default: false
@@ -85,7 +85,7 @@ jobs:
   create-infra:
     name: Create Infra ${{ inputs.deployEnvironment }}
     uses: ./.github/workflows/template-create-infra.yml
-    if: inputs.runCreateInfra || inputs.runBuildDeployWeb || inputs.runBuildDeployFunction
+    if: inputs.runCreateInfra || inputs.runBuildDeployWeb
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}
@@ -113,19 +113,19 @@ jobs:
       testApplication: true
       listFilesAfterBuild: true
 
-  build-func:
-    name: Build Function
-    if: inputs.runBuildDeployFunction
-    uses: ./.github/workflows/template-function-app-build.yml
-    secrets: inherit
-    with:
-      envCode: ${{ inputs.deployEnvironment }}
-      rootDirectory: '${{ vars.FUNC_PROJECT_FOLDER_NAME }}'
-      projectName: '${{ vars.FUNC_PROJECT_NAME }}'
-      testDirectory: '${{ vars.FUNC_TEST_FOLDER_NAME }}'
-      testProjectName: '${{ vars.FUNC_TEST_PROJECT_NAME }}'
-      testApplication: true
-      listFilesAfterBuild: true
+  # build-func:
+  #   name: Build Function
+  #   if: inputs.runBuildDeployFunction
+  #   uses: ./.github/workflows/template-function-app-build.yml
+  #   secrets: inherit
+  #   with:
+  #     envCode: ${{ inputs.deployEnvironment }}
+  #     rootDirectory: '${{ vars.FUNC_PROJECT_FOLDER_NAME }}'
+  #     projectName: '${{ vars.FUNC_PROJECT_NAME }}'
+  #     testDirectory: '${{ vars.FUNC_TEST_FOLDER_NAME }}'
+  #     testProjectName: '${{ vars.FUNC_TEST_PROJECT_NAME }}'
+  #     testApplication: true
+  #     listFilesAfterBuild: true
 
 # ------------------------------------------------------------------------------------------------------------------------
   deploy-webapp:
@@ -138,16 +138,16 @@ jobs:
       envCode: ${{ inputs.deployEnvironment }}
       listFilesBeforeDeploy: true
 
-  deploy-func:
-    name: Deploy Function
-    # the login seems to crash if you try to deploy both web and function at the same time...???
-    needs: [ build-func, create-infra, deploy-webapp ]
-    uses: ./.github/workflows/template-function-app-deploy.yml
-    if: inputs.runBuildDeployFunction
-    secrets: inherit
-    with:
-      envCode: ${{ inputs.deployEnvironment }}
-      listFilesBeforeDeploy: true
+  # deploy-func:
+  #   name: Deploy Function
+  #   # the login seems to crash if you try to deploy both web and function at the same time...???
+  #   needs: [ build-func, create-infra, deploy-webapp ]
+  #   uses: ./.github/workflows/template-function-app-deploy.yml
+  #   if: inputs.runBuildDeployFunction
+  #   secrets: inherit
+  #   with:
+  #     envCode: ${{ inputs.deployEnvironment }}
+  #     listFilesBeforeDeploy: true
      
 # ------------------------------------------------------------------------------------------------------------------------
   run-smoke-test:

@@ -47,16 +47,16 @@ jobs:
       testApplication: true
       listFilesAfterBuild: true
 
-# ------------------------------------------------------------------------------------------------------------------------
-  build-func:
-    name: Build Function App
-    uses: ./.github/workflows/template-function-app-build.yml
-    secrets: inherit
-    with:
-      envCode: 'dev'
-      rootDirectory: '${{ vars.FUNC_PROJECT_FOLDER_NAME }}'
-      projectName: '${{ vars.FUNC_PROJECT_NAME }}'
-      testDirectory: '${{ vars.FUNC_TEST_FOLDER_NAME }}'
-      testProjectName: '${{ vars.FUNC_TEST_PROJECT_NAME }}'
-      testApplication: true
-      listFilesAfterBuild: true
+# # ------------------------------------------------------------------------------------------------------------------------
+#   build-func:
+#     name: Build Function App
+#     uses: ./.github/workflows/template-function-app-build.yml
+#     secrets: inherit
+#     with:
+#       envCode: 'dev'
+#       rootDirectory: '${{ vars.FUNC_PROJECT_FOLDER_NAME }}'
+#       projectName: '${{ vars.FUNC_PROJECT_NAME }}'
+#       testDirectory: '${{ vars.FUNC_TEST_FOLDER_NAME }}'
+#       testProjectName: '${{ vars.FUNC_TEST_PROJECT_NAME }}'
+#       testApplication: true
+#       listFilesAfterBuild: true

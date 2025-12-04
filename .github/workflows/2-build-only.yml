@@ -13,10 +13,10 @@ on:
         description: Build and Deploy WebApp
         default: true
         type: boolean
-      runBuildDeployFunction:
-        description: Build and Deploy Function
-        default: true
-        type: boolean
+      # runBuildDeployFunction:
+      #   description: Build and Deploy Function
+      #   default: true
+      #   type: boolean
       runMSDevSecOpsScan:
         description: 'Run MS DevSecOps Scan'
         required: false
@@ -74,16 +74,16 @@ jobs:
       testApplication: true
       listFilesAfterBuild: true
 
-  build-func:
-    name: Build Function
-    if: inputs.runBuildDeployFunction
-    uses: ./.github/workflows/template-function-app-build.yml
-    secrets: inherit
-    with:
-      envCode: 'dev'
-      rootDirectory: '${{ vars.FUNC_PROJECT_FOLDER_NAME }}'
-      projectName: '${{ vars.FUNC_PROJECT_NAME }}'
-      testDirectory: '${{ vars.FUNC_TEST_FOLDER_NAME }}'
-      testProjectName: '${{ vars.FUNC_TEST_PROJECT_NAME }}'
-      testApplication: true
-      listFilesAfterBuild: true
+  # build-func:
+  #   name: Build Function
+  #   if: inputs.runBuildDeployFunction
+  #   uses: ./.github/workflows/template-function-app-build.yml
+  #   secrets: inherit
+  #   with:
+  #     envCode: 'dev'
+  #     rootDirectory: '${{ vars.FUNC_PROJECT_FOLDER_NAME }}'
+  #     projectName: '${{ vars.FUNC_PROJECT_NAME }}'
+  #     testDirectory: '${{ vars.FUNC_TEST_FOLDER_NAME }}'
+  #     testProjectName: '${{ vars.FUNC_TEST_PROJECT_NAME }}'
+  #     testApplication: true
+  #     listFilesAfterBuild: true

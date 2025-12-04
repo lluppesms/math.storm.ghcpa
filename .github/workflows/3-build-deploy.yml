@@ -21,10 +21,10 @@ on:
         description: Build and Deploy WebApp
         default: true
         type: boolean
-      runBuildDeployFunction:
-        description: Build and Deploy Function
-        default: true
-        type: boolean
+      # runBuildDeployFunction:
+      #   description: Build and Deploy Function
+      #   default: true
+      #   type: boolean
       runSmokeTest:
         description: Run Smoke Tests
         default: false
@@ -77,19 +77,19 @@ jobs:
       testApplication: true
       listFilesAfterBuild: true
 
-  build-func:
-    name: Build Function
-    if: inputs.runBuildDeployFunction
-    uses: ./.github/workflows/template-function-app-build.yml
-    secrets: inherit
-    with:
-      envCode: ${{ inputs.deployEnvironment }}
-      rootDirectory: '${{ vars.FUNC_PROJECT_FOLDER_NAME }}'
-      projectName: '${{ vars.FUNC_PROJECT_NAME }}'
-      testDirectory: '${{ vars.FUNC_TEST_FOLDER_NAME }}'
-      testProjectName: '${{ vars.FUNC_TEST_PROJECT_NAME }}'
-      testApplication: true
-      listFilesAfterBuild: true
+  # build-func:
+  #   name: Build Function
+  #   if: inputs.runBuildDeployFunction
+  #   uses: ./.github/workflows/template-function-app-build.yml
+  #   secrets: inherit
+  #   with:
+  #     envCode: ${{ inputs.deployEnvironment }}
+  #     rootDirectory: '${{ vars.FUNC_PROJECT_FOLDER_NAME }}'
+  #     projectName: '${{ vars.FUNC_PROJECT_NAME }}'
+  #     testDirectory: '${{ vars.FUNC_TEST_FOLDER_NAME }}'
+  #     testProjectName: '${{ vars.FUNC_TEST_PROJECT_NAME }}'
+  #     testApplication: true
+  #     listFilesAfterBuild: true
 
 # ------------------------------------------------------------------------------------------------------------------------
   deploy-webapp:
@@ -102,16 +102,16 @@ jobs:
       envCode: ${{ inputs.deployEnvironment }}
       listFilesBeforeDeploy: true
 
-  deploy-func:
-    name: Deploy Function
-    # the login seems to crash if you try to deploy both web and function at the same time...???
-    needs: [ build-func, deploy-webapp ]
-    uses: ./.github/workflows/template-function-app-deploy.yml
-    if: inputs.runBuildDeployFunction
-    secrets: inherit
-    with:
-      envCode: ${{ inputs.deployEnvironment }}
-      listFilesBeforeDeploy: true
+  # deploy-func:
+  #   name: Deploy Function
+  #   # the login seems to crash if you try to deploy both web and function at the same time...???
+  #   needs: [ build-func, deploy-webapp ]
+  #   uses: ./.github/workflows/template-function-app-deploy.yml
+  #   if: inputs.runBuildDeployFunction
+  #   secrets: inherit
+  #   with:
+  #     envCode: ${{ inputs.deployEnvironment }}
+  #     listFilesBeforeDeploy: true
      
 # ------------------------------------------------------------------------------------------------------------------------
   run-smoke-test:
