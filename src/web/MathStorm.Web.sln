@@ -7,11 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Web", "MathStorm.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Web.Tests", "MathStorm.Web.Tests\MathStorm.Web.Tests.csproj", "{C873D8FA-7771-46C0-800B-EA43C2934FC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Common", "..\common\MathStorm.Common\MathStorm.Common.csproj", "{12027443-3CC3-C6AB-7142-172881F6CDE1}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Core", "..\Core\MathStorm.Core.csproj", "{6E7EFCB8-CADA-4E24-9CC7-EF4EC857A66C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Services", "..\Services\MathStorm.Services.csproj", "{7B7AF961-84AD-49DC-9729-FBDB67016680}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,18 +23,10 @@ Global
 		{C873D8FA-7771-46C0-800B-EA43C2934FC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C873D8FA-7771-46C0-800B-EA43C2934FC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C873D8FA-7771-46C0-800B-EA43C2934FC5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{12027443-3CC3-C6AB-7142-172881F6CDE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{12027443-3CC3-C6AB-7142-172881F6CDE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{12027443-3CC3-C6AB-7142-172881F6CDE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{12027443-3CC3-C6AB-7142-172881F6CDE1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6E7EFCB8-CADA-4E24-9CC7-EF4EC857A66C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6E7EFCB8-CADA-4E24-9CC7-EF4EC857A66C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6E7EFCB8-CADA-4E24-9CC7-EF4EC857A66C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6E7EFCB8-CADA-4E24-9CC7-EF4EC857A66C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7B7AF961-84AD-49DC-9729-FBDB67016680}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7B7AF961-84AD-49DC-9729-FBDB67016680}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7B7AF961-84AD-49DC-9729-FBDB67016680}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7B7AF961-84AD-49DC-9729-FBDB67016680}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

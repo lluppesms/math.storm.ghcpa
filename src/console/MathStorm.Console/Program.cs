@@ -1,10 +1,9 @@
-using MathStorm.Services;
-
 Console.OutputEncoding = Encoding.UTF8;
 
 // Build configuration
 var configuration = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
+    .AddUserSecrets<Program>()
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .Build();
 

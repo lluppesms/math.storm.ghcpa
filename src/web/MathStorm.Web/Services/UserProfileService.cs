@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using Microsoft.JSInterop;
-using MathStorm.Common.DTOs;
-using MathStorm.Services;
+using MathStorm.Core.DTOs;
+using MathStorm.Core;
 
 namespace MathStorm.Web.Services;
 

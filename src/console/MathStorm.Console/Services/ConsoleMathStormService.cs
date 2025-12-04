@@ -1,5 +1,3 @@
-using MathStorm.Services;
-
 namespace MathStorm.Console.Services;
 
 public interface IConsoleMathStormService

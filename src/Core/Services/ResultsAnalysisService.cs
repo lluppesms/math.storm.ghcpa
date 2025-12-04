@@ -1,6 +1,6 @@
-using MathStorm.Common.Helpers;
+using MathStorm.Core.Helpers;
 
-namespace MathStorm.Services;
+namespace MathStorm.Core;
 
 public class ResultsAnalysisService : IResultsAnalysisService
 {

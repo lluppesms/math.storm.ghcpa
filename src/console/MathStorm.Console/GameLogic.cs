@@ -45,7 +45,7 @@ public class GameLogic
                     .Title("What would you like to do?")
                     .AddChoices([
                         "🎮 Play a Game",
-                        "🏆 View Leaderboard", 
+                        "🏆 View Leaderboard",
                         "🚪 Exit"
                     ]));
 
@@ -84,7 +84,7 @@ public class GameLogic
                 .Title("Select [green]difficulty level[/]:")
                 .AddChoices([
                     "🌱 Beginner - 5 questions, 2-digit numbers, Addition & Subtraction only",
-                    "🚀 Novice - 5 questions, 2-digit numbers, All operations", 
+                    "🚀 Novice - 5 questions, 2-digit numbers, All operations",
                     "🔥 Intermediate - 10 questions, 3-digit numbers, All operations",
                     "⚡ Expert - 10 questions, 4-digit numbers, All operations"
                 ]));
@@ -92,7 +92,7 @@ public class GameLogic
         var difficulty = difficultyChoice switch
         {
             var s when s.Contains("Beginner") => Difficulty.Beginner,
-            var s when s.Contains("Novice") => Difficulty.Novice, 
+            var s when s.Contains("Novice") => Difficulty.Novice,
             var s when s.Contains("Intermediate") => Difficulty.Intermediate,
             var s when s.Contains("Expert") => Difficulty.Expert,
             _ => Difficulty.Expert
@@ -156,7 +156,7 @@ public class GameLogic
                 .Header("[blue]Math Problem[/]")
                 .Border(BoxBorder.Double)
                 .BorderColor(Color.Blue);
-            
+
             AnsiConsole.Write(panel);
             AnsiConsole.WriteLine();
 
@@ -288,7 +288,7 @@ public class GameLogic
                     "🌟 All Difficulties",
                     "🌱 Beginner Only",
                     "🚀 Novice Only",
-                    "⚡ Expert Only", 
+                    "⚡ Expert Only",
                     "🔥 Intermediate Only"
                 ]));
 
@@ -296,7 +296,7 @@ public class GameLogic
         {
             var s when s.Contains("Beginner") => "Beginner",
             var s when s.Contains("Novice") => "Novice",
-            var s when s.Contains("Expert") => "Expert", 
+            var s when s.Contains("Expert") => "Expert",
             var s when s.Contains("Intermediate") => "Intermediate",
             _ => null
         };
@@ -334,7 +334,7 @@ public class GameLogic
             var rankDisplay = rank switch
             {
                 1 => "[gold1]🥇 1st[/]",
-                2 => "[silver]🥈 2nd[/]", 
+                2 => "[silver]🥈 2nd[/]",
                 3 => "[orange1]🥉 3rd[/]",
                 _ => $"[white]{rank}[/]"
             };

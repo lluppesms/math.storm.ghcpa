@@ -1,6 +1,6 @@
 using MathStorm.Web.Components;
 using MathStorm.Web.Services;
-using MathStorm.Services;
+using MathStorm.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 

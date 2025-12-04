@@ -1,6 +1,6 @@
-global using MathStorm.Common.DTOs;
-global using MathStorm.Common.Models;
-global using MathStorm.Common.Services;
+global using MathStorm.Core.DTOs;
+global using MathStorm.Core.Models;
+global using MathStorm.Core.Services;
 global using MathStorm.Core.Services;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Logging;
