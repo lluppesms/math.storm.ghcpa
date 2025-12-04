@@ -20,10 +20,8 @@ if (!string.IsNullOrEmpty(appInsightsConnectionString))
 }
 
 // Add MathStorm services (direct calls instead of Azure Functions HTTP calls)
+// This registers IGameService, IMathStormService, ICosmosDbService, IResultsAnalysisService
 builder.Services.AddMathStormServices(builder.Configuration);
-
-// Add game service that uses the local MathStorm service
-builder.Services.AddScoped<MathStorm.Common.Services.IGameService, MathStorm.Web.Services.GameService>();
 
 // Add user profile service
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
