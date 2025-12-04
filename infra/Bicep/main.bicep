@@ -16,8 +16,6 @@ param servicePlanResourceGroupName string = '' // if using an existing service p
 param webAppKind string = 'linux' // 'linux' or 'windows'
 param webSiteSku string = 'B1'
 
-param storageSku string = 'Standard_LRS'
-
 param OpenAI_Endpoint string
 @secure()
 param OpenAI_ApiKey string

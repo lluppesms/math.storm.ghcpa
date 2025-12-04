@@ -100,7 +100,7 @@ public class GameLogic
 
         AnsiConsole.MarkupLine($"\n[green]Starting {difficulty} game...[/] 🎯");
 
-        // Get game using direct service call (no HTTP needed anymore)
+        // Get game using direct service call
         var gameData = _mathStormService.GetGame(difficulty);
         GameSession? gameSession = null;
         string gameId = string.Empty;
