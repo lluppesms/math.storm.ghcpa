@@ -5,9 +5,11 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>dc43527a-62c4-4289-a6f3-ae94a64e99d3</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
     <PackageReference Include="Spectre.Console" Version="0.54.0" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.53.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
@@ -19,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\common\MathStorm.Common\MathStorm.Common.csproj" />
+    <ProjectReference Include="..\..\Core\MathStorm.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

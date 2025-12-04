@@ -1,5 +1,6 @@
 using MathStorm.Web.Components;
 using MathStorm.Web.Services;
+using MathStorm.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,19 +19,9 @@ if (!string.IsNullOrEmpty(appInsightsConnectionString))
     });
 }
 
-// Read base URL from configuration
-var baseUrl = builder.Configuration.GetValue<string>("FunctionService:BaseUrl");
-// Add the HttpClient instance to the service container
-builder.Services.AddSingleton(new HttpClient
-{
-    BaseAddress = new Uri(baseUrl)
-});
-
-// Add function-based game service (calls Azure Functions for all game operations)
-builder.Services.AddScoped<MathStorm.Common.Services.IGameService, MathStorm.Web.Services.GameService>();
-
-// Add function service
-builder.Services.AddScoped<IRemoteFunctionsService, RemoteFunctionsService>();
+// Add MathStorm services (direct calls instead of Azure Functions HTTP calls)
+// This registers IGameService, IMathStormService, ICosmosDbService, IResultsAnalysisService
+builder.Services.AddMathStormServices(builder.Configuration);
 
 // Add user profile service
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();

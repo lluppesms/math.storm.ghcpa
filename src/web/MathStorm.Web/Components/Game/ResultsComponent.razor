@@ -1,7 +1,7 @@
 @rendermode InteractiveServer
-@inject MathStorm.Web.Services.IRemoteFunctionsService FunctionService
+@inject MathStorm.Core.IMathStormService MathStormService
 @using MathStorm.Web.Components.Game
-@using MathStorm.Common.DTOs
+@using MathStorm.Core.DTOs
 
 <div class="row">
     <div class="col">
@@ -174,6 +174,7 @@
         }
         catch (Exception ex)
         {
+            var errorMessage = ex.Message;
             // Handle gracefully - log error but don't show to user
             // Game submission or leaderboard failure shouldn't break the results display
         }
@@ -215,7 +216,7 @@
             };
 
             // Submit game results to Function API (if available)
-            var response = await FunctionService.SubmitGameResultsAsync(request);
+            var response = await MathStormService.SubmitGameResultsAsync(request);
 
             if (response != null)
             {
@@ -223,7 +224,7 @@
                 userMadeLeaderboard = response.AddedToLeaderboard;
 
                 // Get updated leaderboard
-                var leaderboardResponse = await FunctionService.GetLeaderboardAsync(GameSession.Difficulty.ToString());
+                var leaderboardResponse = await MathStormService.GetLeaderboardAsync(GameSession.Difficulty.ToString());
                 if (leaderboardResponse?.Entries != null)
                 {
                     leaderboardEntries = leaderboardResponse.Entries.Select(e => new LeaderboardEntry
@@ -314,14 +315,14 @@
                 UserMadeLeaderboard = userMadeLeaderboard
             };
 
-            var analysisResponse = await FunctionService.AnalyzeGameResultsAsync(analysisRequest);
+            var analysisResponse = await MathStormService.AnalyzeGameResultsAsync(analysisRequest);
 
             if (analysisResponse != null && !string.IsNullOrEmpty(analysisResponse.Analysis))
             {
                 analysisResult = analysisResponse.Analysis;
 
                 // Step 3: Update the game record with the analysis
-                await FunctionService.UpdateGameAnalysisAsync(gameId, analysisResponse.Analysis);
+                await MathStormService.UpdateGameAnalysisAsync(gameId, analysisResponse.Analysis);
             }
             else
             {
@@ -333,7 +334,7 @@
                 selectedPersonalityDisplay = "System";
 
                 // Still try to update the game record with mock analysis
-                await FunctionService.UpdateGameAnalysisAsync(gameId, analysisResult);
+                await MathStormService.UpdateGameAnalysisAsync(gameId, analysisResult);
             }
         }
         catch (Exception)

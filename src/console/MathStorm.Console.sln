@@ -1,10 +1,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.8.34112.27
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11222.16 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MathStorm.Console", "MathStorm.Console\MathStorm.Console.csproj", "{B3E2F2A8-5F3A-4D2C-9A7E-1B4C2D3F4E5F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MathStorm.Common", "..\common\MathStorm.Common\MathStorm.Common.csproj", "{A1B2C3D4-5E6F-7A8B-9C0D-1E2F3A4B5C6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MathStorm.Core", "..\Core\MathStorm.Core.csproj", "{1A3BBC56-FB90-4E97-93AB-831690D5EAFF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,10 +16,10 @@ Global
 		{B3E2F2A8-5F3A-4D2C-9A7E-1B4C2D3F4E5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3E2F2A8-5F3A-4D2C-9A7E-1B4C2D3F4E5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B3E2F2A8-5F3A-4D2C-9A7E-1B4C2D3F4E5F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A1B2C3D4-5E6F-7A8B-9C0D-1E2F3A4B5C6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A1B2C3D4-5E6F-7A8B-9C0D-1E2F3A4B5C6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A1B2C3D4-5E6F-7A8B-9C0D-1E2F3A4B5C6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A1B2C3D4-5E6F-7A8B-9C0D-1E2F3A4B5C6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A3BBC56-FB90-4E97-93AB-831690D5EAFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A3BBC56-FB90-4E97-93AB-831690D5EAFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A3BBC56-FB90-4E97-93AB-831690D5EAFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A3BBC56-FB90-4E97-93AB-831690D5EAFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,10 +1,10 @@
 @page "/leaderboard"
 @rendermode InteractiveServer
-@inject MathStorm.Web.Services.IRemoteFunctionsService FunctionService
+@inject MathStorm.Core.IMathStormService MathStormService
 @inject IJSRuntime JSRuntime
 @using MathStorm.Web.Services
 @using MathStorm.Web.Components.Game
-@using MathStorm.Common.DTOs
+@using MathStorm.Core.DTOs
 
 <PageTitle>Leaderboard - Math Storm</PageTitle>
 
@@ -357,7 +357,7 @@
 
         try
         {
-            var game = await FunctionService.GetGameByIdAsync(gameId);
+            var game = await MathStormService.GetGameByIdAsync(gameId);
             currentGame = game;
         }
         catch (Exception)
@@ -392,7 +392,7 @@
         
         try
         {
-            var response = await FunctionService.GetLeaderboardAsync(selectedDifficulty.ToString(), 10);
+            var response = await MathStormService.GetLeaderboardAsync(selectedDifficulty.ToString(), 10);
             if (response?.Entries != null)
             {
                 leaderboardEntries = response.Entries.Select(e => new LeaderboardEntry
@@ -435,7 +435,7 @@
         
         try
         {
-            var response = await FunctionService.GetLeaderboardAsync(null, 10);
+            var response = await MathStormService.GetLeaderboardAsync(null, 10);
             if (response?.Entries != null)
             {
                 globalLeaderboardEntries = response.Entries.Select(e => new LeaderboardEntry
