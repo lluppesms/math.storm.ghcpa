@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11222.16 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Web", "MathStorm.Web\MathStorm.Web.csproj", "{C52BC286-99A5-4D70-AA05-2A9571F9B970}"
 EndProject
@@ -9,9 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Web.Tests", "Math
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Common", "..\common\MathStorm.Common\MathStorm.Common.csproj", "{12027443-3CC3-C6AB-7142-172881F6CDE1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Core", "..\Core\MathStorm.Core.csproj", "{E1F2G3H4-I5J6-K7L8-M9N0-O1P2Q3R4S5T6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Core", "..\Core\MathStorm.Core.csproj", "{6E7EFCB8-CADA-4E24-9CC7-EF4EC857A66C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Services", "..\Services\MathStorm.Services.csproj", "{U7V8W9X0-Y1Z2-A3B4-C5D6-E7F8G9H0I1J2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Services", "..\Services\MathStorm.Services.csproj", "{7B7AF961-84AD-49DC-9729-FBDB67016680}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,16 +31,19 @@ Global
 		{12027443-3CC3-C6AB-7142-172881F6CDE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12027443-3CC3-C6AB-7142-172881F6CDE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12027443-3CC3-C6AB-7142-172881F6CDE1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E1F2G3H4-I5J6-K7L8-M9N0-O1P2Q3R4S5T6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E1F2G3H4-I5J6-K7L8-M9N0-O1P2Q3R4S5T6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E1F2G3H4-I5J6-K7L8-M9N0-O1P2Q3R4S5T6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E1F2G3H4-I5J6-K7L8-M9N0-O1P2Q3R4S5T6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{U7V8W9X0-Y1Z2-A3B4-C5D6-E7F8G9H0I1J2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{U7V8W9X0-Y1Z2-A3B4-C5D6-E7F8G9H0I1J2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{U7V8W9X0-Y1Z2-A3B4-C5D6-E7F8G9H0I1J2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{U7V8W9X0-Y1Z2-A3B4-C5D6-E7F8G9H0I1J2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E7EFCB8-CADA-4E24-9CC7-EF4EC857A66C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E7EFCB8-CADA-4E24-9CC7-EF4EC857A66C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E7EFCB8-CADA-4E24-9CC7-EF4EC857A66C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E7EFCB8-CADA-4E24-9CC7-EF4EC857A66C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B7AF961-84AD-49DC-9729-FBDB67016680}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B7AF961-84AD-49DC-9729-FBDB67016680}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B7AF961-84AD-49DC-9729-FBDB67016680}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B7AF961-84AD-49DC-9729-FBDB67016680}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5B6A4F60-7183-4E6C-9FF8-A244F9FA142F}
 	EndGlobalSection
 EndGlobal
