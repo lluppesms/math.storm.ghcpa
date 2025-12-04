@@ -1,5 +1,6 @@
 @rendermode InteractiveServer
 @inject MathStorm.Core.IMathStormService MathStormService
+@inject ILogger<ResultsComponent> Logger
 @using MathStorm.Web.Components.Game
 @using MathStorm.Core.DTOs
 
@@ -244,9 +245,10 @@
                 await ProcessAnalysisInBackground(gameId, username, userId);
             }
         }
-        catch
+        catch (Exception ex)
         {
             // Handle error gracefully - still show results even if leaderboard fails
+            Logger.LogWarning(ex, "Failed to submit game results for user {Username}", username);
             showLeaderboard = false;
         }
     }
@@ -308,9 +310,10 @@
                 await MathStormService.UpdateGameAnalysisAsync(gameId, analysisResult);
             }
         }
-        catch
+        catch (Exception ex)
         {
             // Handle gracefully - don't show error to user
+            Logger.LogWarning(ex, "Failed to process game analysis for game {GameId}", gameId);
             analysisResult = $"Great job completing the game, {username}! " +
                            $"You scored {GameSession.TotalScore:F1} points. Keep practicing!";
             selectedPersonalityDisplay = "System";
