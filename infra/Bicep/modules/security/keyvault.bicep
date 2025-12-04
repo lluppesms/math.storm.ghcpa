@@ -44,10 +44,10 @@ param createUserAssignedIdentity bool = true
 @description('Override the default user assigned identity user name if you need to')
 param userAssignedIdentityName string = '${keyVaultName}-cicd'
 
-@description('Create a user assigned identity that DAPR can use to read secrets')
-param createDaprIdentity bool = false
-@description('Override the default DAPR identity user name if you need to')
-param daprIdentityName string = '${keyVaultName}-dapr'
+// @description('Create a user assigned identity that DAPR can use to read secrets')
+// param createDaprIdentity bool = false
+// @description('Override the default DAPR identity user name if you need to')
+// param daprIdentityName string = '${keyVaultName}-dapr'
 
 // Role assignments centralized in the iam/role-assignments.bicep file...
 // @description('Optional array of role assignments')
@@ -288,5 +288,5 @@ output name string = useExistingVault ? existingKeyVaultResource.name : keyVault
 output resourceGroupName string = useExistingVault ? existingKeyVaultResourceGroupName : resourceGroup().name
 output id string = useExistingVault ? existingKeyVaultResource.id : keyVaultResource.id
 output userManagedIdentityId string = useExistingVault ? '' : createUserAssignedIdentity ? userAssignedIdentity.id : ''
-output endpoint string = useExistingVault ? existingKeyVaultResource.properties.vaultUri : keyVaultResource.properties.vaultUri
+// output endpoint string = useExistingVault ? existingKeyVaultResource.properties.vaultUri : keyVaultResource.properties.vaultUri
 // output privateEndpointName string = useExistingVault ? '' : privateEndpointName
