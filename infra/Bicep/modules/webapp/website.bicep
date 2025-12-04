@@ -167,7 +167,7 @@ resource webSiteAuditLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-p
 //     // ]    
 //   }
 // }
-output principalId string = webSiteResource.identity.principalId
+// output principalId string = webSiteResource.identity.principalId
 output name string = webSiteName
 output hostName string = webSiteResource.properties.defaultHostName
 output webappAppPrincipalId string = managedIdentityPrincipalId
