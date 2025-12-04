@@ -1,11 +1,11 @@
 param newLogAnalyticsName string = ''
 param newWebApplicationInsightsName string = ''
-param newFunctionApplicationInsightsName string = ''
+// param newFunctionApplicationInsightsName string = ''
 
 param existingLogAnalyticsName string = ''
 param existingLogAnalyticsRgName string = ''
 param existingWebApplicationInsightsName string = ''
-param existingFunctionApplicationInsightsName string = ''
+// param existingFunctionApplicationInsightsName string = ''
 
 param location string = resourceGroup().location
 param tags object = {}
@@ -18,7 +18,7 @@ param publicNetworkAccessForQuery string = 'Enabled'
 
 var useExistingLogAnalytics = !empty(existingLogAnalyticsName)
 var useWebExistingAppInsights = !empty(existingWebApplicationInsightsName)
-var useFunctionExistingAppInsights = !empty(existingFunctionApplicationInsightsName)
+// var useFunctionExistingAppInsights = !empty(existingFunctionApplicationInsightsName)
 
 resource existingLogAnalyticsResource 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = if (useExistingLogAnalytics) {
   name: existingLogAnalyticsName
@@ -58,21 +58,21 @@ resource newWebApplicationInsightsResource 'Microsoft.Insights/components@2020-0
   }
 }
 
-resource existingFunctionApplicationInsightsResource 'Microsoft.Insights/components@2020-02-02' existing = if (useFunctionExistingAppInsights) {
-  name: existingFunctionApplicationInsightsName
-}
-resource newFunctionApplicationInsightsResource 'Microsoft.Insights/components@2020-02-02' = if (!useFunctionExistingAppInsights) {
-  name: newFunctionApplicationInsightsName
-  location: location
-  tags: tags
-  kind: 'web'
-  properties: {
-    Application_Type: 'web'
-    WorkspaceResourceId: newLogAnalyticsResource.id
-    publicNetworkAccessForIngestion: publicNetworkAccessForIngestion
-    publicNetworkAccessForQuery: publicNetworkAccessForQuery
-  }
-}
+// resource existingFunctionApplicationInsightsResource 'Microsoft.Insights/components@2020-02-02' existing = if (useFunctionExistingAppInsights) {
+//   name: existingFunctionApplicationInsightsName
+// }
+// resource newFunctionApplicationInsightsResource 'Microsoft.Insights/components@2020-02-02' = if (!useFunctionExistingAppInsights) {
+//   name: newFunctionApplicationInsightsName
+//   location: location
+//   tags: tags
+//   kind: 'web'
+//   properties: {
+//     Application_Type: 'web'
+//     WorkspaceResourceId: newLogAnalyticsResource.id
+//     publicNetworkAccessForIngestion: publicNetworkAccessForIngestion
+//     publicNetworkAccessForQuery: publicNetworkAccessForQuery
+//   }
+// }
 
 
 // resource azureMonitorPrivateLinkScope 'Microsoft.Insights/privateLinkScopes@2021-07-01-preview' existing = if (!empty(azureMonitorPrivateLinkScopeName)) {
@@ -100,7 +100,7 @@ output webApplicationInsightsName string = useWebExistingAppInsights ? existingW
 output webAppInsightsConnectionString string = useWebExistingAppInsights ? existingWebApplicationInsightsResource.properties.ConnectionString : newWebApplicationInsightsResource.properties.ConnectionString
 output webAppInsightsInstrumentationKey string = useWebExistingAppInsights ? existingWebApplicationInsightsResource.properties.InstrumentationKey : newWebApplicationInsightsResource.properties.InstrumentationKey
 
-output functionApplicationInsightsId string = useFunctionExistingAppInsights ? existingFunctionApplicationInsightsResource.id : newFunctionApplicationInsightsResource.id
-output functionApplicationInsightsName string = useFunctionExistingAppInsights ? existingFunctionApplicationInsightsResource.name : newFunctionApplicationInsightsResource.name
-output functionAppInsightsConnectionString string = useFunctionExistingAppInsights ? existingFunctionApplicationInsightsResource.properties.ConnectionString : newFunctionApplicationInsightsResource.properties.ConnectionString
-output functionAppInsightsInstrumentationKey string = useFunctionExistingAppInsights ? existingFunctionApplicationInsightsResource.properties.InstrumentationKey : newFunctionApplicationInsightsResource.properties.InstrumentationKey
+// output functionApplicationInsightsId string = useFunctionExistingAppInsights ? existingFunctionApplicationInsightsResource.id : newFunctionApplicationInsightsResource.id
+// output functionApplicationInsightsName string = useFunctionExistingAppInsights ? existingFunctionApplicationInsightsResource.name : newFunctionApplicationInsightsResource.name
+// output functionAppInsightsConnectionString string = useFunctionExistingAppInsights ? existingFunctionApplicationInsightsResource.properties.ConnectionString : newFunctionApplicationInsightsResource.properties.ConnectionString
+// output functionAppInsightsInstrumentationKey string = useFunctionExistingAppInsights ? existingFunctionApplicationInsightsResource.properties.InstrumentationKey : newFunctionApplicationInsightsResource.properties.InstrumentationKey

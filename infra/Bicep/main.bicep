@@ -26,15 +26,15 @@ param OpenAI_ApiKey string
 @description('Add Role Assignments for the user assigned identity?')
 param addRoleAssignments bool = true
 @description('Should resources be created with public access?')
-param publicAccessEnabled bool = true
-@description('Should we deploy Cosmos DB?')
+// param publicAccessEnabled bool = true
+// @description('Should we deploy Cosmos DB?')
 param deployCosmos bool = true
 
 // --------------------------------------------------------------------------------------------------------------
 // Personal info Parameters
 // --------------------------------------------------------------------------------------------------------------
-@description('My IP address for network access')
-param myIpAddress string = ''
+// @description('My IP address for network access')
+// param myIpAddress string = ''
 @description('Id of the user executing the deployment')
 param principalId string = ''
 
@@ -60,7 +60,7 @@ module resourceNames 'resourcenames.bicep' = {
   params: {
     appName: appName
     environmentCode: environmentCode
-    environmentSpecificFunctionName: ''
+    // environmentSpecificFunctionName: ''
   }
 }
 // --------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ module logAnalyticsWorkspaceModule 'modules/monitor/loganalytics.bicep' = {
   params: {
     newLogAnalyticsName: resourceNames.outputs.logAnalyticsWorkspaceName
     newWebApplicationInsightsName: resourceNames.outputs.webSiteAppInsightsName
-    newFunctionApplicationInsightsName: '' // No longer deploying functions
+    // newFunctionApplicationInsightsName: '' // No longer deploying functions
     location: location
     tags: commonTags
   }
@@ -116,7 +116,7 @@ module appIdentityRoleAssignments './modules/iam/role-assignments.bicep' = if (a
     principalType: 'ServicePrincipal'
     cosmosName: cosmosModule.outputs.name
     keyVaultName: keyVaultModule.outputs.name
-    storageAccountName: '' // No function storage needed
+    // storageAccountName: '' // No function storage needed
   }
 }
 
@@ -127,7 +127,7 @@ module adminUserRoleAssignments './modules/iam/role-assignments.bicep' = if (add
     principalType: 'User'
     cosmosName: cosmosModule.outputs.name
     keyVaultName: keyVaultModule.outputs.name
-    storageAccountName: '' // No function storage needed
+    // storageAccountName: '' // No function storage needed
   }
 }
 
