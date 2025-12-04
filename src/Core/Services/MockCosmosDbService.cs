@@ -12,13 +12,12 @@ public class MockCosmosDbService : ICosmosDbService
         return Task.FromResult(user);
     }
 
-    public Task<GameUser> CreateUserAsync(string username, string? pin = null)
+    public Task<GameUser> CreateUserAsync(string username)
     {
         var user = new GameUser
         {
             Id = Guid.NewGuid().ToString(),
             Username = username,
-            Pin = pin,
             GamesPlayed = 0,
             TotalScore = 0,
             BestScore = 0,
@@ -27,24 +26,6 @@ public class MockCosmosDbService : ICosmosDbService
         };
         _users.Add(user);
         return Task.FromResult(user);
-    }
-
-    public Task<bool> ValidateUserAsync(string username, string? pin)
-    {
-        var user = _users.FirstOrDefault(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
-        if (user == null)
-        {
-            return Task.FromResult(false);
-        }
-
-        // If user has no PIN set, they can log in without PIN
-        if (string.IsNullOrEmpty(user.Pin))
-        {
-            return Task.FromResult(true);
-        }
-
-        // If user has PIN set, provided PIN must match
-        return Task.FromResult(user.Pin == pin);
     }
 
     public Task<GameUser> UpdateUserAsync(GameUser user)

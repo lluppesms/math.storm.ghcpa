@@ -10,7 +10,7 @@ public interface IUserProfileService
     Task<UserProfileDto?> GetStoredProfileAsync();
     Task SaveProfileAsync(UserProfileDto profile);
     Task ClearProfileAsync();
-    Task<UserAuthResponseDto?> AuthenticateAsync(string username, string? pin = null);
+    Task<UserAuthResponseDto?> AuthenticateAsync(string username);
 }
 
 public class UserProfileService : IUserProfileService
@@ -78,14 +78,13 @@ public class UserProfileService : IUserProfileService
         }
     }
 
-    public async Task<UserAuthResponseDto?> AuthenticateAsync(string username, string? pin = null)
+    public async Task<UserAuthResponseDto?> AuthenticateAsync(string username)
     {
         try
         {
             var request = new UserAuthRequestDto
             {
-                Username = username.Trim(),
-                Pin = string.IsNullOrWhiteSpace(pin) ? null : pin.Trim()
+                Username = username.Trim()
             };
 
             var response = await _mathStormService.AuthenticateUserAsync(request);

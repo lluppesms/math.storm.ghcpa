@@ -3,6 +3,11 @@
 @using MathStorm.Web.Components.Game
 @using MathStorm.Core.DTOs
 
+<UsernamePromptComponent IsVisible="@showUsernamePrompt" 
+                         TotalScore="@GameSession.TotalScore"
+                         OnSave="HandleSaveScore"
+                         OnSkip="HandleSkipSave" />
+
 <div class="row">
     <div class="col">
         <div class="text-center mb-4">
@@ -117,7 +122,6 @@
 
 @code {
     [Parameter] public GameSession GameSession { get; set; } = new();
-    [Parameter] public UserAuthResponseDto? CurrentUser { get; set; }
     [Parameter] public EventCallback OnRestartGame { get; set; }
 
     private bool showLeaderboard = false;
@@ -125,80 +129,44 @@
     private string? currentUserId;
     private bool userMadeLeaderboard = false;
 
+    // Username prompt state
+    private bool showUsernamePrompt = true;
+    private string? savedUsername;
+
     // Analysis state
     private bool isAnalysisLoading = false;
     private string analysisResult = string.Empty;
     private string selectedPersonalityDisplay = string.Empty;
 
-    // Background processing state
-    private bool isBackgroundProcessing = false;
-
-    protected override async Task OnInitializedAsync()
+    private async Task HandleSaveScore(string username)
     {
-        // Show results immediately, no prompt needed
-        // Start background processing for leaderboard and analysis
-        await StartBackgroundProcessing();
-    }
-
-    private async Task StartBackgroundProcessing()
-    {
-        if (CurrentUser == null)
-        {
-            // No user authenticated, just show basic results
-            return;
-        }
-
-        isBackgroundProcessing = true;
+        savedUsername = username;
+        showUsernamePrompt = false;
         StateHasChanged();
-
-        try
-        {
-            // // Step 1: Submit game results and store game record
-            // var gameId = await SubmitGameResults();
-            // // Step 2: Start analysis in background (async, don't wait)
-            // if (!string.IsNullOrEmpty(gameId))
-            // {
-            //     _ = Task.Run(async () => await ProcessAnalysisInBackground(gameId));
-            // }
-
-            // Submit game results and get leaderboard
-            var gameId = await SubmitGameResults();
-
-            // Start analysis in background
-            if (!string.IsNullOrEmpty(gameId))
-            {
-                var analysisTask = ProcessAnalysisInBackground(gameId);
-                // Wait for analysis to complete
-                await analysisTask;
-            }
-        }
-        catch (Exception ex)
-        {
-            var errorMessage = ex.Message;
-            // Handle gracefully - log error but don't show to user
-            // Game submission or leaderboard failure shouldn't break the results display
-        }
-        finally
-        {
-            isBackgroundProcessing = false;
-            StateHasChanged();
-        }
+        
+        // Now submit game results with the provided username
+        await SubmitGameResultsWithUsername(username);
     }
 
-    private async Task<string?> SubmitGameResults()
+    private void HandleSkipSave()
     {
-        if (CurrentUser == null) return null;
+        showUsernamePrompt = false;
+        StateHasChanged();
+    }
 
+    private async Task SubmitGameResultsWithUsername(string username)
+    {
         try
         {
             var gameId = Guid.NewGuid().ToString();
+            var userId = Guid.NewGuid().ToString();
 
             // Create request DTO
             var request = new GameResultsRequestDto
             {
                 GameId = gameId,
-                UserId = CurrentUser.UserId,
-                Username = CurrentUser.Username,
+                UserId = userId,
+                Username = username,
                 Difficulty = GameSession.Difficulty.ToString(),
                 Questions = GameSession.Questions.Select(q => new QuestionResultDto
                 {
@@ -220,7 +188,7 @@
 
             if (response != null)
             {
-                currentUserId = CurrentUser.UserId;
+                currentUserId = userId;
                 userMadeLeaderboard = response.AddedToLeaderboard;
 
                 // Get updated leaderboard
@@ -246,20 +214,22 @@
 
                 showLeaderboard = true;
                 StateHasChanged();
-                return gameId;
+                
+                // Start analysis in background
+                await ProcessAnalysisInBackground(gameId, username, userId);
             }
             else
             {
                 // Function service unavailable - create mock leaderboard entry
-                currentUserId = CurrentUser.UserId;
+                currentUserId = userId;
                 userMadeLeaderboard = true; // Mock that user made leaderboard
                 leaderboardEntries = new List<LeaderboardEntry>
                 {
                     new LeaderboardEntry
                     {
                         Id = Guid.NewGuid().ToString(),
-                        UserId = CurrentUser.UserId,
-                        Username = CurrentUser.Username,
+                        UserId = userId,
+                        Username = username,
                         GameId = gameId,
                         Difficulty = GameSession.Difficulty.ToString(),
                         Score = GameSession.TotalScore,
@@ -269,20 +239,21 @@
                 };
                 showLeaderboard = true;
                 StateHasChanged();
-                return gameId;
+                
+                // Start analysis in background
+                await ProcessAnalysisInBackground(gameId, username, userId);
             }
         }
-        catch (Exception)
+        catch
         {
             // Handle error gracefully - still show results even if leaderboard fails
             showLeaderboard = false;
-            return null;
         }
     }
 
-    private async Task ProcessAnalysisInBackground(string gameId)
+    private async Task ProcessAnalysisInBackground(string gameId, string username, string userId)
     {
-        if (CurrentUser == null || string.IsNullOrEmpty(gameId)) return;
+        if (string.IsNullOrEmpty(gameId)) return;
 
         try
         {
@@ -296,7 +267,7 @@
             var analysisRequest = new ResultsAnalysisRequestDto
             {
                 GameId = gameId,
-                Username = CurrentUser.Username,
+                Username = username,
                 Difficulty = GameSession.Difficulty.ToString(),
                 TotalScore = GameSession.TotalScore,
                 Questions = GameSession.Questions.Select(q => new QuestionResultDto
@@ -327,7 +298,7 @@
             else
             {
                 // Function service unavailable - create mock analysis
-                analysisResult = $"Great job completing the {GameSession.Difficulty} level game, {CurrentUser.Username}! " +
+                analysisResult = $"Great job completing the {GameSession.Difficulty} level game, {username}! " +
                                $"You scored {GameSession.TotalScore:F1} points. " +
                                $"Keep practicing to improve your math skills! " +
                                $"(Note: Yes - this analysis is lame because all of our actual analysts are currently unavailable!)";
@@ -337,10 +308,10 @@
                 await MathStormService.UpdateGameAnalysisAsync(gameId, analysisResult);
             }
         }
-        catch (Exception)
+        catch
         {
             // Handle gracefully - don't show error to user
-            analysisResult = $"Great job completing the game, {CurrentUser.Username}! " +
+            analysisResult = $"Great job completing the game, {username}! " +
                            $"You scored {GameSession.TotalScore:F1} points. Keep practicing!";
             selectedPersonalityDisplay = "System";
         }
@@ -385,18 +356,6 @@
             MathOperation.Multiplication => "text-success",
             MathOperation.Division => "text-info",
             _ => "text-muted"
-        };
-    }
-
-    private string GetOperationIcon(MathOperation operation)
-    {
-        return operation switch
-        {
-            MathOperation.Addition => "fas fa-plus text-primary",
-            MathOperation.Subtraction => "fas fa-minus text-warning",
-            MathOperation.Multiplication => "fas fa-times text-success",
-            MathOperation.Division => "fas fa-divide text-info",
-            _ => "fas fa-question text-muted"
         };
     }
 

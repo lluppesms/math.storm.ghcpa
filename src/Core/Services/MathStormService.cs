@@ -230,27 +230,17 @@ public class MathStormService : IMathStormService
         if (existingUser == null)
         {
             // Create new user
-            var newUser = await _cosmosDbService.CreateUserAsync(request.Username, request.Pin);
+            var newUser = await _cosmosDbService.CreateUserAsync(request.Username);
             response.IsAuthenticated = true;
             response.IsNewUser = true;
             response.UserId = newUser.Id;
         }
         else
         {
-            // Validate existing user
-            var isValid = await _cosmosDbService.ValidateUserAsync(request.Username, request.Pin);
-            if (isValid)
-            {
-                response.IsAuthenticated = true;
-                response.IsNewUser = false;
-                response.UserId = existingUser.Id;
-            }
-            else
-            {
-                response.IsAuthenticated = false;
-                response.IsNewUser = false;
-                response.ErrorMessage = "Invalid PIN for existing user";
-            }
+            // User exists, authenticate them
+            response.IsAuthenticated = true;
+            response.IsNewUser = false;
+            response.UserId = existingUser.Id;
         }
 
         return response;
