@@ -1,0 +1,41 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# GHA Workflow to Scan Bicep on a schedule
+# ------------------------------------------------------------------------------------------------------------------------
+# Right now, in this initial version, it accepts the following inputs:
+# - token: The GitHub token to use for authentication. (required)
+# - days-ago: The number of days ago to delete the runs. (required)
+# - dry-run: If set to true, the Action will only list the runs to be deleted without actually deleting them. (optional, default: false)
+# - keep-latest: The number of latest runs to keep. (optional, default: 0)
+# ------------------------------------------------------------------------------------------------------------------------
+name: 8.delete.old.runs
+run-name: '8 - Delete Old Runs'
+
+# on:
+#   schedule:
+#     - cron: '0 0 * * *'  # Specify your own schedule
+# run this once a month on the 1st day of the month
+#     - cron: '0 0 1 * *'
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Dry Run
+        default: true
+        type: boolean
+      keep-latest:
+        description: Keep At Least
+        default: '3'
+        type: string
+
+jobs:
+  delete-old-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4 
+      - uses: yanovation/delete-old-actions@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          days-ago: 30
+          dry-run: ${{ inputs.dry-run }}
+          keep-latest: ${{ inputs.keep-latest }}
