@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using Microsoft.JSInterop;
 using MathStorm.Common.DTOs;
+using MathStorm.Services;
 
 namespace MathStorm.Web.Services;
 
@@ -15,14 +16,14 @@ public interface IUserProfileService
 public class UserProfileService : IUserProfileService
 {
     private readonly IJSRuntime _jsRuntime;
-    private readonly IRemoteFunctionsService _functionsService;
+    private readonly IMathStormService _mathStormService;
     private readonly ILogger<UserProfileService> _logger;
     private const string StorageKey = "mathstorm.userprofile";
 
-    public UserProfileService(IJSRuntime jsRuntime, IRemoteFunctionsService functionsService, ILogger<UserProfileService> logger)
+    public UserProfileService(IJSRuntime jsRuntime, IMathStormService mathStormService, ILogger<UserProfileService> logger)
     {
         _jsRuntime = jsRuntime;
-        _functionsService = functionsService;
+        _mathStormService = mathStormService;
         _logger = logger;
     }
 
@@ -87,9 +88,9 @@ public class UserProfileService : IUserProfileService
                 Pin = string.IsNullOrWhiteSpace(pin) ? null : pin.Trim()
             };
 
-            var response = await _functionsService.AuthenticateUserAsync(request);
+            var response = await _mathStormService.AuthenticateUserAsync(request);
             
-            // If function service is available, use its response
+            // If service is available, use its response
             if (response != null)
             {
                 return response;
@@ -97,10 +98,10 @@ public class UserProfileService : IUserProfileService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Web: Error authenticating user via function service, falling back to mock authentication");
+            _logger.LogError(ex, "Web: Error authenticating user, falling back to mock authentication");
         }
 
-        // Fallback: Mock authentication for testing when function service is unavailable
+        // Fallback: Mock authentication for testing when service is unavailable
         return new UserAuthResponseDto
         {
             IsAuthenticated = true,

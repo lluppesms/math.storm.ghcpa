@@ -1,3 +1,5 @@
+using MathStorm.Services;
+
 Console.OutputEncoding = Encoding.UTF8;
 
 // Build configuration
@@ -16,17 +18,13 @@ services.AddLogging(builder =>
     builder.AddConsole();
 });
 
-// Add HttpClient
-var baseUrl = configuration.GetValue<string>("FunctionService:BaseUrl") ?? "https://localhost:7071";
-services.AddSingleton(new HttpClient
-{
-    BaseAddress = new Uri(baseUrl)
-});
-
 // Add configuration
 services.AddSingleton<IConfiguration>(configuration);
 
-// Add our services
+// Add MathStorm services (direct calls instead of Azure Functions HTTP calls)
+services.AddMathStormServices(configuration);
+
+// Add our console-specific services
 services.AddScoped<IConsoleMathStormService, ConsoleMathStormService>();
 services.AddScoped<MathStorm.Console.GameLogic>();
 

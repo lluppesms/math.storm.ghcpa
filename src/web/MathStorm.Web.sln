@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Web.Tests", "Math
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Common", "..\common\MathStorm.Common\MathStorm.Common.csproj", "{12027443-3CC3-C6AB-7142-172881F6CDE1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Core", "..\Core\MathStorm.Core.csproj", "{E1F2G3H4-I5J6-K7L8-M9N0-O1P2Q3R4S5T6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathStorm.Services", "..\Services\MathStorm.Services.csproj", "{U7V8W9X0-Y1Z2-A3B4-C5D6-E7F8G9H0I1J2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{12027443-3CC3-C6AB-7142-172881F6CDE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12027443-3CC3-C6AB-7142-172881F6CDE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12027443-3CC3-C6AB-7142-172881F6CDE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1F2G3H4-I5J6-K7L8-M9N0-O1P2Q3R4S5T6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1F2G3H4-I5J6-K7L8-M9N0-O1P2Q3R4S5T6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1F2G3H4-I5J6-K7L8-M9N0-O1P2Q3R4S5T6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1F2G3H4-I5J6-K7L8-M9N0-O1P2Q3R4S5T6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{U7V8W9X0-Y1Z2-A3B4-C5D6-E7F8G9H0I1J2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{U7V8W9X0-Y1Z2-A3B4-C5D6-E7F8G9H0I1J2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{U7V8W9X0-Y1Z2-A3B4-C5D6-E7F8G9H0I1J2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{U7V8W9X0-Y1Z2-A3B4-C5D6-E7F8G9H0I1J2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

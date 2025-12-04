@@ -1,6 +1,6 @@
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
-@inject MathStorm.Web.Services.IRemoteFunctionsService FunctionService
+@inject MathStorm.Services.IMathStormService MathStormService
 
 @if (LeaderboardEntries != null && LeaderboardEntries.Any())
 {
@@ -275,7 +275,7 @@ else
 
         try
         {
-            var game = await FunctionService.GetGameByIdAsync(gameId);
+            var game = await MathStormService.GetGameByIdAsync(gameId);
             currentGame = game;
         }
         catch (Exception ex)

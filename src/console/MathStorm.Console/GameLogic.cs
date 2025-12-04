@@ -100,14 +100,14 @@ public class GameLogic
 
         AnsiConsole.MarkupLine($"\n[green]Starting {difficulty} game...[/] 🎯");
 
-        // Try to get game from API first, fall back to local generation
-        var gameData = await _mathStormService.GetGameAsync(difficulty);
+        // Get game using direct service call (no HTTP needed anymore)
+        var gameData = _mathStormService.GetGame(difficulty);
         GameSession? gameSession = null;
         string gameId = string.Empty;
 
         if (gameData != null)
         {
-            // API call successful - use remote game
+            // Service call successful - use game data
             gameId = gameData.GameId;
             gameSession = new GameSession
             {
@@ -125,11 +125,9 @@ public class GameLogic
         }
         else
         {
-            // API unavailable - use local game generation
-            AnsiConsole.MarkupLine("[yellow]API unavailable, generating local game...[/]");
-            gameSession = _mathStormService.CreateLocalGame(difficulty);
-            gameId = Guid.NewGuid().ToString();
-            AnsiConsole.MarkupLine($"[yellow]Local Game ID: {gameId}[/]");
+            // Service unavailable - should not happen but handle gracefully
+            AnsiConsole.MarkupLine("[red]Error: Unable to create game. Please check configuration.[/]");
+            return;
         }
 
         AnsiConsole.MarkupLine($"[blue]You will answer {gameSession.Questions.Count} questions. Good luck![/]\n");

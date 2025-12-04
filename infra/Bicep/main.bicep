@@ -1,5 +1,6 @@
 ﻿// --------------------------------------------------------------------------------
 // Main Bicep file that creates all of the Azure Resources for one environment
+// After refactoring: Web App now handles all game logic directly without Azure Functions
 // --------------------------------------------------------------------------------
 // To deploy this Bicep manually:
 // 	 az login
@@ -16,10 +17,6 @@ param webAppKind string = 'linux' // 'linux' or 'windows'
 param webSiteSku string = 'B1'
 
 param storageSku string = 'Standard_LRS'
-param functionAppSku string = 'B1'
-param functionAppSkuFamily string = ''
-param functionAppSkuTier string = 'Dynamic'
-param environmentSpecificFunctionName string = ''
 
 param OpenAI_Endpoint string
 @secure()
@@ -65,7 +62,7 @@ module resourceNames 'resourcenames.bicep' = {
   params: {
     appName: appName
     environmentCode: environmentCode
-    environmentSpecificFunctionName: environmentSpecificFunctionName
+    environmentSpecificFunctionName: ''
   }
 }
 // --------------------------------------------------------------------------------
@@ -74,7 +71,7 @@ module logAnalyticsWorkspaceModule 'modules/monitor/loganalytics.bicep' = {
   params: {
     newLogAnalyticsName: resourceNames.outputs.logAnalyticsWorkspaceName
     newWebApplicationInsightsName: resourceNames.outputs.webSiteAppInsightsName
-    newFunctionApplicationInsightsName: resourceNames.outputs.functionAppInsightsName
+    newFunctionApplicationInsightsName: '' // No longer deploying functions
     location: location
     tags: commonTags
   }
@@ -121,7 +118,7 @@ module appIdentityRoleAssignments './modules/iam/role-assignments.bicep' = if (a
     principalType: 'ServicePrincipal'
     cosmosName: cosmosModule.outputs.name
     keyVaultName: keyVaultModule.outputs.name
-    storageAccountName: functionStorageModule.outputs.name
+    storageAccountName: '' // No function storage needed
   }
 }
 
@@ -132,18 +129,7 @@ module adminUserRoleAssignments './modules/iam/role-assignments.bicep' = if (add
     principalType: 'User'
     cosmosName: cosmosModule.outputs.name
     keyVaultName: keyVaultModule.outputs.name
-    storageAccountName: functionStorageModule.outputs.name
-  }
-}
-
-module functionAppRoleAssignments './modules/iam/role-assignments.bicep' = if (addRoleAssignments) {
-  name: 'function-roles${deploymentSuffix}'
-  params: {
-    identityPrincipalId: functionFlexModule.outputs.functionAppPrincipalId
-    principalType: 'ServicePrincipal'
-    cosmosName: cosmosModule.outputs.name
-    keyVaultName: keyVaultModule.outputs.name
-    storageAccountName: functionStorageModule.outputs.name
+    storageAccountName: '' // No function storage needed
   }
 }
 
@@ -171,19 +157,10 @@ module keyVaultSecretAppInsights1 './modules/security/keyvault-secret.bicep' = {
     secretValue: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
   }
 }  
-module keyVaultSecretAppInsights2 './modules/security/keyvault-secret.bicep' = {
-  name: 'keyVaultSecretAppInsights2${deploymentSuffix}'
-  dependsOn: [ keyVaultModule, logAnalyticsWorkspaceModule, functionFlexModule ]
-  params: {
-    keyVaultName: keyVaultModule.outputs.name
-    secretName: 'functionAppInsightsInstrumentationKey'
-    secretValue: logAnalyticsWorkspaceModule.outputs.functionAppInsightsInstrumentationKey
-  }
-}  
 
 module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = {
   name: 'keyVaultSecretCosmos${deploymentSuffix}'
-  dependsOn: [ keyVaultModule, cosmosModule, webSiteModule, functionFlexModule  ]
+  dependsOn: [ keyVaultModule, cosmosModule, webSiteModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
     accountKeySecretName: 'cosmosAccountKey'
@@ -192,18 +169,19 @@ module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = 
   }
 }
 
-module keyVaultSecretFunctionKey './modules/security/keyvault-function-secret.bicep' = {
-  name: 'keyVaultSecretFunctionKey${deploymentSuffix}'
-  dependsOn: [ keyVaultModule, functionFlexModule ]
+// Store OpenAI API key in KeyVault
+module keyVaultSecretOpenAI './modules/security/keyvault-secret.bicep' = {
+  name: 'keyVaultSecretOpenAI${deploymentSuffix}'
+  dependsOn: [ keyVaultModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
-    secretName: 'functionAppApiKey'
-    functionAppName: functionFlexModule.outputs.name
+    secretName: 'openAIApiKey'
+    secretValue: OpenAI_ApiKey
   }
 }
 
 // --------------------------------------------------------------------------------
-// Service Plan SHARED by webapp and function app
+// Service Plan for webapp
 // --------------------------------------------------------------------------------
 module appServicePlanModule './modules/webapp/websiteserviceplan.bicep' = {
   name: 'appServicePlan${deploymentSuffix}'
@@ -249,105 +227,19 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
     customAppSettings: {
       AppSettings__AppInsights_InstrumentationKey: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
       AppSettings__EnvironmentName: environmentCode
-      FunctionService__BaseUrl: 'https://${functionFlexModule.outputs.hostname}'
-      FunctionService__APIKey: keyVaultSecretFunctionKey.outputs.secretUri
-      FunctionService__MasterKey: 'unknown'
       ConnectionStrings__ApplicationInsights: logAnalyticsWorkspaceModule.outputs.webAppInsightsConnectionString
-    }
-  }
-}
-
-// --------------------------------------------------------------------------------
-// Function App for API endpoints
-// --------------------------------------------------------------------------------
-module functionStorageModule './modules/storage/storage-account.bicep' = {
-  name: 'functionstorage${deploymentSuffix}'
-  params: {
-    storageSku: storageSku
-    storageAccountName: resourceNames.outputs.functionStorageName
-    location: location
-    commonTags: commonTags
-    allowNetworkAccess: true
-    allowPublicNetworkAccess: false
-    allowSharedKeyAccess: false
-  }
-}
-
-//--------------------------------------------------------------------------------
-module functionFlexModule 'modules/functions/functionflex.bicep' = {
-  name: 'functionFlex${deploymentSuffix}'
-  dependsOn: [ appIdentityRoleAssignments ]
-  params: {
-    functionAppName: resourceNames.outputs.functionFlexAppName
-    functionAppServicePlanName: resourceNames.outputs.functionFlexAppServicePlanName
-    functionInsightsName: resourceNames.outputs.functionFlexInsightsName
-    functionStorageAccountName: resourceNames.outputs.functionFlexStorageName
-    location: location
-    commonTags: commonTags
-    workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
-    adminPrincipalId: principalId
-    deploymentSuffix: deploymentSuffix
-  }
-}
-
-// module functionModule './modules/functions/functionapp.bicep' = {
-//   name: 'function${deploymentSuffix}'
-//   dependsOn: [ appIdentityRoleAssignments ]
-//   params: {
-//     functionAppName: resourceNames.outputs.functionAppName
-//     functionAppServicePlanName: resourceNames.outputs.functionAppServicePlanName
-//     functionInsightsName: resourceNames.outputs.functionAppInsightsName
-//     sharedAppServicePlanName: appServicePlanModule.outputs.name
-//     sharedAppInsightsInstrumentationKey: logAnalyticsWorkspaceModule.outputs.functionAppInsightsInstrumentationKey
-//     sharedAppInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.functionAppInsightsConnectionString
-//     // switch to system assigned principal for secure storage access...
-//     // keyVaultName: keyVaultModule.outputs.name
-//     managedIdentityId: identity.outputs.managedIdentityId
-//     managedIdentityPrincipalId: identity.outputs.managedIdentityPrincipalId
-
-//     location: location
-//     commonTags: commonTags
-
-//     functionKind: 'functionapp,linux'
-//     functionAppSku: functionAppSku
-//     functionAppSkuFamily: functionAppSkuFamily
-//     functionAppSkuTier: functionAppSkuTier
-//     functionStorageAccountName: functionStorageModule.outputs.name
-//     workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
-//   }
-// }
-// resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' existing = {
-//   name: keyVaultModule.outputs.name
-// } 
-module functionAppSettingsModule './modules/functions/functionappsettings.bicep' = {
-  name: 'functionAppSettings${deploymentSuffix}'
-  params: {
-    functionAppName: functionFlexModule.outputs.name
-    functionStorageAccountName: functionFlexModule.outputs.storageAccountName
-    functionInsightsKey: logAnalyticsWorkspaceModule.outputs.functionAppInsightsInstrumentationKey
-    // keyVaultName: keyVaultModule.outputs.name
-
-    cosmosAccountName: cosmosModule.outputs.name
-
-    OpenAI_Gpt4o_DeploymentName: 'gpt-4o-mini'
-    OpenAI_Gpt4o_Endpoint: OpenAI_Endpoint
-    OpenAI_Gpt4o_ApiKey: OpenAI_ApiKey
-    OpenAI_Gpt35_DeploymentName: 'gpt-35-turbo'
-    OpenAI_Gpt35_Endpoint: OpenAI_Endpoint
-    OpenAI_Gpt35_ApiKey: OpenAI_ApiKey
-
-    customAppSettings: {
-      OpenApi__HideSwaggerUI: 'false'
-      OpenApi__HideDocument: 'false'
-      OpenApi__DocTitle: 'MathStorm Game APIs'
-      OpenApi__DocDescription: 'This repo is an example of a GitHub Copilot Agent Vibe Coded Game'
-      appInsightsConnectionString: logAnalyticsWorkspaceModule.outputs.functionAppInsightsConnectionString
+      // Cosmos DB settings (now configured directly in web app)
+      CosmosDb__Endpoint: 'https://${cosmosModule.outputs.name}.documents.azure.com:443/'
       CosmosDb__DatabaseName: cosmosDatabaseName 
       CosmosDb__ContainerNames__Users: userContainerName
       CosmosDb__ContainerNames__Games: gameContainerName
       CosmosDb__ContainerNames__Leaderboard: leaderboardContainerName
-      OpenAI__DefaultModel: 'gpt_4o_mini' // must use underscores, not hyphens...
-      OpenAI__Temperature: '0.8'     
+      // OpenAI settings (now configured directly in web app)
+      OpenAI__Models__gpt_4o_mini__DeploymentName: 'gpt-4o-mini'
+      OpenAI__Models__gpt_4o_mini__Endpoint: OpenAI_Endpoint
+      OpenAI__Models__gpt_4o_mini__ApiKey: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretOpenAI.outputs.secretUri})'
+      OpenAI__DefaultModel: 'gpt_4o_mini'
+      OpenAI__Temperature: '0.8'
     }
   }
 }
@@ -356,5 +248,3 @@ module functionAppSettingsModule './modules/functions/functionappsettings.bicep'
 output SUBSCRIPTION_ID string = subscription().subscriptionId
 output RESOURCE_GROUP_NAME string = resourceGroupName
 output WEB_HOST_NAME string = webSiteModule.outputs.hostName
-//output FUNCTION_HOST_NAME string = functionModule.outputs.hostname
-output FLEX_FUNCTION_HOST_NAME string = functionFlexModule.outputs.hostname

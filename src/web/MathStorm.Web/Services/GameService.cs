@@ -1,131 +1,48 @@
 using MathStorm.Common.Models;
 using MathStorm.Common.DTOs;
 using MathStorm.Common.Services;
+using MathStorm.Services;
 
 namespace MathStorm.Web.Services;
 
 public class GameService : IGameService
 {
-    private readonly IRemoteFunctionsService _functionService;
+    private readonly IMathStormService _mathStormService;
     private readonly Dictionary<string, GameSession> _activeSessions = new();
 
-    public GameService(IRemoteFunctionsService functionService)
+    public GameService(IMathStormService mathStormService)
     {
-        _functionService = functionService;
+        _mathStormService = mathStormService;
     }
 
     public GameSession CreateNewGame(Difficulty difficulty = Difficulty.Expert)
     {
-        // For now, we'll create the game session locally and get questions from the function
-        // In the future, we could modify this to be fully stateless
-        var gameSession = new GameSession { Difficulty = difficulty };
+        // Create game session using direct service call (no HTTP)
+        var gameResponse = _mathStormService.CreateGame(difficulty);
+        
+        var gameSession = new GameSession
+        {
+            Difficulty = difficulty,
+            Questions = gameResponse.Questions.Select(q => new MathQuestion
+            {
+                Id = q.Id,
+                Number1 = q.Number1,
+                Number2 = q.Number2,
+                Operation = Enum.Parse<MathOperation>(q.Operation),
+                CorrectAnswer = q.CorrectAnswer
+            }).ToList()
+        };
 
-        // We'll populate questions when the game starts
+        // Store the game ID for later submission
+        _activeSessions[gameResponse.GameId] = gameSession;
+
         return gameSession;
     }
 
-    public async Task<GameSession> CreateNewGameAsync(Difficulty difficulty = Difficulty.Expert)
+    public Task<GameSession> CreateNewGameAsync(Difficulty difficulty = Difficulty.Expert)
     {
-        try
-        {
-            var gameResponse = await _functionService.GetGameAsync(difficulty);
-            if (gameResponse != null)
-            {
-                var gameSession = new GameSession
-                {
-                    Difficulty = difficulty,
-                    Questions = gameResponse.Questions.Select(q => new MathQuestion
-                    {
-                        Id = q.Id,
-                        Number1 = q.Number1,
-                        Number2 = q.Number2,
-                        Operation = Enum.Parse<MathOperation>(q.Operation),
-                        CorrectAnswer = q.CorrectAnswer
-                    }).ToList()
-                };
-
-                // Store the game ID for later submission
-                _activeSessions[gameResponse.GameId] = gameSession;
-
-                return gameSession;
-            }
-        }
-        catch (Exception)
-        {
-            // Fall back to local game generation when function service is unavailable
-        }
-
-        // Fallback: Create game locally for testing
-        return CreateLocalGame(difficulty);
-    }
-
-    private GameSession CreateLocalGame(Difficulty difficulty)
-    {
-        var random = new Random();
-        var questions = new List<MathQuestion>();
-        
-        var questionCount = difficulty switch
-        {
-            Difficulty.Beginner => 5,
-            Difficulty.Novice => 5,
-            Difficulty.Intermediate => 10,
-            Difficulty.Expert => 10,
-            _ => 5
-        };
-
-        var maxNumber = difficulty switch
-        {
-            Difficulty.Beginner => 99,
-            Difficulty.Novice => 99,
-            Difficulty.Intermediate => 999,
-            Difficulty.Expert => 9999,
-            _ => 99
-        };
-
-        var operations = difficulty switch
-        {
-            Difficulty.Beginner => new[] { MathOperation.Addition, MathOperation.Subtraction },
-            _ => new[] { MathOperation.Addition, MathOperation.Subtraction, MathOperation.Multiplication, MathOperation.Division }
-        };
-
-        for (int i = 0; i < questionCount; i++)
-        {
-            var operation = operations[random.Next(operations.Length)];
-            var number1 = random.Next(1, maxNumber);
-            var number2 = random.Next(1, maxNumber);
-
-            // Ensure division results in reasonable numbers
-            if (operation == MathOperation.Division)
-            {
-                var product = number1 * number2;
-                number1 = product;
-                // number2 stays the same, so number1 / number2 = original number1
-            }
-
-            var correctAnswer = operation switch
-            {
-                MathOperation.Addition => number1 + number2,
-                MathOperation.Subtraction => number1 - number2,
-                MathOperation.Multiplication => number1 * number2,
-                MathOperation.Division => (double)number1 / number2,
-                _ => 0
-            };
-
-            questions.Add(new MathQuestion
-            {
-                Id = i + 1,
-                Number1 = number1,
-                Number2 = number2,
-                Operation = operation,
-                CorrectAnswer = correctAnswer
-            });
-        }
-
-        return new GameSession
-        {
-            Difficulty = difficulty,
-            Questions = questions
-        };
+        // CreateGame is synchronous, just wrap it
+        return Task.FromResult(CreateNewGame(difficulty));
     }
 
     public void StartQuestion(GameSession gameSession)
@@ -198,7 +115,7 @@ public class GameService : IGameService
             }).ToList()
         };
 
-        var result = await _functionService.SubmitGameResultsAsync(request);
+        var result = await _mathStormService.SubmitGameResultsAsync(request);
 
         // Clean up the session
         if (!string.IsNullOrEmpty(gameId))
