@@ -16,8 +16,17 @@ public class CosmosDbService : ICosmosDbService
         var connectionString = configuration["CosmosDb:ConnectionString"];
 
         // Extract account name for logging purposes
-        var accountName = string.IsNullOrEmpty(connectionString) ? endpoint : connectionString?[..connectionString.IndexOf("AccountKey")];
-        accountName = accountName?.Replace("https://", "").Replace(".documents.azure.com:443/", "").Replace("/;", "").Replace(";", "");
+        var accountName = endpoint;
+        _logger.Log(LogLevel.Information, $"CosmosDbService.Init: AccountName-EP: {accountName}");
+        if (!string.IsNullOrEmpty(connectionString))
+        {
+            var accountKeyLocation = connectionString.IndexOf("AccountKey");
+            _logger.Log(LogLevel.Information, $"CosmosDbService.Init: AccountName-CS-AKL: {accountKeyLocation}");
+            accountName = accountKeyLocation  > 0 ? connectionString?[..accountKeyLocation] : "UNKNOWN";
+            _logger.Log(LogLevel.Information, $"CosmosDbService.Init: AccountName-CS-RAW: {accountName}");
+            accountName = accountName?.Replace("https://", "").Replace(".documents.azure.com:443/", "").Replace("/;", "").Replace(";", "");
+            _logger.Log(LogLevel.Information, $"CosmosDbService.Init: AccountName-CS: {accountName}");
+        }
 
         var databaseName = configuration["CosmosDb:DatabaseName"];
         var usersContainer = configuration["CosmosDb:ContainerNames:Users"];

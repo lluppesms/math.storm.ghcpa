@@ -228,6 +228,16 @@ resource keyVaultSecretsOfficerAssignment 'Microsoft.Authorization/roleAssignmen
     description: 'Permission for ${principalType} ${identityPrincipalId} to be a Key Vault Secrets Officer'
   }
 }
+resource keyVaultSecretsUserAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (addKeyVaultRoles) {
+  name: guid(keyVault.id, identityPrincipalId, roleDefinitions.keyvault.secretsUserRoleId)
+  scope: keyVault
+  properties: {
+    principalId: identityPrincipalId
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleDefinitions.keyvault.secretsUserRoleId)
+    principalType: principalType
+    description: 'Permission for ${principalType} ${identityPrincipalId} to be a Key Vault Secrets User'
+  }
+}
 
 // ----------------------------------------------------------------------------------------------------
 // APIM Roles - assign to Identity running APIM
