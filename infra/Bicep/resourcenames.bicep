@@ -41,7 +41,8 @@ output cosmosDatabaseName string         = toLower('${sanitizedAppName}-${resour
 output userAssignedIdentityName string   = toLower('${sanitizedAppName}-${resourceAbbreviations.managedIdentityUserAssignedIdentities}-${sanitizedEnvironment}')
 
 // Key Vaults and Storage Accounts can only be 24 characters long
-output keyVaultName string               = take('${sanitizedAppName}${resourceAbbreviations.keyVaultVaults}${sanitizedEnvironment}', 24)
+// Note - had to do an exception because I couldn't purge the old key vaults in prod which was in a different region...!
+output keyVaultName string = environmentCode == 'prod' ? take('${sanitizedAppName}${resourceAbbreviations.keyVaultVaults}prd', 24) : take('${sanitizedAppName}${resourceAbbreviations.keyVaultVaults}-${sanitizedEnvironment}', 24)
 output storageAccountName string         = take('${sanitizedAppName}${resourceAbbreviations.storageStorageAccounts}${sanitizedEnvironment}${dataStorageNameSuffix}', 24)
 output functionStorageName string        = take('${sanitizedAppName}${resourceAbbreviations.storageStorageAccounts}${sanitizedEnvironment}${functionStorageNameSuffix}', 24)
 output functionFlexStorageName string    = take('$${sanitizedAppName}${resourceAbbreviations.storageStorageAccounts}${sanitizedEnvironment}${functionFlexStorageNameSuffix}', 24)
