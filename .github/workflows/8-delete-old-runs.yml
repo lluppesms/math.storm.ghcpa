@@ -23,6 +23,10 @@ on:
         description: Dry Run
         default: true
         type: boolean
+      days-ago:
+        description: Days Old
+        default: '30'
+        type: string
       keep-latest:
         description: Keep At Least
         default: '3'
@@ -36,6 +40,6 @@ jobs:
       - uses: yanovation/delete-old-actions@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          days-ago: 30
+          days-ago: ${{ inputs.days-ago }}
           dry-run: ${{ inputs.dry-run }}
           keep-latest: ${{ inputs.keep-latest }}
