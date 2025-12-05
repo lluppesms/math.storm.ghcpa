@@ -1,7 +1,9 @@
 # ------------------------------------------------------------------------------------------------------------------------
 # GHA Workflow to Scan Bicep on a schedule
+# See: https://medium.com/@pooyan_razian/automatically-delete-old-github-actions-runs-5e1f7286fd81
+#      https://github.com/yanovation/delete-old-actions
 # ------------------------------------------------------------------------------------------------------------------------
-# Right now, in this initial version, it accepts the following inputs:
+# This accepts the following inputs:
 # - token: The GitHub token to use for authentication. (required)
 # - days-ago: The number of days ago to delete the runs. (required)
 # - dry-run: If set to true, the Action will only list the runs to be deleted without actually deleting them. (optional, default: false)
