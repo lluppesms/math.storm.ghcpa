@@ -231,6 +231,7 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
       ConnectionStrings__ApplicationInsights: logAnalyticsWorkspaceModule.outputs.webAppInsightsConnectionString
       // Cosmos DB settings (now configured directly in web app)
       CosmosDb__Endpoint: 'https://${cosmosModule.outputs.name}.documents.azure.com:443/'
+      CosmosDb__ConnectionString: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretCosmos.outputs.connectionStringSecretName})'
       CosmosDb__DatabaseName: cosmosDatabaseName 
       CosmosDb__ContainerNames__Users: userContainerName
       CosmosDb__ContainerNames__Games: gameContainerName
