@@ -17,7 +17,7 @@ var BASE_SLOT_APPSETTINGS = {
   ApplicationInsightsAgent_EXTENSION_VERSION: '~2'
 }
 
-resource siteConfig 'Microsoft.Web/sites/config@2021-02-01' = {
+resource siteConfig 'Microsoft.Web/sites/config@2024-11-01' = {
   name: '${webAppName}/appsettings'
   properties: union(BASE_SLOT_APPSETTINGS, customAppSettings)
 }

@@ -26,13 +26,15 @@ var azdTag = environmentCode == 'azd' ? { 'azd-service-name': 'web' } : {}
 var webSiteTags = union(commonTags, templateTag, azdTag)
 
 // --------------------------------------------------------------------------------
+var linuxFxVersion = webAppKind == 'linux' ? 'DOTNETCORE|10.0' : '' // 	The runtime stack of web app
 
-resource appServiceResource 'Microsoft.Web/serverfarms@2023-01-01' existing = {
+// --------------------------------------------------------------------------------
+resource appServiceResource 'Microsoft.Web/serverfarms@2024-11-01' existing = {
   name: appServicePlanName
   scope: resourceGroup(appServicePlanResourceGroupName)
 }
 
-resource webSiteResource 'Microsoft.Web/sites@2023-01-01' = {
+resource webSiteResource 'Microsoft.Web/sites@2024-11-01' = {
   name: webSiteName
   location: location
   kind: 'app'
@@ -49,8 +51,7 @@ resource webSiteResource 'Microsoft.Web/sites@2023-01-01' = {
     httpsOnly: true
     clientAffinityEnabled: false
     siteConfig: {
-      linuxFxVersion: webAppKind == 'linux' ? 'DOTNETCORE|10.0' : null
-      netFrameworkVersion: webAppKind == 'windows' ? 'v10.0' : null
+      linuxFxVersion: linuxFxVersion
       minTlsVersion: '1.2'
       ftpsState: 'FtpsOnly'
       alwaysOn: true
@@ -70,7 +71,7 @@ resource webSiteResource 'Microsoft.Web/sites@2023-01-01' = {
   }
 }
 
-resource webSiteAppSettings 'Microsoft.Web/sites/config@2023-01-01' = {
+resource webSiteAppSettings 'Microsoft.Web/sites/config@2024-11-01' = {
   parent: webSiteResource
   name: 'logs'
   properties: {
@@ -102,23 +103,23 @@ resource webSiteAppSettings 'Microsoft.Web/sites/config@2023-01-01' = {
 //   dependsOn: [ appInsightsResource] or [ appInsightsResource, webSiteAppSettings ]
 // }
 
-resource webSiteMetricsLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: '${webSiteResource.name}-metrics'
-  scope: webSiteResource
-  properties: {
-    workspaceId: workspaceId
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
-        // retentionPolicy: {
-        //   days: 30
-        //   enabled: true 
-        // }
-      }
-    ]
-  }
-}
+// resource webSiteMetricsLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+//   name: '${webSiteResource.name}-metrics'
+//   scope: webSiteResource
+//   properties: {
+//     workspaceId: workspaceId
+//     metrics: [
+//       {
+//         category: 'AllMetrics'
+//         enabled: true
+//         // retentionPolicy: {
+//         //   days: 30
+//         //   enabled: true 
+//         // }
+//       }
+//     ]
+//   }
+// }
 
 // https://learn.microsoft.com/en-us/azure/app-service/troubleshoot-diagnostic-logs
 resource webSiteAuditLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
