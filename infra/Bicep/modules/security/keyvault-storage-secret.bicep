@@ -8,13 +8,8 @@ param keyVaultName string
 param secretName string
 param storageAccountName string
 param storageAccountResourceGroup string = resourceGroup().name
-param enabledDate string = utcNow()
-param expirationDate string = dateTimeAdd(utcNow(), 'P2Y')
-param existingSecretNames string = ''
-param forceSecretCreation bool = false
-
-// --------------------------------------------------------------------------------
-var secretExists = contains(toLower(existingSecretNames), ';${toLower(trim(secretName))};')
+param enabledDate string = '${substring(utcNow(), 0, 4)}-01-01T00:00:00Z'  // January 1st of current year
+param expirationDate string = '${string(int(substring(utcNow(), 0, 4)) + 1)}-12-31T23:59:59Z'  // December 31st of next year
 
 // --------------------------------------------------------------------------------
 resource storageAccountResource 'Microsoft.Storage/storageAccounts@2021-04-01' existing = { 
@@ -29,7 +24,7 @@ resource keyVaultResource 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: keyVaultName
 }
 
-resource createSecretValue 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' = if (!secretExists || forceSecretCreation) {
+resource createSecretValue 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' = {
   name: secretName
   parent: keyVaultResource
   properties: {
@@ -41,8 +36,6 @@ resource createSecretValue 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview
   }
 }
 
-var createMessage = secretExists ? 'Secret ${secretName} already exists!' : 'Added secret ${secretName}!'
-output message string = secretExists && forceSecretCreation ? 'Secret ${secretName} already exists but was recreated!' : createMessage
-output secretCreated bool = !secretExists
+output message string = 'Added secret ${secretName}!'
 output secretUri string = createSecretValue.properties.secretUri
 output secretName string = secretName

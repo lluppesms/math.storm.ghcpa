@@ -9,14 +9,8 @@ param accountKeySecretName string
 param connectionStringSecretName string
 param cosmosAccountName string
 param cosmosAccountResourceGroup string = resourceGroup().name
-param enabledDate string = utcNow()
-param expirationDate string = dateTimeAdd(utcNow(), 'P2Y')
-param existingSecretNames string = ''
-param forceSecretCreation bool = false
-
-// --------------------------------------------------------------------------------
-var keySecretExists = contains(toLower(existingSecretNames), ';${toLower(trim(accountKeySecretName))};')
-var connectionStringSecretExists = contains(toLower(existingSecretNames), ';${toLower(trim(connectionStringSecretName))};')
+param enabledDate string = '${substring(utcNow(), 0, 4)}-01-01T00:00:00Z'  // January 1st of current year
+param expirationDate string = '${string(int(substring(utcNow(), 0, 4)) + 1)}-12-31T23:59:59Z'  // December 31st of next year
 
 // --------------------------------------------------------------------------------
 resource cosmosResource 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' existing = {
@@ -30,7 +24,8 @@ resource keyVaultResource 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
   name: keyVaultName
 }
 
-resource createSecretKeyValue 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if ((!keySecretExists || forceSecretCreation) && !empty(accountKeySecretName)) {
+@onlyIfNotExists()
+resource createSecretKeyValue 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if (!empty(accountKeySecretName)) {
   name: accountKeySecretName
   parent: keyVaultResource
   properties: {
@@ -42,7 +37,8 @@ resource createSecretKeyValue 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = i
   }
 }
 
-resource createSecretConnectionValue 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if ((!connectionStringSecretExists || forceSecretCreation) && !empty(connectionStringSecretName)) {
+@onlyIfNotExists()
+resource createSecretConnectionValue 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if (!empty(connectionStringSecretName)) {
   name: connectionStringSecretName
   parent: keyVaultResource
   properties: {
@@ -54,9 +50,7 @@ resource createSecretConnectionValue 'Microsoft.KeyVault/vaults/secrets@2023-07-
   }
 }
 
-var createMessage = keySecretExists ? 'Secret ${accountKeySecretName} already exists!' : 'Added secret ${accountKeySecretName}!'
-output message string = keySecretExists && forceSecretCreation ? 'Secret ${accountKeySecretName} already exists but was recreated!' : createMessage
-output secretCreated bool = !keySecretExists
+output message string = 'Added secret ${accountKeySecretName} and/or ${connectionStringSecretName}!'
 
 output accountKeySecretUri string = !empty(accountKeySecretName) ? createSecretKeyValue.properties.secretUri : ''
 output accountKeySecretName string = !empty(accountKeySecretName) ? accountKeySecretName : ''

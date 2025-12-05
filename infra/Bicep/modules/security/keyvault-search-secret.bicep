@@ -4,21 +4,13 @@
 //     ONLY create if secretName is not in existingSecretNames list
 //     OR forceSecretCreation is true
 // --------------------------------------------------------------------------------
-metadata description = 'Creates or updates a secret in an Azure Key Vault.'
 param keyVaultName string
 param secretName string
 param searchServiceName string
 param searchServiceResourceGroup string
-param tags object = {}
-param contentType string = 'string'
-param enabledDate string = utcNow()
-param expirationDate string = dateTimeAdd(utcNow(), 'P2Y')
-param existingSecretNames string = ''
-param forceSecretCreation bool = false
+param enabledDate string = '${substring(utcNow(), 0, 4)}-01-01T00:00:00Z'  // January 1st of current year
+param expirationDate string = '${string(int(substring(utcNow(), 0, 4)) + 1)}-12-31T23:59:59Z'  // December 31st of next year
 param enabled bool = true
-
-// --------------------------------------------------------------------------------
-var secretExists = contains(toLower(existingSecretNames), ';${toLower(trim(secretName))};')
 
 // --------------------------------------------------------------------------------
 resource existingResource 'Microsoft.Search/searchServices@2023-11-01' existing = {
@@ -31,9 +23,9 @@ resource keyVaultResource 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
   name: keyVaultName
 }
 
-resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if (!secretExists || forceSecretCreation) {
+@onlyIfNotExists()
+resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   name: secretName
-  tags: tags
   parent: keyVaultResource
   properties: {
     attributes: {
@@ -41,13 +33,11 @@ resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if (!se
       exp: dateTimeToEpoch(expirationDate)
       nbf: dateTimeToEpoch(enabledDate)
     }
-    contentType: contentType
+    contentType: 'string'
     value: secretValue
   }
 }
 
-var createMessage = secretExists ? 'Secret ${secretName} already exists!' : 'Added secret ${secretName}!'
-output message string = secretExists && forceSecretCreation ? 'Secret ${secretName} already exists but was recreated!' : createMessage
-output secretCreated bool = !secretExists
+output message string = 'Added secret ${secretName}!'
 output secretUri string = keyVaultSecret.properties.secretUri
 output secretName string = secretName

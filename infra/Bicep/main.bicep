@@ -149,8 +149,8 @@ module keyVaultModule './modules/security/keyvault.bicep' = {
   }
 }
 
-module keyVaultSecretAppInsights1 './modules/security/keyvault-secret.bicep' = {
-  name: 'keyVaultSecretAppInsights1${deploymentSuffix}'
+module keyVaultSecretAppInsights './modules/security/keyvault-secret.bicep' = {
+  name: 'keyVaultSecretAppInsights${deploymentSuffix}'
   dependsOn: [ keyVaultModule, logAnalyticsWorkspaceModule, webSiteModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
@@ -170,7 +170,6 @@ module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = 
   }
 }
 
-// Store OpenAI API key in KeyVault
 module keyVaultSecretOpenAI './modules/security/keyvault-secret.bicep' = {
   name: 'keyVaultSecretOpenAI${deploymentSuffix}'
   dependsOn: [ keyVaultModule ]
