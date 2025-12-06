@@ -64,6 +64,18 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
+    - name: List All Files Before (PowerShell)
+      if: inputs.listFilesAfterBuild == true
+      shell: pwsh
+      run: |
+        Write-Host "Listing file details (recursive) under: ${{ inputs.rootDirectory }}"
+        Get-ChildItem -Path "${{ inputs.rootDirectory }}" -Recurse -Force -File |
+          Select-Object @{Name='Path';Expression={$_.FullName}},
+                @{Name='SizeBytes';Expression={$_.Length}},
+                Mode,
+                LastWriteTime |
+          Format-Table -AutoSize
+
     - name: Display Variables
       env:
         GITHUB_CONTEXT: ${{ toJson(github) }}
@@ -115,7 +127,7 @@ jobs:
     - name: Put Build Details in buildinfo.json
       shell: bash
       run: |
-        echo -e -n "{\"buildDate\":\"${{ steps.vars.outputs.rundatetime }}\",\"buildNumber\":\"${{ steps.vars.outputs.rundate }}.${{ github.run_number }}\",\"buildId\":\"${{ github.run_id }}.${{ github.run_attempt }}\",\"run_id\":\"${{ github.run_id }}\",\"run_attempt\":\"${{ github.run_attempt }}\",\"run_number\":\"${{ github.run_number }}\",\"branchName\":\"${{ steps.vars.outputs.commitbranch }}\",\"commitHash\":\"${{ steps.vars.outputs.commitsha }}\"}" > ${{ github.action_path }}wwwroot\buildinfo.json
+        echo -e -n "{\"buildDate\":\"${{ steps.vars.outputs.rundatetime }}\",\"buildNumber\":\"${{ steps.vars.outputs.rundate }}.${{ github.run_number }}\",\"buildId\":\"${{ github.run_id }}.${{ github.run_attempt }}\",\"run_id\":\"${{ github.run_id }}\",\"run_attempt\":\"${{ github.run_attempt }}\",\"run_number\":\"${{ github.run_number }}\",\"branchName\":\"${{ steps.vars.outputs.commitbranch }}\",\"commitHash\":\"${{ steps.vars.outputs.commitsha }}\"}" > ${{ inputs.rootDirectory }}wwwroot\buildinfo.json
       continue-on-error: true
 
     - name: Build Application
@@ -144,7 +156,14 @@ jobs:
         path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
         include-hidden-files: true
 
-    - name: List All Files
+    - name: List All Files After (PowerShell)
       if: inputs.listFilesAfterBuild == true
-      run: 
-        tree ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        Write-Host "Listing file details (recursive) under: ${{ inputs.rootDirectory }}"
+        Get-ChildItem -Path "${{ inputs.rootDirectory }}" -Recurse -Force -File |
+          Select-Object @{Name='Path';Expression={$_.FullName}},
+                @{Name='SizeBytes';Expression={$_.Length}},
+                Mode,
+                LastWriteTime |
+          Format-Table -AutoSize
