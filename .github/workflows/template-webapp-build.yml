@@ -131,8 +131,8 @@ jobs:
       if: inputs.listFilesAfterBuild == true
       shell: pwsh
       run: |
-        Write-Host "Listing file details (recursive) under: ${{ github.action_path }}"
-        Get-ChildItem -Path ${{ github.action_path }} -Recurse -Force -File -Include buildinfo.json
+        Write-Host "Listing file details (recursive) under: src"
+        Get-ChildItem -Path src -Recurse -Force -File -Include buildinfo.json
 
     - name: Build Application
       run: dotnet build "${{ inputs.rootDirectory }}/${{ inputs.projectName }}.csproj" --configuration Release --no-restore
@@ -164,8 +164,8 @@ jobs:
       if: inputs.listFilesAfterBuild == true
       shell: pwsh
       run: |
-        Write-Host "Listing file details (recursive) under: ${{ github.action_path }}"
-        Get-ChildItem -Path "${{ github.action_path }}" -Recurse -Force -File
+        Write-Host "Listing file details (recursive) under: src"
+        Get-ChildItem -Path src -Recurse -Force -File
 
   # Get-ChildItem -Path "${{ inputs.rootDirectory }}" -Recurse -Force -File |
   #   Select-Object @{Name='Path';Expression={$_.FullName}},@{Name='SizeBytes';Expression={$_.Length}},Mode,LastWriteTime |
