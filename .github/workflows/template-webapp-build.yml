@@ -123,16 +123,16 @@ jobs:
       shell: bash
       continue-on-error: true
       run: |
-        echo -e -n "{\"buildDate\":\"${{ steps.vars.outputs.rundatetime }}\",\"buildNumber\":\"${{ steps.vars.outputs.rundate }}.${{ github.run_number }}\",\"buildId\":\"${{ github.run_id }}.${{ github.run_attempt }}\",\"run_id\":\"${{ github.run_id }}\",\"run_attempt\":\"${{ github.run_attempt }}\",\"run_number\":\"${{ github.run_number }}\",\"branchName\":\"${{ steps.vars.outputs.commitbranch }}\",\"commitHash\":\"${{ steps.vars.outputs.commitsha }}\"}" > ${{ inputs.rootDirectory }}wwwroot\buildinfo.json
+        echo -e -n "{\"buildDate\":\"${{ steps.vars.outputs.rundatetime }}\",\"buildNumber\":\"${{ steps.vars.outputs.rundate }}.${{ github.run_number }}\",\"buildId\":\"${{ github.run_id }}.${{ github.run_attempt }}\",\"run_id\":\"${{ github.run_id }}\",\"run_attempt\":\"${{ github.run_attempt }}\",\"run_number\":\"${{ github.run_number }}\",\"branchName\":\"${{ steps.vars.outputs.commitbranch }}\",\"commitHash\":\"${{ steps.vars.outputs.commitsha }}\"}" > ${{ inputs.rootDirectory }}/wwwroot/buildinfo.json
         echo "Contents of buildinfo.json:"
-        cat ${{ inputs.rootDirectory }}wwwroot\buildinfo.json
+        cat ${{ inputs.rootDirectory }}/wwwroot/buildinfo.json
 
     - name: List Build Info Files
       if: inputs.listFilesAfterBuild == true
       shell: pwsh
       run: |
-        Write-Host "Listing file details (recursive) under: ${{ inputs.rootDirectory }}"
-        Get-ChildItem -Path . -Recurse -Force -File -Include buildinfo.json
+        Write-Host "Listing file details (recursive) under: ${{ github.action_path }}"
+        Get-ChildItem -Path ${{ github.action_path }} -Recurse -Force -File -Include buildinfo.json
 
     - name: Build Application
       run: dotnet build "${{ inputs.rootDirectory }}/${{ inputs.projectName }}.csproj" --configuration Release --no-restore
@@ -164,8 +164,8 @@ jobs:
       if: inputs.listFilesAfterBuild == true
       shell: pwsh
       run: |
-        Write-Host "Listing file details (recursive) under: ${{ inputs.rootDirectory }}"
-        Get-ChildItem -Path "${{ inputs.rootDirectory }}" -Recurse -Force -File
+        Write-Host "Listing file details (recursive) under: ${{ github.action_path }}"
+        Get-ChildItem -Path "${{ github.action_path }}" -Recurse -Force -File
 
   # Get-ChildItem -Path "${{ inputs.rootDirectory }}" -Recurse -Force -File |
   #   Select-Object @{Name='Path';Expression={$_.FullName}},@{Name='SizeBytes';Expression={$_.Length}},Mode,LastWriteTime |
