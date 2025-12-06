@@ -68,13 +68,8 @@ jobs:
       if: inputs.listFilesAfterBuild == true
       shell: pwsh
       run: |
-        Write-Host "Listing file details (recursive) under: ${{ inputs.rootDirectory }}"
-        Get-ChildItem -Path "${{ inputs.rootDirectory }}" -Recurse -Force -File |
-          Select-Object @{Name='Path';Expression={$_.FullName}},
-                @{Name='SizeBytes';Expression={$_.Length}},
-                Mode,
-                LastWriteTime |
-          Format-Table -AutoSize
+        Write-Host "Listing file details under: ${{ inputs.rootDirectory }}"
+        Get-ChildItem -Path "${{ inputs.rootDirectory }}" -Recurse -Force -File
 
     - name: Display Variables
       env:
@@ -160,10 +155,5 @@ jobs:
       if: inputs.listFilesAfterBuild == true
       shell: pwsh
       run: |
-        Write-Host "Listing file details (recursive) under: ${{ inputs.rootDirectory }}"
-        Get-ChildItem -Path "${{ inputs.rootDirectory }}" -Recurse -Force -File |
-          Select-Object @{Name='Path';Expression={$_.FullName}},
-                @{Name='SizeBytes';Expression={$_.Length}},
-                Mode,
-                LastWriteTime |
-          Format-Table -AutoSize
+        Write-Host "Listing file details under: ${{ inputs.rootDirectory }}"
+        Get-ChildItem -Path "${{ inputs.rootDirectory }}" -Recurse -Force -File
