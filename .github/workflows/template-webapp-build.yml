@@ -121,9 +121,18 @@ jobs:
 
     - name: Put Build Details in buildinfo.json
       shell: bash
+      continue-on-error: true
       run: |
         echo -e -n "{\"buildDate\":\"${{ steps.vars.outputs.rundatetime }}\",\"buildNumber\":\"${{ steps.vars.outputs.rundate }}.${{ github.run_number }}\",\"buildId\":\"${{ github.run_id }}.${{ github.run_attempt }}\",\"run_id\":\"${{ github.run_id }}\",\"run_attempt\":\"${{ github.run_attempt }}\",\"run_number\":\"${{ github.run_number }}\",\"branchName\":\"${{ steps.vars.outputs.commitbranch }}\",\"commitHash\":\"${{ steps.vars.outputs.commitsha }}\"}" > ${{ inputs.rootDirectory }}wwwroot\buildinfo.json
-      continue-on-error: true
+        echo "Contents of buildinfo.json:"
+        cat ${{ inputs.rootDirectory }}wwwroot\buildinfo.json
+
+    - name: List Build Info Files
+      if: inputs.listFilesAfterBuild == true
+      shell: pwsh
+      run: |
+        Write-Host "Listing file details (recursive) under: ${{ inputs.rootDirectory }}"
+        Get-ChildItem -Path . -Recurse -Force -File -Include buildinfo.json
 
     - name: Build Application
       run: dotnet build "${{ inputs.rootDirectory }}/${{ inputs.projectName }}.csproj" --configuration Release --no-restore
@@ -155,5 +164,13 @@ jobs:
       if: inputs.listFilesAfterBuild == true
       shell: pwsh
       run: |
-        Write-Host "Listing file details under: ${{ inputs.rootDirectory }}"
+        Write-Host "Listing file details (recursive) under: ${{ inputs.rootDirectory }}"
         Get-ChildItem -Path "${{ inputs.rootDirectory }}" -Recurse -Force -File
+
+  # Get-ChildItem -Path "${{ inputs.rootDirectory }}" -Recurse -Force -File |
+  #   Select-Object @{Name='Path';Expression={$_.FullName}},@{Name='SizeBytes';Expression={$_.Length}},Mode,LastWriteTime |
+  #   Format-Table -AutoSize
+
+  # Get-ChildItem -Path "${{ inputs.rootDirectory }}" -Recurse -Force -File |
+  #   Select-Object @{Name='Path';Expression={$_.Name}},@{Name='SizeBytes';Expression={$_.Length}},Mode,LastWriteTime |
+  #   Format-Table -AutoSize         
