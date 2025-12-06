@@ -35,8 +35,9 @@
 }
 
 .build-number {
-    color: #6c757d;
+    color: #f8f9fa;
     font-weight: 300;
+    cursor: default;
 }
 
 .build-date {
@@ -50,7 +51,7 @@
         background-color: #212529;
         border-top-color: #495057;
     }
-    
+
     .footer .text-muted {
         color: #adb5bd !important;
     }
