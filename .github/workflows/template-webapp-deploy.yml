@@ -41,25 +41,25 @@ jobs:
         tree ${{ github.action_path }}
       continue-on-error: true
   
-    - name: Create Runtime Variables
-      id: vars
-      shell: bash
-      run: |
-        readonly rundatetime=$(date +'%Y-%m-%dT%H:%M:%SZ')
-        echo "rundatetime=$rundatetime" >> $GITHUB_OUTPUT
-        readonly rundate=$(date +'%Y.%m.%d')
-        echo "rundate=$rundate" >> $GITHUB_OUTPUT
-        readonly commitbranch=$(echo ${GITHUB_REF#refs/heads/})
-        echo "commitbranch=$commitbranch" >> $GITHUB_OUTPUT
-        readonly commitsha=${GITHUB_SHA::6}
-        echo "commitsha=$commitsha" >> $GITHUB_OUTPUT
-      continue-on-error: true
+    # - name: Create Runtime Variables
+    #   id: vars
+    #   shell: bash
+    #   run: |
+    #     readonly rundatetime=$(date +'%Y-%m-%dT%H:%M:%SZ')
+    #     echo "rundatetime=$rundatetime" >> $GITHUB_OUTPUT
+    #     readonly rundate=$(date +'%Y.%m.%d')
+    #     echo "rundate=$rundate" >> $GITHUB_OUTPUT
+    #     readonly commitbranch=$(echo ${GITHUB_REF#refs/heads/})
+    #     echo "commitbranch=$commitbranch" >> $GITHUB_OUTPUT
+    #     readonly commitsha=${GITHUB_SHA::6}
+    #     echo "commitsha=$commitsha" >> $GITHUB_OUTPUT
+    #   continue-on-error: true
 
-    - name: Put Build Details in buildinfo.json
-      shell: bash
-      run: |
-        echo -e -n "{\"buildDate\":\"${{ steps.vars.outputs.rundatetime }}\",\"buildNumber\":\"${{ steps.vars.outputs.rundate }}.${{ github.run_number }}\",\"buildId\":\"${{ github.run_id }}.${{ github.run_attempt }}\",\"run_id\":\"${{ github.run_id }}\",\"run_attempt\":\"${{ github.run_attempt }}\",\"run_number\":\"${{ github.run_number }}\",\"branchName\":\"${{ steps.vars.outputs.commitbranch }}\",\"commitHash\":\"${{ steps.vars.outputs.commitsha }}\"}" > ${{ github.action_path }}wwwroot\buildinfo.json
-      continue-on-error: true
+    # - name: Put Build Details in buildinfo.json
+    #   shell: bash
+    #   run: |
+    #     echo -e -n "{\"buildDate\":\"${{ steps.vars.outputs.rundatetime }}\",\"buildNumber\":\"${{ steps.vars.outputs.rundate }}.${{ github.run_number }}\",\"buildId\":\"${{ github.run_id }}.${{ github.run_attempt }}\",\"run_id\":\"${{ github.run_id }}\",\"run_attempt\":\"${{ github.run_attempt }}\",\"run_number\":\"${{ github.run_number }}\",\"branchName\":\"${{ steps.vars.outputs.commitbranch }}\",\"commitHash\":\"${{ steps.vars.outputs.commitsha }}\"}" > ${{ github.action_path }}wwwroot\buildinfo.json
+    #   continue-on-error: true
 
     - name: Login to Azure using OIDC
       uses: azure/login@v2
