@@ -1,3 +1,5 @@
+using MathStorm.Core.Models;
+
 namespace MathStorm.Core;
 
 /// <summary>
@@ -23,13 +25,13 @@ public class MathStormService : IMathStormService
         _analysisService = analysisService;
     }
 
-    public GameResponseDto CreateGame(Difficulty difficulty)
+    public async Task<GameResponseDto> CreateGame(Difficulty difficulty)
     {
         _logger.LogInformation($"Creating game with difficulty: {difficulty}");
 
         var gameSession = _gameService.CreateNewGame(difficulty);
 
-        return new GameResponseDto
+        var gameDto = new GameResponseDto
         {
             GameId = Guid.NewGuid().ToString(),
             Difficulty = difficulty.ToString(),
@@ -43,6 +45,7 @@ public class MathStormService : IMathStormService
                 QuestionText = q.QuestionText
             }).ToList()
         };
+        return gameDto;
     }
 
     public async Task<Game?> GetGameByIdAsync(string gameId)
@@ -126,19 +129,13 @@ public class MathStormService : IMathStormService
         user.LastPlayedAt = DateTime.UtcNow;
         await _cosmosDbService.UpdateUserAsync(user);
 
-        // Add to leaderboard
-        var leaderboardEntry = await _cosmosDbService.AddToLeaderboardAsync(
-            user.Id, request.Username, request.GameId, request.Difficulty, game.TotalScore);
-
-        // Update rankings
-        await _cosmosDbService.UpdateLeaderboardRankingsAsync(request.Difficulty);
-
+        // Do NOT add to leaderboard yet - that happens after analysis is complete
         return new GameResultsResponseDto
         {
             GameId = request.GameId,
             TotalScore = game.TotalScore,
-            AddedToLeaderboard = leaderboardEntry != null,
-            LeaderboardRank = leaderboardEntry?.Rank
+            AddedToLeaderboard = false,
+            LeaderboardRank = null
         };
     }
 
@@ -164,6 +161,40 @@ public class MathStormService : IMathStormService
                 AchievedAt = entry.AchievedAt,
                 Rank = entry.Rank
             }).ToList()
+        };
+    }
+
+    public async Task<GameResultsResponseDto?> AddGameToLeaderboardAsync(string gameId)
+    {
+        _logger.LogInformation($"Adding game to leaderboard: {gameId}");
+
+        if (string.IsNullOrEmpty(gameId))
+        {
+            _logger.LogWarning("AddGameToLeaderboardAsync called with null/empty gameId");
+            return null;
+        }
+
+        // Get the game record
+        var game = await _cosmosDbService.GetGameByIdAsync(gameId);
+        if (game == null)
+        {
+            _logger.LogWarning($"Game not found: {gameId}");
+            return null;
+        }
+
+        // Add to leaderboard
+        var leaderboardEntry = await _cosmosDbService.AddToLeaderboardAsync(
+            game.UserId, game.Username, game.Id, game.Difficulty, game.TotalScore);
+
+        // Update rankings
+        await _cosmosDbService.UpdateLeaderboardRankingsAsync(game.Difficulty);
+
+        return new GameResultsResponseDto
+        {
+            GameId = game.Id,
+            TotalScore = game.TotalScore,
+            AddedToLeaderboard = leaderboardEntry != null,
+            LeaderboardRank = leaderboardEntry?.Rank
         };
     }
 

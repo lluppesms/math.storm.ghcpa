@@ -1,4 +1,4 @@
-using MathStorm.Core.Helpers;
+
 
 namespace MathStorm.Core;
 
@@ -106,28 +106,46 @@ public class ResultsAnalysisService : IResultsAnalysisService
         }
     }
 
-    private async Task<string> ReadPromptFileAsync(string fileName)
+    private async Task<string> ReadEmbeddedResource(string fileName, string defaultPrompt = "")
     {
-        try
+        var assembly = typeof(ResultsAnalysisService).Assembly;
+        var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(r => r.EndsWith($"{fileName}", StringComparison.OrdinalIgnoreCase));
+        if (resourceName != null)
         {
-            var filePath = Path.Combine(_promptsBasePath, fileName);
-            if (File.Exists(filePath))
-            {
-                var content = await File.ReadAllTextAsync(filePath);
-                return content.Trim();
-            }
-            else
-            {
-                _logger.LogWarning($"Prompt file not found: {filePath}");
-                return GetDefaultSystemPrompt();
-            }
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using var reader = new StreamReader(stream!);
+            var content = await reader.ReadToEndAsync();
+            return content.Trim();
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, $"Error reading prompt file: {fileName}");
-            return GetDefaultSystemPrompt();
+            _logger.LogError($"Embedded resource not found: {fileName}");
+            return defaultPrompt;
         }
     }
+
+    //private async Task<string> ReadPromptFileAsync(string fileName)
+    //{
+    //    try
+    //    {
+    //        var filePath = Path.Combine(_promptsBasePath, fileName);
+    //        if (File.Exists(filePath))
+    //        {
+    //            var content = await File.ReadAllTextAsync(filePath);
+    //            return content.Trim();
+    //        }
+    //        else
+    //        {
+    //            _logger.LogWarning($"Prompt file not found: {filePath}");
+    //            return GetDefaultSystemPrompt();
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, $"Error reading prompt file: {fileName}");
+    //        return GetDefaultSystemPrompt();
+    //    }
+    //}
 
     private string GetDefaultSystemPrompt()
     {
@@ -137,25 +155,26 @@ public class ResultsAnalysisService : IResultsAnalysisService
     private async Task<string> GetSystemPrompt(string personality)
     {
         var fileName = $"{personality.ToLowerInvariant()}.txt";
-        return await ReadPromptFileAsync(fileName);
+        return await ReadEmbeddedResource(fileName, GetDefaultSystemPrompt());
+        // return await ReadPromptFileAsync(fileName);
     }
 
     private async Task<string> GetChatMessagePrompt(ResultsAnalysisRequestDto request)
     {
         try
         {
-            var templatePath = Path.Combine(_promptsBasePath, "ChatMessagePrompt.txt");
-            string template;
-
-            if (File.Exists(templatePath))
-            {
-                template = await File.ReadAllTextAsync(templatePath);
-            }
-            else
-            {
-                _logger.LogWarning($"ChatMessagePrompt.txt not found at {templatePath}, using default template");
-                template = GetDefaultChatMessageTemplate();
-            }
+            string template = await ReadEmbeddedResource("ChatMessagePrompt.txt", GetDefaultChatMessageTemplate());
+            //var templatePath = Path.Combine(_promptsBasePath, "ChatMessagePrompt.txt");
+            //string template;
+            //if (File.Exists(templatePath))
+            //{
+            //    template = await File.ReadAllTextAsync(templatePath);
+            //}
+            //else
+            //{
+            //    _logger.LogWarning($"ChatMessagePrompt.txt not found at {templatePath}, using default template");
+            //    template = GetDefaultChatMessageTemplate();
+            //}
 
             // Calculate values
             var correctAnswers = request.Questions.Count(q => Math.Abs(q.UserAnswer - q.CorrectAnswer) < 0.01);

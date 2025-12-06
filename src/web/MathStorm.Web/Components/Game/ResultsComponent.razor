@@ -184,46 +184,21 @@
                 Analysis = null // Analysis will be added later when it comes back from LLM
             };
 
-            // Submit game results to Function API (if available)
+            // Step 1: Submit game results to save game record (without adding to leaderboard)
             var response = await MathStormService.SubmitGameResultsAsync(request);
 
             if (response != null)
             {
                 currentUserId = userId;
-                userMadeLeaderboard = response.AddedToLeaderboard;
-
-                // Get updated leaderboard
-                var leaderboardResponse = await MathStormService.GetLeaderboardAsync(GameSession.Difficulty.ToString());
-                if (leaderboardResponse?.Entries != null)
-                {
-                    leaderboardEntries = leaderboardResponse.Entries.Select(e => new LeaderboardEntry
-                    {
-                        Id = e.Id,
-                        UserId = e.UserId,
-                        Username = e.Username,
-                        GameId = e.GameId,
-                        Difficulty = e.Difficulty,
-                        Score = e.Score,
-                        AchievedAt = e.AchievedAt,
-                        Rank = e.Rank
-                    }).ToList();
-                }
-                else
-                {
-                    leaderboardEntries = new List<LeaderboardEntry>();
-                }
-
-                showLeaderboard = true;
-                StateHasChanged();
                 
-                // Start analysis in background
-                await ProcessAnalysisInBackground(gameId, username, userId);
+                // Step 2: Process analysis and then add to leaderboard
+                await ProcessAnalysisAndLeaderboard(gameId, username, userId);
             }
             else
             {
                 // Function service unavailable - create mock leaderboard entry
                 currentUserId = userId;
-                userMadeLeaderboard = true; // Mock that user made leaderboard
+                userMadeLeaderboard = true;
                 leaderboardEntries = new List<LeaderboardEntry>
                 {
                     new LeaderboardEntry
@@ -241,19 +216,19 @@
                 showLeaderboard = true;
                 StateHasChanged();
                 
-                // Start analysis in background
+                // Still process analysis
                 await ProcessAnalysisInBackground(gameId, username, userId);
             }
         }
         catch (Exception ex)
         {
-            // Handle error gracefully - still show results even if leaderboard fails
+            // Handle error gracefully - still show results even if submission fails
             Logger.LogWarning(ex, "Failed to submit game results for user {Username}", username);
             showLeaderboard = false;
         }
     }
 
-    private async Task ProcessAnalysisInBackground(string gameId, string username, string userId)
+    private async Task ProcessAnalysisAndLeaderboard(string gameId, string username, string userId)
     {
         if (string.IsNullOrEmpty(gameId)) return;
 
@@ -285,7 +260,7 @@
                     Score = q.Score
                 }).ToList(),
                 Personality = personality,
-                UserMadeLeaderboard = userMadeLeaderboard
+                UserMadeLeaderboard = false // Will be determined after adding to leaderboard
             };
 
             var analysisResponse = await MathStormService.AnalyzeGameResultsAsync(analysisRequest);
@@ -309,10 +284,103 @@
                 // Still try to update the game record with mock analysis
                 await MathStormService.UpdateGameAnalysisAsync(gameId, analysisResult);
             }
+
+            // Step 4: Add game to leaderboard (now with analysis included)
+            var leaderboardResponse = await MathStormService.AddGameToLeaderboardAsync(gameId);
+            if (leaderboardResponse != null)
+            {
+                userMadeLeaderboard = leaderboardResponse.AddedToLeaderboard;
+            }
+
+            // Step 5: Get updated leaderboard
+            var leaderboard = await MathStormService.GetLeaderboardAsync(GameSession.Difficulty.ToString());
+            if (leaderboard?.Entries != null)
+            {
+                leaderboardEntries = leaderboard.Entries.Select(e => new LeaderboardEntry
+                {
+                    Id = e.Id,
+                    UserId = e.UserId,
+                    Username = e.Username,
+                    GameId = e.GameId,
+                    Difficulty = e.Difficulty,
+                    Score = e.Score,
+                    AchievedAt = e.AchievedAt,
+                    Rank = e.Rank
+                }).ToList();
+            }
+            else
+            {
+                leaderboardEntries = new List<LeaderboardEntry>();
+            }
+
+            showLeaderboard = true;
         }
         catch (Exception ex)
         {
             // Handle gracefully - don't show error to user
+            Logger.LogWarning(ex, "Failed to process game analysis for game {GameId}", gameId);
+            analysisResult = $"Great job completing the game, {username}! " +
+                           $"You scored {GameSession.TotalScore:F1} points. Keep practicing!";
+            selectedPersonalityDisplay = "System";
+            showLeaderboard = false;
+        }
+        finally
+        {
+            isAnalysisLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ProcessAnalysisInBackground(string gameId, string username, string userId)
+    {
+        // This method is kept for the mock/fallback scenario
+        if (string.IsNullOrEmpty(gameId)) return;
+
+        try
+        {
+            isAnalysisLoading = true;
+            StateHasChanged();
+
+            var personality = GetRandomPersonality();
+
+            var analysisRequest = new ResultsAnalysisRequestDto
+            {
+                GameId = gameId,
+                Username = username,
+                Difficulty = GameSession.Difficulty.ToString(),
+                TotalScore = GameSession.TotalScore,
+                Questions = GameSession.Questions.Select(q => new QuestionResultDto
+                {
+                    Id = q.Id,
+                    Number1 = q.Number1,
+                    Number2 = q.Number2,
+                    Operation = q.Operation.ToString(),
+                    CorrectAnswer = q.CorrectAnswer,
+                    UserAnswer = q.UserAnswer ?? 0,
+                    TimeInSeconds = q.TimeInSeconds,
+                    PercentageDifference = q.PercentageDifference,
+                    Score = q.Score
+                }).ToList(),
+                Personality = personality,
+                UserMadeLeaderboard = userMadeLeaderboard
+            };
+
+            var analysisResponse = await MathStormService.AnalyzeGameResultsAsync(analysisRequest);
+
+            if (analysisResponse != null && !string.IsNullOrEmpty(analysisResponse.Analysis))
+            {
+                analysisResult = analysisResponse.Analysis;
+            }
+            else
+            {
+                analysisResult = $"Great job completing the {GameSession.Difficulty} level game, {username}! " +
+                               $"You scored {GameSession.TotalScore:F1} points. " +
+                               $"Keep practicing to improve your math skills!";
+                selectedPersonalityDisplay = "System";
+            }
+        }
+        catch (Exception ex)
+        {
             Logger.LogWarning(ex, "Failed to process game analysis for game {GameId}", gameId);
             analysisResult = $"Great job completing the game, {username}! " +
                            $"You scored {GameSession.TotalScore:F1} points. Keep practicing!";

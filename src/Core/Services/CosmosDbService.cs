@@ -10,45 +10,61 @@ public class CosmosDbService : ICosmosDbService
     public CosmosDbService(CosmosClient cosmosClient, IConfiguration configuration, ILogger<CosmosDbService> logger)
     {
         _logger = logger;
-        _logger.Log(LogLevel.Information, "CosmosDbService.Init: Starting");
 
-        var endpoint = configuration["CosmosDb:Endpoint"];
-        var connectionString = configuration["CosmosDb:ConnectionString"];
-
-        // Extract account name for logging purposes
-        var accountName = endpoint;
-        _logger.Log(LogLevel.Information, $"CosmosDbService.Init: AccountName-EP: {accountName}");
-        if (!string.IsNullOrEmpty(connectionString))
+        if (_gamesContainer == null)
         {
-            var accountKeyLocation = connectionString.IndexOf("AccountKey");
-            _logger.Log(LogLevel.Information, $"CosmosDbService.Init: AccountName-CS-AKL: {accountKeyLocation}");
-            accountName = accountKeyLocation  > 0 ? connectionString?[..accountKeyLocation] : "UNKNOWN";
-            _logger.Log(LogLevel.Information, $"CosmosDbService.Init: AccountName-CS-RAW: {accountName}");
-            accountName = accountName?.Replace("https://", "").Replace(".documents.azure.com:443/", "").Replace("/;", "").Replace(";", "");
-            _logger.Log(LogLevel.Information, $"CosmosDbService.Init: AccountName-CS: {accountName}");
+            _logger.Log(LogLevel.Information, "CosmosDbService.Init: Starting");
+            var endpoint = configuration["CosmosDb:Endpoint"];
+            var connectionString = configuration["CosmosDb:ConnectionString"];
+            if (string.IsNullOrEmpty(endpoint) && string.IsNullOrEmpty(connectionString))
+            {
+                throw new ArgumentException("CosmosDbService.Init: Either Endpoint or ConnectionString must be provided in configuration.");
+            }
+            // problems with Managed Identity auth right now, so wipe this if there is a connection string
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                endpoint = string.Empty;
+            }
+
+            // Extract account name for logging purposes
+            var accountName = endpoint;
+            _logger.Log(LogLevel.Information, $"CosmosDbService.Init: AccountName-EP: {accountName}");
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                var accountKeyLocation = connectionString.IndexOf("AccountKey");
+                _logger.Log(LogLevel.Information, $"CosmosDbService.Init: AccountName-CS-AKL: {accountKeyLocation}");
+                accountName = accountKeyLocation > 0 ? connectionString?[..accountKeyLocation] : "UNKNOWN";
+                _logger.Log(LogLevel.Information, $"CosmosDbService.Init: AccountName-CS-RAW: {accountName}");
+                accountName = accountName?.Replace("https://", "").Replace(".documents.azure.com:443/", "").Replace("/;", "").Replace(";", "");
+                _logger.Log(LogLevel.Information, $"CosmosDbService.Init: AccountName-CS: {accountName}");
+            }
+
+            var databaseName = configuration["CosmosDb:DatabaseName"];
+            var usersContainer = configuration["CosmosDb:ContainerNames:Users"];
+            var gamesContainer = configuration["CosmosDb:ContainerNames:Games"];
+            var leaderboardContainer = configuration["CosmosDb:ContainerNames:Leaderboard"];
+
+            if (!string.IsNullOrEmpty(connectionString)) { _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Account: {accountName} Database: {databaseName}"); }
+            if (!string.IsNullOrEmpty(endpoint)) { _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Endpoint: {accountName} Database: {databaseName}"); }
+
+            cosmosClient.CreateDatabaseIfNotExistsAsync(databaseName).GetAwaiter().GetResult();
+            var database = cosmosClient.GetDatabase(databaseName);
+
+            database.CreateContainerIfNotExistsAsync(usersContainer, "/id").GetAwaiter().GetResult();
+            _usersContainer = database.GetContainer(usersContainer);
+
+            database.CreateContainerIfNotExistsAsync(gamesContainer, "/id").GetAwaiter().GetResult();
+            _gamesContainer = database.GetContainer(gamesContainer);
+
+            database.CreateContainerIfNotExistsAsync(leaderboardContainer, "/id").GetAwaiter().GetResult();
+            _leaderboardContainer = database.GetContainer(leaderboardContainer);
+
+            _logger.Log(LogLevel.Information, "CosmosDbService.Init: Complete!");
         }
-
-        var databaseName = configuration["CosmosDb:DatabaseName"];
-        var usersContainer = configuration["CosmosDb:ContainerNames:Users"];
-        var gamesContainer = configuration["CosmosDb:ContainerNames:Games"];
-        var leaderboardContainer = configuration["CosmosDb:ContainerNames:Leaderboard"];
-
-        if (!string.IsNullOrEmpty(connectionString)) { _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Account: {accountName} Database: {databaseName}"); }
-        if (!string.IsNullOrEmpty(endpoint)) { _logger.Log(LogLevel.Information, $"CosmosDbService.Init: Using Endpoint: {accountName} Database: {databaseName}"); }
-
-        cosmosClient.CreateDatabaseIfNotExistsAsync(databaseName).GetAwaiter().GetResult();
-        var database = cosmosClient.GetDatabase(databaseName);
-
-        database.CreateContainerIfNotExistsAsync(usersContainer, "/id").GetAwaiter().GetResult();
-        _usersContainer = database.GetContainer(usersContainer);
-
-        database.CreateContainerIfNotExistsAsync(gamesContainer, "/id").GetAwaiter().GetResult();
-        _gamesContainer = database.GetContainer(gamesContainer);
-
-        database.CreateContainerIfNotExistsAsync(leaderboardContainer, "/id").GetAwaiter().GetResult();
-        _leaderboardContainer = database.GetContainer(leaderboardContainer);
-
-        _logger.Log(LogLevel.Information, "CosmosDbService.Init: Complete!");
+        else
+        {
+            _logger.Log(LogLevel.Information, "CosmosDbService.Init: Using existing connection...");
+        }
     }
 
     public async Task<GameUser?> GetUserByUsernameAsync(string username)
