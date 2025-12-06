@@ -1,212 +1,215 @@
-﻿using OpenAI.Chat;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿
+// TODO: Emulate this code to pull all my prompts from a single Combined Markdown file... pretty cool setup!
 
-namespace MathStorm.Core.Helpers;
+//using OpenAI.Chat;
+//using System;
+//using System.Collections.Generic;
+//using System.Text;
 
-public class AgentMarkdownParser(AgentCache agentCache, IAIClientProvider client, ILoggerFactory factory, ILogger<AgentMarkdownParser> logger)
-{
-    private const string agentMark = "## ";
-    private const string promptMark = "### ";
+//namespace MathStorm.Core.Helpers;
 
-    private AgentCacheEntry MakeAgent(string name, string instructions, IDictionary<string, string> promptsForAgent)
-    {
-        logger.LogDebug("Creating agent from markdown: {AgentName}", name);
+//public class AgentMarkdownParser(AgentCache agentCache, IAIClientProvider client, ILoggerFactory factory, ILogger<AgentMarkdownParser> logger)
+//{
+//    private const string agentMark = "## ";
+//    private const string promptMark = "### ";
 
-        var agentType = name.Split(' ', StringSplitOptions.RemoveEmptyEntries
-            | StringSplitOptions.TrimEntries)[0];
+//    private AgentCacheEntry MakeAgent(string name, string instructions, IDictionary<string, string> promptsForAgent)
+//    {
+//        logger.LogDebug("Creating agent from markdown: {AgentName}", name);
 
-        name = name[(agentType.Length)..].Trim();
+//        var agentType = name.Split(' ', StringSplitOptions.RemoveEmptyEntries
+//            | StringSplitOptions.TrimEntries)[0];
 
-        logger.LogDebug("Agent type: {AgentType}, Agent name: {AgentName}, Prompt count: {PromptCount}",
-            agentType, name, promptsForAgent.Count);
+//        name = name[(agentType.Length)..].Trim();
 
-        AIAgent? agent;
-        IChatClient? chatClientUsed = null;
-        IImageGenerator? imageGenerator = null;
+//        logger.LogDebug("Agent type: {AgentType}, Agent name: {AgentName}, Prompt count: {PromptCount}",
+//            agentType, name, promptsForAgent.Count);
 
-        switch (agentType.ToLowerInvariant())
-        {
-            case "conversational":
-                logger.LogDebug("Creating conversational agent: {AgentName}", name);
-                chatClientUsed = client.GetConversationalClient();
-                agent = chatClientUsed.CreateAIAgent(instructions, name, loggerFactory: factory);
-                logger.LogInformation("Created conversational agent: {AgentName} with {PromptCount} prompts",
-                    name, promptsForAgent.Count);
-                break;
-            case "vision":
-                logger.LogDebug("Creating vision agent: {AgentName}", name);
-                chatClientUsed = client.GetVisionClient();
-                agent = chatClientUsed.CreateAIAgent(instructions, name, loggerFactory: factory);
-                logger.LogInformation("Created vision agent: {AgentName} with {PromptCount} prompts",
-                    name, promptsForAgent.Count);
-                break;
-            case "image":
-                logger.LogDebug("Creating image generation agent: {AgentName}", name);
-                imageGenerator = client.GetImageClient();
-                var agentBase = client.GetVisionClient(); // agent doesn't direct support image generator yet
-                agent = agentBase.CreateAIAgent(name: name, loggerFactory: factory);
-                logger.LogInformation("Created image generation agent: {AgentName} with {PromptCount} prompts",
-                       name, promptsForAgent.Count);
-                break;
-            default:
-                logger.LogError("Unsupported agent type: {AgentType} for agent: {AgentName}", agentType, name);
-                throw new NotSupportedException(
-                    $"Agent type '{agentType}' is not supported.");
-        }
+//        AIAgent? agent;
+//        IChatClient? chatClientUsed = null;
+//        IImageGenerator? imageGenerator = null;
 
-        var agentName = agent.Name ?? throw new InvalidOperationException("Agent should have a unique name.");
+//        switch (agentType.ToLowerInvariant())
+//        {
+//            case "conversational":
+//                logger.LogDebug("Creating conversational agent: {AgentName}", name);
+//                chatClientUsed = client.GetConversationalClient();
+//                agent = chatClientUsed.CreateAIAgent(instructions, name, loggerFactory: factory);
+//                logger.LogInformation("Created conversational agent: {AgentName} with {PromptCount} prompts",
+//                    name, promptsForAgent.Count);
+//                break;
+//            case "vision":
+//                logger.LogDebug("Creating vision agent: {AgentName}", name);
+//                chatClientUsed = client.GetVisionClient();
+//                agent = chatClientUsed.CreateAIAgent(instructions, name, loggerFactory: factory);
+//                logger.LogInformation("Created vision agent: {AgentName} with {PromptCount} prompts",
+//                    name, promptsForAgent.Count);
+//                break;
+//            case "image":
+//                logger.LogDebug("Creating image generation agent: {AgentName}", name);
+//                imageGenerator = client.GetImageClient();
+//                var agentBase = client.GetVisionClient(); // agent doesn't direct support image generator yet
+//                agent = agentBase.CreateAIAgent(name: name, loggerFactory: factory);
+//                logger.LogInformation("Created image generation agent: {AgentName} with {PromptCount} prompts",
+//                       name, promptsForAgent.Count);
+//                break;
+//            default:
+//                logger.LogError("Unsupported agent type: {AgentType} for agent: {AgentName}", agentType, name);
+//                throw new NotSupportedException(
+//                    $"Agent type '{agentType}' is not supported.");
+//        }
 
-        foreach (var prompt in promptsForAgent)
-        {
-            logger.LogDebug("Agent {AgentName} prompt registered: {PromptKey}", agentName, prompt.Key);
-        }
+//        var agentName = agent.Name ?? throw new InvalidOperationException("Agent should have a unique name.");
 
-        return new AgentCacheEntry
-        {
-            AgentName = agentName,
-            Agent = agent,
-            ChatClient = chatClientUsed,
-            ImageGenerator = imageGenerator,
-            Prompts = new Dictionary<string, string>(promptsForAgent)
-        };
-    }
+//        foreach (var prompt in promptsForAgent)
+//        {
+//            logger.LogDebug("Agent {AgentName} prompt registered: {PromptKey}", agentName, prompt.Key);
+//        }
 
-    public void Parse(string markdown)
-    {
-        logger.LogInformation("Starting agent markdown parsing");
+//        return new AgentCacheEntry
+//        {
+//            AgentName = agentName,
+//            Agent = agent,
+//            ChatClient = chatClientUsed,
+//            ImageGenerator = imageGenerator,
+//            Prompts = new Dictionary<string, string>(promptsForAgent)
+//        };
+//    }
 
-        if (string.IsNullOrWhiteSpace(markdown))
-        {
-            logger.LogWarning("Markdown content is empty or null");
-            return;
-        }
+//    public void Parse(string markdown)
+//    {
+//        logger.LogInformation("Starting agent markdown parsing");
 
-        bool inAgentSection = false;
-        bool inPromptSection = false;
+//        if (string.IsNullOrWhiteSpace(markdown))
+//        {
+//            logger.LogWarning("Markdown content is empty or null");
+//            return;
+//        }
 
-        var currentAgent = string.Empty;
-        var currentInstructions = string.Empty;
-        var currentPrompt = string.Empty;
-        var promptsForAgent = new Dictionary<string, string>();
-        var agentCount = 0;
+//        bool inAgentSection = false;
+//        bool inPromptSection = false;
 
-        var lines = markdown.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-        logger.LogDebug("Parsing {LineCount} lines of markdown", lines.Length);
+//        var currentAgent = string.Empty;
+//        var currentInstructions = string.Empty;
+//        var currentPrompt = string.Empty;
+//        var promptsForAgent = new Dictionary<string, string>();
+//        var agentCount = 0;
 
-        foreach (var line in lines)
-        {
-            if (inAgentSection)
-            {
-                if (inPromptSection)
-                {
-                    if (line.StartsWith(promptMark))
-                    {
-                        // Save previous prompt
-                        if (!string.IsNullOrEmpty(currentPrompt))
-                        {
-                            logger.LogDebug("Completed prompt '{PromptKey}' for agent '{AgentName}' ({InstructionLength} chars)",
-                                currentPrompt, currentAgent, currentInstructions.Trim().Length);
-                            promptsForAgent[currentPrompt] = currentInstructions.Trim();
-                        }
+//        var lines = markdown.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+//        logger.LogDebug("Parsing {LineCount} lines of markdown", lines.Length);
 
-                        // Start new prompt
-                        currentPrompt = line[promptMark.Length..].Trim();
-                        logger.LogDebug("Starting new prompt '{PromptKey}' for agent '{AgentName}'",
-                            currentPrompt, currentAgent);
-                        currentInstructions = string.Empty;
-                    }
-                    else if (line.StartsWith(agentMark))
-                    {
-                        // Save last prompt of the agent
-                        if (!string.IsNullOrEmpty(currentPrompt))
-                        {
-                            logger.LogDebug("Saving final prompt '{PromptKey}' for agent '{AgentName}'",
-                                currentPrompt, currentAgent);
-                            promptsForAgent[currentPrompt] = currentInstructions.Trim();
-                        }
+//        foreach (var line in lines)
+//        {
+//            if (inAgentSection)
+//            {
+//                if (inPromptSection)
+//                {
+//                    if (line.StartsWith(promptMark))
+//                    {
+//                        // Save previous prompt
+//                        if (!string.IsNullOrEmpty(currentPrompt))
+//                        {
+//                            logger.LogDebug("Completed prompt '{PromptKey}' for agent '{AgentName}' ({InstructionLength} chars)",
+//                                currentPrompt, currentAgent, currentInstructions.Trim().Length);
+//                            promptsForAgent[currentPrompt] = currentInstructions.Trim();
+//                        }
 
-                        if (promptsForAgent.Any())
-                        {
-                            logger.LogInformation("Finalizing agent '{AgentName}' with {PromptCount} prompts",
-                                currentAgent, promptsForAgent.Count);
+//                        // Start new prompt
+//                        currentPrompt = line[promptMark.Length..].Trim();
+//                        logger.LogDebug("Starting new prompt '{PromptKey}' for agent '{AgentName}'",
+//                            currentPrompt, currentAgent);
+//                        currentInstructions = string.Empty;
+//                    }
+//                    else if (line.StartsWith(agentMark))
+//                    {
+//                        // Save last prompt of the agent
+//                        if (!string.IsNullOrEmpty(currentPrompt))
+//                        {
+//                            logger.LogDebug("Saving final prompt '{PromptKey}' for agent '{AgentName}'",
+//                                currentPrompt, currentAgent);
+//                            promptsForAgent[currentPrompt] = currentInstructions.Trim();
+//                        }
 
-                            var agentEntry = MakeAgent(currentAgent,
-                                currentInstructions,
-                                new Dictionary<string, string>(promptsForAgent));
+//                        if (promptsForAgent.Any())
+//                        {
+//                            logger.LogInformation("Finalizing agent '{AgentName}' with {PromptCount} prompts",
+//                                currentAgent, promptsForAgent.Count);
 
-                            agentCache.AddAgent(agentEntry);
-                            agentCount++;
-                            logger.LogInformation("Successfully cached agent '{AgentName}'", agentEntry.AgentName);
-                        }
+//                            var agentEntry = MakeAgent(currentAgent,
+//                                currentInstructions,
+//                                new Dictionary<string, string>(promptsForAgent));
 
-                        currentAgent = line[agentMark.Length..].Trim();
-                        currentInstructions = string.Empty;
-                        currentPrompt = string.Empty;
-                        promptsForAgent.Clear();
-                        logger.LogDebug("Starting new agent definition: '{AgentName}'", currentAgent);
-                    }
-                    else
-                    {
-                        // Accumulate instructions
-                        currentInstructions += line + "\n";
-                    }
-                }
-                else
-                {
-                    if (line.StartsWith(promptMark))
-                    {
-                        inPromptSection = true;
-                        currentPrompt = line[promptMark.Length..].Trim();
-                        logger.LogDebug("Entering prompt section '{PromptKey}' for agent '{AgentName}'",
-                            currentPrompt, currentAgent);
-                        currentInstructions = string.Empty;
-                    }
-                    else if (line.StartsWith(agentMark))
-                    {
-                        // Start new agent
-                        currentAgent = line[agentMark.Length..].Trim();
-                        currentInstructions = string.Empty;
-                        promptsForAgent.Clear();
-                        logger.LogDebug("Starting new agent definition: '{AgentName}'", currentAgent);
-                    }
-                }
-            }
-            else if (line.StartsWith(agentMark))
-            {
-                inAgentSection = true;
-                inPromptSection = false;
-                currentAgent = line[agentMark.Length..].Trim();
-                logger.LogDebug("Entering agent section: '{AgentName}'", currentAgent);
-            }
-        }
+//                            agentCache.AddAgent(agentEntry);
+//                            agentCount++;
+//                            logger.LogInformation("Successfully cached agent '{AgentName}'", agentEntry.AgentName);
+//                        }
 
-        // Handle any remaining agent at end of file
-        if (inAgentSection && !string.IsNullOrEmpty(currentAgent))
-        {
-            if (!string.IsNullOrEmpty(currentPrompt))
-            {
-                logger.LogDebug("Processing final prompt '{PromptKey}' for agent '{AgentName}' at end of file",
-                    currentPrompt, currentAgent);
-                promptsForAgent[currentPrompt] = currentInstructions.Trim();
-            }
+//                        currentAgent = line[agentMark.Length..].Trim();
+//                        currentInstructions = string.Empty;
+//                        currentPrompt = string.Empty;
+//                        promptsForAgent.Clear();
+//                        logger.LogDebug("Starting new agent definition: '{AgentName}'", currentAgent);
+//                    }
+//                    else
+//                    {
+//                        // Accumulate instructions
+//                        currentInstructions += line + "\n";
+//                    }
+//                }
+//                else
+//                {
+//                    if (line.StartsWith(promptMark))
+//                    {
+//                        inPromptSection = true;
+//                        currentPrompt = line[promptMark.Length..].Trim();
+//                        logger.LogDebug("Entering prompt section '{PromptKey}' for agent '{AgentName}'",
+//                            currentPrompt, currentAgent);
+//                        currentInstructions = string.Empty;
+//                    }
+//                    else if (line.StartsWith(agentMark))
+//                    {
+//                        // Start new agent
+//                        currentAgent = line[agentMark.Length..].Trim();
+//                        currentInstructions = string.Empty;
+//                        promptsForAgent.Clear();
+//                        logger.LogDebug("Starting new agent definition: '{AgentName}'", currentAgent);
+//                    }
+//                }
+//            }
+//            else if (line.StartsWith(agentMark))
+//            {
+//                inAgentSection = true;
+//                inPromptSection = false;
+//                currentAgent = line[agentMark.Length..].Trim();
+//                logger.LogDebug("Entering agent section: '{AgentName}'", currentAgent);
+//            }
+//        }
 
-            if (promptsForAgent.Any())
-            {
-                logger.LogInformation("Finalizing last agent '{AgentName}' with {PromptCount} prompts",
-                    currentAgent, promptsForAgent.Count);
+//        // Handle any remaining agent at end of file
+//        if (inAgentSection && !string.IsNullOrEmpty(currentAgent))
+//        {
+//            if (!string.IsNullOrEmpty(currentPrompt))
+//            {
+//                logger.LogDebug("Processing final prompt '{PromptKey}' for agent '{AgentName}' at end of file",
+//                    currentPrompt, currentAgent);
+//                promptsForAgent[currentPrompt] = currentInstructions.Trim();
+//            }
 
-                var agentEntry = MakeAgent(currentAgent,
-                    currentInstructions,
-                    new Dictionary<string, string>(promptsForAgent));
+//            if (promptsForAgent.Any())
+//            {
+//                logger.LogInformation("Finalizing last agent '{AgentName}' with {PromptCount} prompts",
+//                    currentAgent, promptsForAgent.Count);
 
-                agentCache.AddAgent(agentEntry);
-                agentCount++;
-                logger.LogInformation("Successfully cached final agent '{AgentName}'", agentEntry.AgentName);
-            }
-        }
+//                var agentEntry = MakeAgent(currentAgent,
+//                    currentInstructions,
+//                    new Dictionary<string, string>(promptsForAgent));
 
-        logger.LogInformation("Agent markdown parsing complete: {AgentCount} agents created", agentCount);
-    }
-}
+//                agentCache.AddAgent(agentEntry);
+//                agentCount++;
+//                logger.LogInformation("Successfully cached final agent '{AgentName}'", agentEntry.AgentName);
+//            }
+//        }
+
+//        logger.LogInformation("Agent markdown parsing complete: {AgentCount} agents created", agentCount);
+//    }
+//}

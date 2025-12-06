@@ -88,8 +88,12 @@ public class MathStormService : IMathStormService
         var user = await _cosmosDbService.GetUserByUsernameAsync(request.Username);
         if (user == null)
         {
-            _logger.LogWarning($"User not found: {request.Username}");
-            return null;
+            user = await _cosmosDbService.CreateUserAsync(request.Username);
+            if (user == null)
+            {
+                _logger.LogWarning($"User not found: {request.Username}");
+                return null;
+            }
         }
 
         // Create game record
