@@ -326,12 +326,12 @@ public class ScoringTests
         _gameService.SubmitAnswer(fastButWrong, 80);  // 6.7% error
         _gameService.SubmitAnswer(slowButCorrect, 75); // Perfect
 
-        // Assert: The slower correct answer should still score better
+        // Assert: Even with accuracy weighted 3x, a very fast wrong answer can beat a much slower correct one
         // Fast but wrong: (6.7 * 3) + (0.5 * 10) = 20.1 + 5 = ~25
         // Slow but correct: (0 * 3) + (5 * 10) = 0 + 50 = 50
-        // Actually the fast wrong answer scores better here, which demonstrates time matters but accuracy is 3x weighted
+        // This demonstrates that speed matters significantly, even with accuracy weighted 3x
         Assert.IsTrue(fastButWrong.Questions[0].Score < slowButCorrect.Questions[0].Score,
-            "Very small error fast should score better than perfect but much slower");
+            "A very small error with very fast time can score better than perfect but much slower");
     }
 
     [TestMethod]

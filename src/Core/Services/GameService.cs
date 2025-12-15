@@ -67,9 +67,8 @@ public class GameService : IGameService
         var accuracyScore = percentageDifference * 3;
         
         // Time Component:
-        // 0-5 seconds: precise to 1/10 second, weight = 10 per second
-        // 5-10 seconds: weight = 10 per second
-        // >10 seconds: diminishing penalty (half rate) for each additional 10 seconds
+        // 0-10 seconds: 10 points per second (precise to 1/10 second)
+        // >10 seconds: diminishing penalty (half rate = 5 points per second)
         var timeScore = 0.0;
         var timeInSeconds = currentQuestion.TimeInSeconds;
         
