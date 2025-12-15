@@ -62,7 +62,7 @@ public class LeaderboardTests
         var username = "TestUser";
         var difficulty = "Expert";
 
-        // Add three entries
+        // Add two entries
         await _cosmosDbService.AddToLeaderboardAsync(userId, username, "game1", difficulty, 50.0);
         await _cosmosDbService.AddToLeaderboardAsync(userId, username, "game2", difficulty, 40.0);
 
