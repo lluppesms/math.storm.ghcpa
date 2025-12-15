@@ -45,6 +45,8 @@ public class ScoringTests
         // Score = (0% * 3) + (1 * 10) = 0 + 10 = 10.0
         Assert.AreEqual(10.0, question.Score, 0.1, "Perfect answer in 1s should score 10.0");
         Assert.AreEqual(0.0, question.PercentageDifference, "Error should be 0%");
+        Assert.AreEqual(0.0, question.AccuracyScore, 0.1, "Accuracy score should be 0");
+        Assert.AreEqual(10.0, question.TimeScore, 0.1, "Time score should be 10.0");
     }
 
     [TestMethod]
@@ -77,6 +79,8 @@ public class ScoringTests
         // Score = (10% * 3) + (2 * 10) = 30 + 20 = 50.0
         Assert.AreEqual(10.0, question.PercentageDifference, "Error should be 10%");
         Assert.AreEqual(50.0, question.Score, 0.1, "10% error in 2s should score 50.0");
+        Assert.AreEqual(30.0, question.AccuracyScore, 0.1, "Accuracy score should be 30.0");
+        Assert.AreEqual(20.0, question.TimeScore, 0.1, "Time score should be 20.0");
     }
 
     [TestMethod]

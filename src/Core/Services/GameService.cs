@@ -87,6 +87,9 @@ public class GameService : IGameService
             timeScore += additionalTime * 5;
         }
         
+        // Store individual components
+        currentQuestion.AccuracyScore = Math.Round(accuracyScore, 1);
+        currentQuestion.TimeScore = Math.Round(timeScore, 1);
         currentQuestion.Score = Math.Round(accuracyScore + timeScore, 1);
     }
 

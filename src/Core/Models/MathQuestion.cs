@@ -11,6 +11,8 @@ public class MathQuestion
     public double TimeInSeconds { get; set; }
     public double PercentageDifference { get; set; }
     public double Score { get; set; }
+    public double AccuracyScore { get; set; }
+    public double TimeScore { get; set; }
     
     public string QuestionText => $"{Number1} {GetOperationSymbol()} {Number2}";
     
