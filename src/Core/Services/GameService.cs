@@ -47,46 +47,58 @@ public class GameService : IGameService
         // Calculate percentage difference
         var correctAnswer = currentQuestion.CorrectAnswer;
         var difference = Math.Abs(correctAnswer - userAnswer);
-        
+
         // Fixed: Handle division by zero case properly
         var percentageDifference = (correctAnswer == 0 && userAnswer == 0) ? 0 :
             (correctAnswer == 0) ? 200 : // Cap at 200% when correct is 0 but user entered something
             Math.Round((difference / Math.Abs(correctAnswer)) * 100, 1);
-        
+
         // Cap percentage difference at 200% to avoid enormous scores for one bad answer
         percentageDifference = Math.Min(percentageDifference, 200);
-        
+
         currentQuestion.PercentageDifference = percentageDifference;
 
         // New scoring algorithm:
         // Score = (Accuracy Component) + (Time Component)
         // Lower score is better
         // Accuracy is weighted more heavily than time
-        
+
         // Accuracy Component (weighted 3x): ranges from 0 (perfect) to 600 (200% error)
         var accuracyScore = percentageDifference * 3;
-        
+
+        // Time multiplier based on difficulty:
+        // Beginner: 5 points per second (more forgiving)
+        // Novice: 10 points per second
+        // Intermediate/Expert: 15 points per second (more challenging)
+        var timeMultiplier = gameSession.Difficulty switch
+        {
+            Difficulty.Beginner => 5,
+            Difficulty.Novice => 10,
+            Difficulty.Intermediate or Difficulty.Expert => 15,
+            _ => 10 // Default fallback
+        };
+
         // Time Component:
-        // 0-10 seconds: 10 points per second (precise to 1/10 second)
-        // >10 seconds: diminishing penalty (half rate = 5 points per second)
+        // 0-10 seconds: timeMultiplier points per second (precise to 1/10 second)
+        // >10 seconds: diminishing penalty (half rate)
         var timeScore = 0.0;
         var timeInSeconds = currentQuestion.TimeInSeconds;
-        
+
         if (timeInSeconds <= 10)
         {
-            // First 10 seconds: 10 points per second
-            timeScore = timeInSeconds * 10;
+            // First 10 seconds: timeMultiplier points per second
+            timeScore = timeInSeconds * timeMultiplier;
         }
         else
         {
             // First 10 seconds at full rate
-            timeScore = 100;
-            
-            // Additional time beyond 10 seconds at half rate (5 points per second)
+            timeScore = 10 * timeMultiplier;
+
+            // Additional time beyond 10 seconds at half rate
             var additionalTime = timeInSeconds - 10;
-            timeScore += additionalTime * 5;
+            timeScore += additionalTime * (timeMultiplier / 2.0);
         }
-        
+
         // Store individual components
         currentQuestion.AccuracyScore = Math.Round(accuracyScore, 1);
         currentQuestion.TimeScore = Math.Round(timeScore, 1);

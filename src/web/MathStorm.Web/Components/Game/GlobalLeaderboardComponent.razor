@@ -52,10 +52,10 @@
                                 <td class="text-end">@entry.Score.ToString("F1")</td>
                                 <td class="text-end">@entry.AchievedAt.ToString("MMM dd, yyyy")</td>
                                 <td class="text-center">
-                                    <i class="fas fa-comment-dots text-info analysis-icon" 
+                                    <i class="fas fa-comment-dots text-info analysis-icon"
                                        @onclick="@(() => ShowAnalysis(entry.GameId))"
-                                       data-bs-toggle="tooltip" 
-                                       data-bs-placement="top" 
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="top"
                                        title="Click to view game analysis"
                                        style="cursor: pointer;"></i>
                                 </td>
@@ -64,7 +64,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             @if (UserMadeLeaderboard)
             {
                 <div class="alert alert-success text-center mt-3">
@@ -72,11 +72,11 @@
                     <p class="mb-0">You made it to the global leaderboard! 🎉</p>
                 </div>
             }
-            
+
             <div class="row mt-3">
                 <div class="col-md-12 text-center">
                     <p class="text-muted small">
-                        <i class="fas fa-info-circle"></i> 
+                        <i class="fas fa-info-circle"></i>
                         The global leaderboard shows the top scores from all difficulty levels combined
                     </p>
                 </div>
@@ -149,8 +149,8 @@ else
                                         </ul>
                                         <p class="mb-1"><i class="fas fa-clock text-info"></i> <strong>Time Score:</strong></p>
                                         <ul class="ms-3 mb-2">
-                                            <li>0-10 seconds: Time × 10 points</li>
-                                            <li>Over 10 seconds: 100 + (extra seconds × 5)</li>
+                                            <li>0-10 seconds: Time × 5/10/15 points (depends on level)</li>
+                                            <li>Over 10 seconds: First 10 + (extra seconds × 2.5/5/7.5)</li>
                                         </ul>
                                         <p class="mb-0"><i class="fas fa-calculator text-primary"></i> <strong>Total Score = Accuracy Score + Time Score</strong></p>
                                     </div>
@@ -335,7 +335,7 @@ else
         return rank switch
         {
             1 => "🥇",
-            2 => "🥈", 
+            2 => "🥈",
             3 => "🥉",
             _ => ""
         };
