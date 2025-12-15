@@ -315,7 +315,7 @@ public class CosmosDbService : ICosmosDbService
     {
         try
         {
-            var query = new QueryDefinition("SELECT * FROM c WHERE LOWER(c.username) = LOWER(@username) AND c.difficulty = @difficulty ORDER BY c.score ASC")
+            var query = new QueryDefinition("SELECT * FROM c WHERE LOWER(c.username) = LOWER(@username) AND LOWER(c.difficulty) = LOWER(@difficulty) ORDER BY c.score ASC")
                 .WithParameter("@username", username)
                 .WithParameter("@difficulty", difficulty);
 
