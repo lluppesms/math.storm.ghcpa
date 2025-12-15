@@ -15,6 +15,7 @@ public class ScoringTests
         _gameService = new GameService();
         _gameSession = new GameSession
         {
+            Difficulty = Difficulty.Expert, // Explicit: time multiplier = 15
             Questions = new List<MathQuestion>
             {
                 new MathQuestion
@@ -42,11 +43,11 @@ public class ScoringTests
         _gameService.SubmitAnswer(_gameSession, 15); // Correct answer
 
         // Assert
-        // Score = (0% * 3) + (1 * 10) = 0 + 10 = 10.0
-        Assert.AreEqual(10.0, question.Score, 0.1, "Perfect answer in 1s should score 10.0");
+        // Score = (0% * 3) + (1 * 15) = 0 + 15 = 15.0 (Expert difficulty, time multiplier = 15)
+        Assert.AreEqual(15.0, question.Score, 0.1, "Perfect answer in 1s should score 15.0");
         Assert.AreEqual(0.0, question.PercentageDifference, "Error should be 0%");
         Assert.AreEqual(0.0, question.AccuracyScore, 0.1, "Accuracy score should be 0");
-        Assert.AreEqual(10.0, question.TimeScore, 0.1, "Time score should be 10.0");
+        Assert.AreEqual(15.0, question.TimeScore, 0.1, "Time score should be 15.0");
     }
 
     [TestMethod]
@@ -60,8 +61,8 @@ public class ScoringTests
         _gameService.SubmitAnswer(_gameSession, 15); // Correct answer
 
         // Assert
-        // Score = (0% * 3) + (1.6 * 10) = 0 + 16 = 16.0
-        Assert.AreEqual(16.0, question.Score, 0.1, "Perfect answer in 1.6s should score 16.0");
+        // Score = (0% * 3) + (1.6 * 15) = 0 + 24 = 24.0 (Expert difficulty, time multiplier = 15)
+        Assert.AreEqual(24.0, question.Score, 0.1, "Perfect answer in 1.6s should score 24.0");
         Assert.AreEqual(0.0, question.PercentageDifference, "Error should be 0%");
     }
 
@@ -76,11 +77,11 @@ public class ScoringTests
         _gameService.SubmitAnswer(_gameSession, 16.5); // 10% error from 15
 
         // Assert
-        // Score = (10% * 3) + (2 * 10) = 30 + 20 = 50.0
+        // Score = (10% * 3) + (2 * 15) = 30 + 30 = 60.0 (Expert difficulty, time multiplier = 15)
         Assert.AreEqual(10.0, question.PercentageDifference, "Error should be 10%");
-        Assert.AreEqual(50.0, question.Score, 0.1, "10% error in 2s should score 50.0");
+        Assert.AreEqual(60.0, question.Score, 0.1, "10% error in 2s should score 60.0");
         Assert.AreEqual(30.0, question.AccuracyScore, 0.1, "Accuracy score should be 30.0");
-        Assert.AreEqual(20.0, question.TimeScore, 0.1, "Time score should be 20.0");
+        Assert.AreEqual(30.0, question.TimeScore, 0.1, "Time score should be 30.0");
     }
 
     [TestMethod]
@@ -94,9 +95,9 @@ public class ScoringTests
         _gameService.SubmitAnswer(_gameSession, 100); // Way off from 15
 
         // Assert
-        // Score = (200% * 3) + (2 * 10) = 600 + 20 = 620.0
+        // Score = (200% * 3) + (2 * 15) = 600 + 30 = 630.0 (Expert difficulty, time multiplier = 15)
         Assert.AreEqual(200.0, question.PercentageDifference, "Error should be capped at 200%");
-        Assert.AreEqual(620.0, question.Score, 0.1, "Large error should be capped");
+        Assert.AreEqual(630.0, question.Score, 0.1, "Large error should be capped");
     }
 
     [TestMethod]
@@ -112,8 +113,8 @@ public class ScoringTests
         // Assert
         var question = _gameSession.Questions[0];
         Assert.AreEqual(0.0, question.PercentageDifference, "0 vs 0 should be 0% error");
-        // Score = (0% * 3) + (1.5 * 10) = 0 + 15 = 15.0
-        Assert.AreEqual(15.0, question.Score, 0.1, "Perfect answer of 0 should score based on time only");
+        // Score = (0% * 3) + (1.5 * 15) = 0 + 22.5 = 22.5 (Expert difficulty, time multiplier = 15)
+        Assert.AreEqual(22.5, question.Score, 0.1, "Perfect answer of 0 should score based on time only");
     }
 
     [TestMethod]
@@ -129,8 +130,8 @@ public class ScoringTests
         // Assert
         var question = _gameSession.Questions[0];
         Assert.AreEqual(200.0, question.PercentageDifference, "Non-zero when correct is 0 should be 200% error");
-        // Score = (200% * 3) + (2 * 10) = 600 + 20 = 620.0
-        Assert.AreEqual(620.0, question.Score, 0.1);
+        // Score = (200% * 3) + (2 * 15) = 600 + 30 = 630.0 (Expert difficulty, time multiplier = 15)
+        Assert.AreEqual(630.0, question.Score, 0.1);
     }
 
     [TestMethod]
@@ -144,8 +145,8 @@ public class ScoringTests
         _gameService.SubmitAnswer(_gameSession, 15);
 
         // Assert
-        // Score = (0% * 3) + (0.9 * 10) = 0 + 9 = 9.0
-        Assert.AreEqual(9.0, question.Score, 0.1, "Time under 5s should be precise to 1/10 second");
+        // Score = (0% * 3) + (0.9 * 15) = 0 + 13.5 = 13.5 (Expert difficulty, time multiplier = 15)
+        Assert.AreEqual(13.5, question.Score, 0.1, "Time under 5s should be precise to 1/10 second");
     }
 
     [TestMethod]
@@ -159,8 +160,8 @@ public class ScoringTests
         _gameService.SubmitAnswer(_gameSession, 15);
 
         // Assert
-        // Score = (0% * 3) + (10 * 10) = 0 + 100 = 100.0
-        Assert.AreEqual(100.0, question.Score, 0.1, "10 seconds should score 100 for time component");
+        // Score = (0% * 3) + (10 * 15) = 0 + 150 = 150.0 (Expert difficulty, time multiplier = 15)
+        Assert.AreEqual(150.0, question.Score, 0.1, "10 seconds should score 150 for time component");
     }
 
     [TestMethod]
@@ -174,8 +175,8 @@ public class ScoringTests
         _gameService.SubmitAnswer(_gameSession, 15);
 
         // Assert
-        // Score = (0% * 3) + (100 + (5 * 5)) = 0 + 125 = 125.0
-        Assert.AreEqual(125.0, question.Score, 0.1, "Time over 10s should use half rate");
+        // Score = (0% * 3) + (10 * 15 + 5 * 7.5) = 0 + 150 + 37.5 = 187.5 (Expert difficulty, time multiplier = 15, half rate = 7.5)
+        Assert.AreEqual(187.5, question.Score, 0.1, "Time over 10s should use half rate");
     }
 
     [TestMethod]
@@ -189,8 +190,8 @@ public class ScoringTests
         _gameService.SubmitAnswer(_gameSession, 15);
 
         // Assert
-        // Score = (0% * 3) + (100 + (10 * 5)) = 0 + 150 = 150.0
-        Assert.AreEqual(150.0, question.Score, 0.1, "Time at 20s should continue half rate");
+        // Score = (0% * 3) + (10 * 15 + 10 * 7.5) = 0 + 150 + 75 = 225.0 (Expert difficulty, time multiplier = 15, half rate = 7.5)
+        Assert.AreEqual(225.0, question.Score, 0.1, "Time at 20s should continue half rate");
     }
 
     [TestMethod]
@@ -199,6 +200,7 @@ public class ScoringTests
         // Test that with same accuracy, lower time = lower score
         var game1 = new GameSession
         {
+            Difficulty = Difficulty.Expert,
             Questions = new List<MathQuestion>
             {
                 new MathQuestion
@@ -216,6 +218,7 @@ public class ScoringTests
 
         var game2 = new GameSession
         {
+            Difficulty = Difficulty.Expert,
             Questions = new List<MathQuestion>
             {
                 new MathQuestion
@@ -246,6 +249,7 @@ public class ScoringTests
         // Test that with same time, better accuracy = lower score
         var game1 = new GameSession
         {
+            Difficulty = Difficulty.Expert,
             Questions = new List<MathQuestion>
             {
                 new MathQuestion
@@ -263,6 +267,7 @@ public class ScoringTests
 
         var game2 = new GameSession
         {
+            Difficulty = Difficulty.Expert,
             Questions = new List<MathQuestion>
             {
                 new MathQuestion
@@ -294,6 +299,7 @@ public class ScoringTests
         // A small error with fast time vs perfect with slower time
         var fastButWrong = new GameSession
         {
+            Difficulty = Difficulty.Expert,
             Questions = new List<MathQuestion>
             {
                 new MathQuestion
@@ -311,6 +317,7 @@ public class ScoringTests
 
         var slowButCorrect = new GameSession
         {
+            Difficulty = Difficulty.Expert,
             Questions = new List<MathQuestion>
             {
                 new MathQuestion
@@ -331,8 +338,8 @@ public class ScoringTests
         _gameService.SubmitAnswer(slowButCorrect, 75); // Perfect
 
         // Assert: Even with accuracy weighted 3x, a very fast wrong answer can beat a much slower correct one
-        // Fast but wrong: (6.7 * 3) + (0.5 * 10) = 20.1 + 5 = ~25
-        // Slow but correct: (0 * 3) + (5 * 10) = 0 + 50 = 50
+        // Fast but wrong: (6.7 * 3) + (0.5 * 15) = 20.1 + 7.5 = ~27.6 (Expert difficulty)
+        // Slow but correct: (0 * 3) + (5 * 15) = 0 + 75 = 75 (Expert difficulty)
         // This demonstrates that speed matters significantly, even with accuracy weighted 3x
         Assert.IsTrue(fastButWrong.Questions[0].Score < slowButCorrect.Questions[0].Score,
             "A very small error with very fast time can score better than perfect but much slower");
@@ -344,6 +351,7 @@ public class ScoringTests
         // From the issue image: 16 ÷ 4 = 4.0, answered in 1.6s, 0.0% error
         var game = new GameSession
         {
+            Difficulty = Difficulty.Expert,
             Questions = new List<MathQuestion>
             {
                 new MathQuestion
@@ -363,10 +371,10 @@ public class ScoringTests
         _gameService.SubmitAnswer(game, 4.0);
 
         // Assert
-        // Score = (0% * 3) + (1.6 * 10) = 0 + 16 = 16.0
+        // Score = (0% * 3) + (1.6 * 15) = 0 + 24 = 24.0 (Expert difficulty, time multiplier = 15)
         var question = game.Questions[0];
         Assert.AreEqual(0.0, question.PercentageDifference, "Error should be 0%");
-        Assert.AreEqual(16.0, question.Score, 0.1, "Score should be 16.0");
+        Assert.AreEqual(24.0, question.Score, 0.1, "Score should be 24.0");
     }
 
     [TestMethod]
@@ -375,6 +383,7 @@ public class ScoringTests
         // From the issue image: 30 ÷ 5 = 6.0, answered in 1.0s, 0.0% error
         var game = new GameSession
         {
+            Difficulty = Difficulty.Expert,
             Questions = new List<MathQuestion>
             {
                 new MathQuestion
@@ -394,10 +403,10 @@ public class ScoringTests
         _gameService.SubmitAnswer(game, 6.0);
 
         // Assert
-        // Score = (0% * 3) + (1.0 * 10) = 0 + 10 = 10.0
+        // Score = (0% * 3) + (1.0 * 15) = 0 + 15 = 15.0 (Expert difficulty, time multiplier = 15)
         var question = game.Questions[0];
         Assert.AreEqual(0.0, question.PercentageDifference, "Error should be 0%");
-        Assert.AreEqual(10.0, question.Score, 0.1, "Score should be 10.0 (not 100.0)");
+        Assert.AreEqual(15.0, question.Score, 0.1, "Score should be 15.0");
     }
 
     [TestMethod]
@@ -411,6 +420,7 @@ public class ScoringTests
         {
             var game = new GameSession
             {
+                Difficulty = Difficulty.Expert,
                 Questions = new List<MathQuestion>
                 {
                     new MathQuestion
@@ -436,5 +446,101 @@ public class ScoringTests
             Assert.IsTrue(scores[i] > scores[i - 1],
                 $"Score at {times[i]}s should be higher than at {times[i - 1]}s");
         }
+    }
+
+    [TestMethod]
+    public void Score_BeginnerDifficulty_ShouldUseLowerTimeMultiplier()
+    {
+        // Test that Beginner difficulty uses time multiplier of 5
+        var game = new GameSession
+        {
+            Difficulty = Difficulty.Beginner,
+            Questions = new List<MathQuestion>
+            {
+                new MathQuestion
+                {
+                    Id = 1,
+                    Number1 = 10,
+                    Number2 = 5,
+                    Operation = MathOperation.Addition,
+                    CorrectAnswer = 15
+                }
+            },
+            IsGameStarted = true,
+            QuestionStartTime = DateTime.Now.AddSeconds(-2)
+        };
+
+        // Act
+        _gameService.SubmitAnswer(game, 15);
+
+        // Assert
+        // Score = (0% * 3) + (2 * 5) = 0 + 10 = 10.0 (Beginner difficulty, time multiplier = 5)
+        var question = game.Questions[0];
+        Assert.AreEqual(10.0, question.Score, 0.1, "Beginner should use time multiplier of 5");
+        Assert.AreEqual(10.0, question.TimeScore, 0.1, "Time score should be 10.0");
+    }
+
+    [TestMethod]
+    public void Score_NoviceDifficulty_ShouldUseMediumTimeMultiplier()
+    {
+        // Test that Novice difficulty uses time multiplier of 10
+        var game = new GameSession
+        {
+            Difficulty = Difficulty.Novice,
+            Questions = new List<MathQuestion>
+            {
+                new MathQuestion
+                {
+                    Id = 1,
+                    Number1 = 10,
+                    Number2 = 5,
+                    Operation = MathOperation.Addition,
+                    CorrectAnswer = 15
+                }
+            },
+            IsGameStarted = true,
+            QuestionStartTime = DateTime.Now.AddSeconds(-2)
+        };
+
+        // Act
+        _gameService.SubmitAnswer(game, 15);
+
+        // Assert
+        // Score = (0% * 3) + (2 * 10) = 0 + 20 = 20.0 (Novice difficulty, time multiplier = 10)
+        var question = game.Questions[0];
+        Assert.AreEqual(20.0, question.Score, 0.1, "Novice should use time multiplier of 10");
+        Assert.AreEqual(20.0, question.TimeScore, 0.1, "Time score should be 20.0");
+    }
+
+    [TestMethod]
+    public void Score_IntermediateDifficulty_ShouldUseHigherTimeMultiplier()
+    {
+        // Test that Intermediate difficulty uses time multiplier of 15
+        var game = new GameSession
+        {
+            Difficulty = Difficulty.Intermediate,
+            Questions = new List<MathQuestion>
+            {
+                new MathQuestion
+                {
+                    Id = 1,
+                    Number1 = 10,
+                    Number2 = 5,
+                    Operation = MathOperation.Addition,
+                    CorrectAnswer = 15
+                }
+            },
+            IsGameStarted = true,
+            QuestionStartTime = DateTime.Now.AddSeconds(-2)
+        };
+
+        // Act
+        _gameService.SubmitAnswer(game, 15);
+
+        // Assert
+        // Score = (0% * 3) + (2 * 15) = 0 + 30 = 30.0 (Intermediate difficulty, time multiplier = 15)
+        var question = game.Questions[0];
+        Assert.AreEqual(30.0, question.Score, 0.1, "Intermediate should use time multiplier of 15");
+        Assert.AreEqual(30.0, question.TimeScore, 0.1, "Time score should be 30.0");
     }
 }
