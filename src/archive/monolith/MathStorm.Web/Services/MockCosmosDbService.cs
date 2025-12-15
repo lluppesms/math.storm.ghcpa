@@ -219,7 +219,7 @@ public class MockCosmosDbService : ICosmosDbService
             
             // Remove entries beyond top 10
             var allEntriesForDifficulty = _leaderboard
-                .Where(e => e.Difficulty == difficulty)
+                .Where(e => e.Difficulty.Equals(difficulty, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(e => e.Score)
                 .ToList();
                 
@@ -244,7 +244,7 @@ public class MockCosmosDbService : ICosmosDbService
         await Task.Delay(50);
         
         var entries = _leaderboard
-            .Where(e => e.Difficulty == difficulty)
+            .Where(e => e.Difficulty.Equals(difficulty, StringComparison.OrdinalIgnoreCase))
             .OrderBy(e => e.Score)
             .ToList();
             
