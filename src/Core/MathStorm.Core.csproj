@@ -7,33 +7,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Prompts\australian.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Prompts\ChatMessagePrompt.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Prompts\comedyroast.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Prompts\default.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Prompts\haiku.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Prompts\limerick.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Prompts\pirate.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Prompts\sportsbroadcaster.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Prompts\yourmother.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <None Remove="Prompts\australian.txt" />
+    <None Remove="Prompts\ChatMessagePrompt.txt" />
+    <None Remove="Prompts\comedyroast.txt" />
+    <None Remove="Prompts\default.txt" />
+    <None Remove="Prompts\haiku.txt" />
+    <None Remove="Prompts\limerick.txt" />
+    <None Remove="Prompts\pirate.txt" />
+    <None Remove="Prompts\sportsbroadcaster.txt" />
+    <None Remove="Prompts\yourmother.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Prompts\australian.txt" />
+    <EmbeddedResource Include="Prompts\ChatMessagePrompt.txt" />
+    <EmbeddedResource Include="Prompts\comedyroast.txt" />
+    <EmbeddedResource Include="Prompts\default.txt" />
+    <EmbeddedResource Include="Prompts\haiku.txt" />
+    <EmbeddedResource Include="Prompts\limerick.txt" />
+    <EmbeddedResource Include="Prompts\pirate.txt" />
+    <EmbeddedResource Include="Prompts\sportsbroadcaster.txt" />
+    <EmbeddedResource Include="Prompts\yourmother.txt" />
   </ItemGroup>
 
   <ItemGroup>
