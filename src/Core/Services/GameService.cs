@@ -47,21 +47,48 @@ public class GameService : IGameService
         // Calculate percentage difference
         var correctAnswer = currentQuestion.CorrectAnswer;
         var difference = Math.Abs(correctAnswer - userAnswer);
-        var percentageDifference = correctAnswer == 0 ?
-            (userAnswer == 0 ? 0 : Math.Abs(userAnswer) * 100) :
+        
+        // Fixed: Handle division by zero case properly
+        var percentageDifference = (correctAnswer == 0 && userAnswer == 0) ? 0 :
+            (correctAnswer == 0) ? 200 : // Cap at 200% when correct is 0 but user entered something
             Math.Round((difference / Math.Abs(correctAnswer)) * 100, 1);
-
+        
+        // Cap percentage difference at 200% to avoid enormous scores for one bad answer
+        percentageDifference = Math.Min(percentageDifference, 200);
+        
         currentQuestion.PercentageDifference = percentageDifference;
 
-        // Calculate score using new formula: (Percentage difference * Time) + (Time * Time_Factor)
-        // where Time_Factor = 10
-        var timeFactor = 10.0;
-        // there should be a major penalty for very fast answers, because they are not trying to solve the question...
-        if (currentQuestion.TimeInSeconds <= 1) { timeFactor = 100.0; }
-
-        currentQuestion.Score = Math.Round(
-            (currentQuestion.PercentageDifference * currentQuestion.TimeInSeconds) +
-            (currentQuestion.TimeInSeconds * timeFactor), 1);
+        // New scoring algorithm:
+        // Score = (Accuracy Component) + (Time Component)
+        // Lower score is better
+        // Accuracy is weighted more heavily than time
+        
+        // Accuracy Component (weighted 3x): ranges from 0 (perfect) to 600 (200% error)
+        var accuracyScore = percentageDifference * 3;
+        
+        // Time Component:
+        // 0-5 seconds: precise to 1/10 second, weight = 10 per second
+        // 5-10 seconds: weight = 10 per second
+        // >10 seconds: diminishing penalty (half rate) for each additional 10 seconds
+        var timeScore = 0.0;
+        var timeInSeconds = currentQuestion.TimeInSeconds;
+        
+        if (timeInSeconds <= 10)
+        {
+            // First 10 seconds: 10 points per second
+            timeScore = timeInSeconds * 10;
+        }
+        else
+        {
+            // First 10 seconds at full rate
+            timeScore = 100;
+            
+            // Additional time beyond 10 seconds at half rate (5 points per second)
+            var additionalTime = timeInSeconds - 10;
+            timeScore += additionalTime * 5;
+        }
+        
+        currentQuestion.Score = Math.Round(accuracyScore + timeScore, 1);
     }
 
     public void NextQuestion(GameSession gameSession)
