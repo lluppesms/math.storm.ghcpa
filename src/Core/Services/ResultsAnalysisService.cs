@@ -177,11 +177,12 @@ public class ResultsAnalysisService : IResultsAnalysisService
             //}
 
             // Calculate values
-            var correctAnswers = request.Questions.Count(q => Math.Abs(q.UserAnswer - q.CorrectAnswer) < 0.01);
+            var correctAnswers = request.Questions.Count(q => Math.Abs(q.PercentageDifference) <= 1);
+            var closeAnswers = request.Questions.Count(q => Math.Abs(q.PercentageDifference) > 1 && Math.Abs(q.PercentageDifference) <= 10);
             var averageTime = request.Questions.Average(q => q.TimeInSeconds);
             var fastestTime = request.Questions.Min(q => q.TimeInSeconds);
             var slowestTime = request.Questions.Max(q => q.TimeInSeconds);
-            var accuracy = (double)correctAnswers / request.Questions.Count * 100;
+            var averageAccuracy = request.Questions.Average(q => q.PercentageDifference);
 
             // Replace placeholders
             var prompt = template
@@ -189,7 +190,8 @@ public class ResultsAnalysisService : IResultsAnalysisService
                 .Replace("{Difficulty}", request.Difficulty)
                 .Replace("{TotalQuestions}", request.Questions.Count.ToString())
                 .Replace("{CorrectAnswers}", correctAnswers.ToString())
-                .Replace("{Accuracy:F1}", accuracy.ToString("F1"))
+                .Replace("{CloseAnswers}", closeAnswers.ToString())
+                .Replace("{AverageAccuracy:F1}", averageAccuracy.ToString("F1"))
                 .Replace("{TotalScore:F1}", request.TotalScore.ToString("F1"))
                 .Replace("{AverageTime:F1}", averageTime.ToString("F1"))
                 .Replace("{FastestTime:F1}", fastestTime.ToString("F1"))

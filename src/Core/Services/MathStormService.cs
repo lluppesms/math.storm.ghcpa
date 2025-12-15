@@ -116,7 +116,9 @@ public class MathStormService : IMathStormService
                 UserAnswer = q.UserAnswer,
                 TimeInSeconds = q.TimeInSeconds,
                 PercentageDifference = q.PercentageDifference,
-                Score = q.Score
+                Score = q.Score,
+                AccuracyScore = q.AccuracyScore,
+                TimeScore = q.TimeScore
             }).ToList()
         };
 

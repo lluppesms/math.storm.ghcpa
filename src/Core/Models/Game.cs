@@ -57,4 +57,10 @@ public class GameQuestion
 
     [JsonProperty("score")]
     public double Score { get; set; }
+
+    [JsonProperty("accuracyScore")]
+    public double AccuracyScore { get; set; }
+
+    [JsonProperty("timeScore")]
+    public double TimeScore { get; set; }
 }

@@ -3,8 +3,9 @@ Analyze this math game performance:
 Player: {Username}
 Difficulty: {Difficulty}
 Total Questions: {TotalQuestions}
-Correct Answers: {CorrectAnswers}
-Accuracy: {Accuracy:F1}%
+Correct Answers: {CorrectAnswers} (< 1% off)
+Pretty Close Answers: {CloseAnswers} (1-10% off)
+Average Accuracy: {Accuracy:F1}%
 Total Score: {TotalScore:F1}
 Average Time per Question: {AverageTime:F1} seconds
 Fastest Question: {FastestTime:F1} seconds

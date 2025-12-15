@@ -14,7 +14,7 @@
         <div class="text-center mb-4">
             <h2><i class="fas fa-trophy"></i> Game Complete!</h2>
             <h4 class="text-primary">Total Score: @GameSession.TotalScore.ToString("F1")</h4>
-            <p class="text-muted">Lower scores are better! (Error% × Time + Time × 10)</p>
+            <p class="text-muted">Lower scores are better! Score = Accuracy Score + Time Score</p>
         </div>
 
         @* GenAI Analysis Section *@
@@ -60,7 +60,9 @@
                                 <th class="text-end">Correct Answer</th>
                                 <th class="text-end">Error %</th>
                                 <th class="text-end">Time (s)</th>
-                                <th class="text-end">Score</th>
+                                <th class="text-end">Accuracy Score</th>
+                                <th class="text-end">Time Score</th>
+                                <th class="text-end">Total Score</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -76,13 +78,17 @@
                                         </span>
                                     </td>
                                     <td class="text-end">@question.TimeInSeconds.ToString("F1")</td>
+                                    <td class="text-end">@question.AccuracyScore.ToString("F1")</td>
+                                    <td class="text-end">@question.TimeScore.ToString("F1")</td>
                                     <td class="text-end">@question.Score.ToString("F1")</td>
                                 </tr>
                             }
                         </tbody>
                         <tfoot class="table-dark">
                             <tr>
-                                <td colspan="5"><strong>Total Score:</strong></td>
+                                <td colspan="5"><strong>Totals:</strong></td>
+                                <td class="text-end"><strong>@GameSession.Questions.Sum(q => q.AccuracyScore).ToString("F1")</strong></td>
+                                <td class="text-end"><strong>@GameSession.Questions.Sum(q => q.TimeScore).ToString("F1")</strong></td>
                                 <td class="text-end"><strong>@GameSession.TotalScore.ToString("F1")</strong></td>
                             </tr>
                         </tfoot>
@@ -109,13 +115,25 @@
         <div class="card mt-4">
             <div class="card-body">
                 <h6><i class="fas fa-info-circle"></i> Scoring Information</h6>
-                <ul class="list-unstyled mb-0">
-                    <li><i class="fas fa-check text-success"></i> <strong>Perfect answers (0% error):</strong> Score = Time × 10</li>
-                    <li><i class="fas fa-exclamation text-warning"></i> <strong>Close answers (1-10% error):</strong> Low accuracy penalty</li>
-                    <li><i class="fas fa-times text-danger"></i> <strong>Incorrect answers (>10% error):</strong> High accuracy penalty</li>
-                    <li><i class="fas fa-clock text-info"></i> <strong>Speed matters:</strong> Faster answers get lower scores</li>
-                    <li><i class="fas fa-calculator text-primary"></i> <strong>Formula:</strong> (Error% × Time) + (Time × 10)</li>
+                <p class="mb-3"><strong>Lower scores are better!</strong> Your score is calculated from two components:</p>
+                <ul class="list-unstyled mb-3">
+                    <li class="mb-2"><i class="fas fa-bullseye text-danger"></i> <strong>Accuracy Score = Error% × 3</strong>
+                        <ul class="ms-4 mt-1">
+                            <li>Perfect (0% error): 0 points</li>
+                            <li>Small error (10%): 30 points</li>
+                            <li>Large error (capped at 200%): 600 points max</li>
+                        </ul>
+                    </li>
+                    <li class="mb-2"><i class="fas fa-clock text-info"></i> <strong>Time Score:</strong>
+                        <ul class="ms-4 mt-1">
+                            <li>0-10 seconds: Time × 5/10/15 points (depends on level)</li>
+                            <li>Over 10 seconds: First 10 + (extra seconds × 2.5/5/7.5)</li>
+                            <li>Example: 15 seconds = 100 + (5 × 5) = 125 points</li>
+                        </ul>
+                    </li>
                 </ul>
+                <p class="mb-0"><i class="fas fa-calculator text-primary"></i> <strong>Total Score = Accuracy Score + Time Score</strong></p>
+                <p class="text-muted small mb-0">Note: Accuracy is weighted 3× heavier than time to reward correctness!</p>
             </div>
         </div>
     </div>
@@ -179,7 +197,9 @@
                     UserAnswer = q.UserAnswer ?? 0,
                     TimeInSeconds = q.TimeInSeconds,
                     PercentageDifference = q.PercentageDifference,
-                    Score = q.Score
+                    Score = q.Score,
+                    AccuracyScore = q.AccuracyScore,
+                    TimeScore = q.TimeScore
                 }).ToList(),
                 Analysis = null // Analysis will be added later when it comes back from LLM
             };
@@ -257,7 +277,9 @@
                     UserAnswer = q.UserAnswer ?? 0,
                     TimeInSeconds = q.TimeInSeconds,
                     PercentageDifference = q.PercentageDifference,
-                    Score = q.Score
+                    Score = q.Score,
+                    AccuracyScore = q.AccuracyScore,
+                    TimeScore = q.TimeScore
                 }).ToList(),
                 Personality = personality,
                 UserMadeLeaderboard = false // Will be determined after adding to leaderboard
@@ -359,7 +381,9 @@
                     UserAnswer = q.UserAnswer ?? 0,
                     TimeInSeconds = q.TimeInSeconds,
                     PercentageDifference = q.PercentageDifference,
-                    Score = q.Score
+                    Score = q.Score,
+                    AccuracyScore = q.AccuracyScore,
+                    TimeScore = q.TimeScore
                 }).ToList(),
                 Personality = personality,
                 UserMadeLeaderboard = userMadeLeaderboard
