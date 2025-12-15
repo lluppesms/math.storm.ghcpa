@@ -175,6 +175,29 @@ public class MockCosmosDbService : ICosmosDbService
     {
         await Task.Delay(50);
         
+        // Get all entries for this user in this difficulty (case-insensitive)
+        var userEntries = _leaderboard
+            .Where(l => l.Username.Equals(username, StringComparison.OrdinalIgnoreCase) && 
+                       l.Difficulty.Equals(difficulty, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(l => l.Score)
+            .ToList();
+        
+        // Check if user already has 3 or more entries
+        if (userEntries.Count >= 3)
+        {
+            // Check if new score is better (lower) than any existing score
+            var worstUserScore = userEntries.Max(e => e.Score);
+            if (score >= worstUserScore)
+            {
+                // New score is not better than any existing entry, don't add it
+                return null;
+            }
+            
+            // New score is better, remove the worst existing entry
+            var worstUserEntry = userEntries.OrderByDescending(e => e.Score).First();
+            _leaderboard.Remove(worstUserEntry);
+        }
+        
         // Check if this score qualifies for top 10
         var currentLeaderboard = await GetLeaderboardAsync(difficulty, 10);
         
