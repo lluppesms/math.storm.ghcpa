@@ -250,6 +250,25 @@ public class CosmosDbService : ICosmosDbService
     {
         try
         {
+            // Get all entries for this user in this difficulty (case-insensitive)
+            var userEntries = await GetUserEntriesAsync(username, difficulty);
+            
+            // Check if user already has 3 or more entries
+            if (userEntries.Count >= 3)
+            {
+                // Check if new score is better (lower) than any existing score
+                var worstUserScore = userEntries.Max(e => e.Score);
+                if (score >= worstUserScore)
+                {
+                    // New score is not better than any existing entry, don't add it
+                    return null;
+                }
+                
+                // New score is better, remove the worst existing entry
+                var worstUserEntry = userEntries.OrderByDescending(e => e.Score).First();
+                await _leaderboardContainer.DeleteItemAsync<LeaderboardEntry>(worstUserEntry.Id, new PartitionKey(worstUserEntry.Id));
+            }
+            
             // Check if this score qualifies for top 10
             var currentLeaderboard = await GetLeaderboardAsync(difficulty, 10);
 
@@ -288,6 +307,32 @@ public class CosmosDbService : ICosmosDbService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Cosmos: Error adding to leaderboard");
+            throw;
+        }
+    }
+
+    private async Task<List<LeaderboardEntry>> GetUserEntriesAsync(string username, string difficulty)
+    {
+        try
+        {
+            var query = new QueryDefinition("SELECT * FROM c WHERE LOWER(c.username) = LOWER(@username) AND c.difficulty = @difficulty ORDER BY c.score ASC")
+                .WithParameter("@username", username)
+                .WithParameter("@difficulty", difficulty);
+
+            var iterator = _leaderboardContainer.GetItemQueryIterator<LeaderboardEntry>(query);
+            var results = new List<LeaderboardEntry>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response);
+            }
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Cosmos: Error getting user entries for username: {Username}, difficulty: {Difficulty}", username, difficulty);
             throw;
         }
     }
