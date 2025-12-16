@@ -320,7 +320,7 @@
     private async Task ProcessAnalysisWithoutLeaderboard()
     {
         // Use descriptive identifier for debugging (not saved to database)
-        var gameId = $"skip-analysis-{DateTime.UtcNow:yyyyMMddHHmmss}";
+        var gameId = $"skip-analysis-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
         await PerformAnalysis("Guest", gameId);
     }
 
