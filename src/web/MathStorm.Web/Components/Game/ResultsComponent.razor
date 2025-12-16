@@ -87,8 +87,8 @@
                         <tfoot class="table-dark">
                             <tr>
                                 <td colspan="3"><strong>Totals:</strong></td>
-                                <td class="text-end"><strong>@GameSession.Questions.Average(q => q.PercentageDifference).ToString("F1")%</strong></td>
-                                <td class="text-end"><strong>@GameSession.Questions.Average(q => q.TimeInSeconds).ToString("F1")</strong></td>
+                                <td class="text-end"><strong>@(GameSession.Questions.Any() ? GameSession.Questions.Average(q => q.PercentageDifference).ToString("F1") : "0.0")%</strong></td>
+                                <td class="text-end"><strong>@(GameSession.Questions.Any() ? GameSession.Questions.Average(q => q.TimeInSeconds).ToString("F1") : "0.0")</strong></td>
                                 <td class="text-end"><strong>@GameSession.Questions.Sum(q => q.AccuracyScore).ToString("F1")</strong></td>
                                 <td class="text-end"><strong>@GameSession.Questions.Sum(q => q.TimeScore).ToString("F1")</strong></td>
                                 <td class="text-end"><strong>@GameSession.TotalScore.ToString("F1")</strong></td>
@@ -319,7 +319,9 @@
 
     private async Task ProcessAnalysisWithoutLeaderboard()
     {
-        await PerformAnalysis("Guest", Guid.NewGuid().ToString());
+        // Use descriptive identifier for debugging (not saved to database)
+        var gameId = $"skip-analysis-{DateTime.UtcNow:yyyyMMddHHmmss}";
+        await PerformAnalysis("Guest", gameId);
     }
 
     private async Task PerformAnalysis(string username, string gameId)
