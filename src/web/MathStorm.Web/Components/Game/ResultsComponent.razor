@@ -86,7 +86,9 @@
                         </tbody>
                         <tfoot class="table-dark">
                             <tr>
-                                <td colspan="5"><strong>Totals:</strong></td>
+                                <td colspan="3"><strong>Totals:</strong></td>
+                                <td class="text-end"><strong>@GameSession.Questions.Average(q => q.PercentageDifference).ToString("F1")%</strong></td>
+                                <td class="text-end"><strong>@GameSession.Questions.Average(q => q.TimeInSeconds).ToString("F1")</strong></td>
                                 <td class="text-end"><strong>@GameSession.Questions.Sum(q => q.AccuracyScore).ToString("F1")</strong></td>
                                 <td class="text-end"><strong>@GameSession.Questions.Sum(q => q.TimeScore).ToString("F1")</strong></td>
                                 <td class="text-end"><strong>@GameSession.TotalScore.ToString("F1")</strong></td>
@@ -167,10 +169,13 @@
         await SubmitGameResultsWithUsername(username);
     }
 
-    private void HandleSkipSave()
+    private async Task HandleSkipSave()
     {
         showUsernamePrompt = false;
         StateHasChanged();
+        
+        // Still run analysis even when skipping leaderboard
+        await ProcessAnalysisWithoutLeaderboard();
     }
 
     private async Task SubmitGameResultsWithUsername(string username)
@@ -407,6 +412,69 @@
         {
             Logger.LogWarning(ex, "Failed to process game analysis for game {GameId}", gameId);
             analysisResult = $"Great job completing the game, {username}! " +
+                           $"You scored {GameSession.TotalScore:F1} points. Keep practicing!";
+            selectedPersonalityDisplay = "System";
+        }
+        finally
+        {
+            isAnalysisLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ProcessAnalysisWithoutLeaderboard()
+    {
+        try
+        {
+            isAnalysisLoading = true;
+            StateHasChanged();
+
+            var personality = GetRandomPersonality();
+            var username = "Guest"; // Default username for skipped entries
+
+            var analysisRequest = new ResultsAnalysisRequestDto
+            {
+                GameId = Guid.NewGuid().ToString(),
+                Username = username,
+                Difficulty = GameSession.Difficulty.ToString(),
+                TotalScore = GameSession.TotalScore,
+                Questions = GameSession.Questions.Select(q => new QuestionResultDto
+                {
+                    Id = q.Id,
+                    Number1 = q.Number1,
+                    Number2 = q.Number2,
+                    Operation = q.Operation.ToString(),
+                    CorrectAnswer = q.CorrectAnswer,
+                    UserAnswer = q.UserAnswer ?? 0,
+                    TimeInSeconds = q.TimeInSeconds,
+                    PercentageDifference = q.PercentageDifference,
+                    Score = q.Score,
+                    AccuracyScore = q.AccuracyScore,
+                    TimeScore = q.TimeScore
+                }).ToList(),
+                Personality = personality,
+                UserMadeLeaderboard = false
+            };
+
+            var analysisResponse = await MathStormService.AnalyzeGameResultsAsync(analysisRequest);
+
+            if (analysisResponse != null && !string.IsNullOrEmpty(analysisResponse.Analysis))
+            {
+                analysisResult = analysisResponse.Analysis;
+            }
+            else
+            {
+                analysisResult = $"Great job completing the {GameSession.Difficulty} level game! " +
+                               $"You scored {GameSession.TotalScore:F1} points. " +
+                               $"Keep practicing to improve your math skills! " +
+                               $"(Note: Analysis service is currently unavailable.)";
+                selectedPersonalityDisplay = "System";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to process game analysis");
+            analysisResult = $"Great job completing the game! " +
                            $"You scored {GameSession.TotalScore:F1} points. Keep practicing!";
             selectedPersonalityDisplay = "System";
         }
