@@ -4,7 +4,7 @@
 @using MathStorm.Web.Components.Game
 @using MathStorm.Core.DTOs
 
-<UsernamePromptComponent IsVisible="@showUsernamePrompt" 
+<UsernamePromptComponent IsVisible="@showUsernamePrompt"
                          TotalScore="@GameSession.TotalScore"
                          OnSave="HandleSaveScore"
                          OnSkip="HandleSkipSave" />
@@ -86,7 +86,7 @@
                         </tbody>
                         <tfoot class="table-dark">
                             <tr>
-                                <td colspan="3"><strong>Totals:</strong></td>
+                                <td colspan="3"><strong>Averages/Totals:</strong></td>
                                 <td class="text-end"><strong>@(GameSession.Questions.Any() ? GameSession.Questions.Average(q => q.PercentageDifference).ToString("F1") : "0.0")%</strong></td>
                                 <td class="text-end"><strong>@(GameSession.Questions.Any() ? GameSession.Questions.Average(q => q.TimeInSeconds).ToString("F1") : "0.0")</strong></td>
                                 <td class="text-end"><strong>@GameSession.Questions.Sum(q => q.AccuracyScore).ToString("F1")</strong></td>
@@ -164,7 +164,7 @@
         savedUsername = username;
         showUsernamePrompt = false;
         StateHasChanged();
-        
+
         // Now submit game results with the provided username
         await SubmitGameResultsWithUsername(username);
     }
@@ -173,7 +173,7 @@
     {
         showUsernamePrompt = false;
         StateHasChanged();
-        
+
         // Still run analysis even when skipping leaderboard
         await ProcessAnalysisWithoutLeaderboard();
     }
@@ -215,7 +215,7 @@
             if (response != null)
             {
                 currentUserId = userId;
-                
+
                 // Step 2: Process analysis and then add to leaderboard
                 await ProcessAnalysisAndLeaderboard(gameId, username, userId);
             }
@@ -240,7 +240,7 @@
                 };
                 showLeaderboard = true;
                 StateHasChanged();
-                
+
                 // Still process analysis
                 await ProcessAnalysisInBackground(gameId, username, userId);
             }
@@ -313,7 +313,7 @@
     {
         // This method is kept for the mock/fallback scenario
         if (string.IsNullOrEmpty(gameId)) return;
-        
+
         await PerformAnalysis(username, gameId);
     }
 
