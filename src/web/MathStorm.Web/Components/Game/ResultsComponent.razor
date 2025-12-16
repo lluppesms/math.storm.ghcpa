@@ -259,67 +259,23 @@
 
         try
         {
-            // Step 1: Start analysis loading state
-            isAnalysisLoading = true;
-            StateHasChanged();
+            // Step 1: Perform analysis
+            await PerformAnalysis(username, gameId);
 
-            // Step 2: Request analysis from LLM
-            var personality = GetRandomPersonality();
-
-            var analysisRequest = new ResultsAnalysisRequestDto
+            // Step 2: Update the game record with the analysis (if available)
+            if (!string.IsNullOrEmpty(analysisResult))
             {
-                GameId = gameId,
-                Username = username,
-                Difficulty = GameSession.Difficulty.ToString(),
-                TotalScore = GameSession.TotalScore,
-                Questions = GameSession.Questions.Select(q => new QuestionResultDto
-                {
-                    Id = q.Id,
-                    Number1 = q.Number1,
-                    Number2 = q.Number2,
-                    Operation = q.Operation.ToString(),
-                    CorrectAnswer = q.CorrectAnswer,
-                    UserAnswer = q.UserAnswer ?? 0,
-                    TimeInSeconds = q.TimeInSeconds,
-                    PercentageDifference = q.PercentageDifference,
-                    Score = q.Score,
-                    AccuracyScore = q.AccuracyScore,
-                    TimeScore = q.TimeScore
-                }).ToList(),
-                Personality = personality,
-                UserMadeLeaderboard = false // Will be determined after adding to leaderboard
-            };
-
-            var analysisResponse = await MathStormService.AnalyzeGameResultsAsync(analysisRequest);
-
-            if (analysisResponse != null && !string.IsNullOrEmpty(analysisResponse.Analysis))
-            {
-                analysisResult = analysisResponse.Analysis;
-
-                // Step 3: Update the game record with the analysis
-                await MathStormService.UpdateGameAnalysisAsync(gameId, analysisResponse.Analysis);
-            }
-            else
-            {
-                // Function service unavailable - create mock analysis
-                analysisResult = $"Great job completing the {GameSession.Difficulty} level game, {username}! " +
-                               $"You scored {GameSession.TotalScore:F1} points. " +
-                               $"Keep practicing to improve your math skills! " +
-                               $"(Note: Yes - this analysis is lame because all of our actual analysts are currently unavailable!)";
-                selectedPersonalityDisplay = "System";
-
-                // Still try to update the game record with mock analysis
                 await MathStormService.UpdateGameAnalysisAsync(gameId, analysisResult);
             }
 
-            // Step 4: Add game to leaderboard (now with analysis included)
+            // Step 3: Add game to leaderboard
             var leaderboardResponse = await MathStormService.AddGameToLeaderboardAsync(gameId);
             if (leaderboardResponse != null)
             {
                 userMadeLeaderboard = leaderboardResponse.AddedToLeaderboard;
             }
 
-            // Step 5: Get updated leaderboard
+            // Step 4: Get updated leaderboard
             var leaderboard = await MathStormService.GetLeaderboardAsync(GameSession.Difficulty.ToString());
             if (leaderboard?.Entries != null)
             {
@@ -351,18 +307,23 @@
             selectedPersonalityDisplay = "System";
             showLeaderboard = false;
         }
-        finally
-        {
-            isAnalysisLoading = false;
-            StateHasChanged();
-        }
     }
 
     private async Task ProcessAnalysisInBackground(string gameId, string username, string userId)
     {
         // This method is kept for the mock/fallback scenario
         if (string.IsNullOrEmpty(gameId)) return;
+        
+        await PerformAnalysis(username, gameId);
+    }
 
+    private async Task ProcessAnalysisWithoutLeaderboard()
+    {
+        await PerformAnalysis("Guest", Guid.NewGuid().ToString());
+    }
+
+    private async Task PerformAnalysis(string username, string gameId)
+    {
         try
         {
             isAnalysisLoading = true;
@@ -373,68 +334,6 @@
             var analysisRequest = new ResultsAnalysisRequestDto
             {
                 GameId = gameId,
-                Username = username,
-                Difficulty = GameSession.Difficulty.ToString(),
-                TotalScore = GameSession.TotalScore,
-                Questions = GameSession.Questions.Select(q => new QuestionResultDto
-                {
-                    Id = q.Id,
-                    Number1 = q.Number1,
-                    Number2 = q.Number2,
-                    Operation = q.Operation.ToString(),
-                    CorrectAnswer = q.CorrectAnswer,
-                    UserAnswer = q.UserAnswer ?? 0,
-                    TimeInSeconds = q.TimeInSeconds,
-                    PercentageDifference = q.PercentageDifference,
-                    Score = q.Score,
-                    AccuracyScore = q.AccuracyScore,
-                    TimeScore = q.TimeScore
-                }).ToList(),
-                Personality = personality,
-                UserMadeLeaderboard = userMadeLeaderboard
-            };
-
-            var analysisResponse = await MathStormService.AnalyzeGameResultsAsync(analysisRequest);
-
-            if (analysisResponse != null && !string.IsNullOrEmpty(analysisResponse.Analysis))
-            {
-                analysisResult = analysisResponse.Analysis;
-            }
-            else
-            {
-                analysisResult = $"Great job completing the {GameSession.Difficulty} level game, {username}! " +
-                               $"You scored {GameSession.TotalScore:F1} points. " +
-                               $"Keep practicing to improve your math skills!";
-                selectedPersonalityDisplay = "System";
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Failed to process game analysis for game {GameId}", gameId);
-            analysisResult = $"Great job completing the game, {username}! " +
-                           $"You scored {GameSession.TotalScore:F1} points. Keep practicing!";
-            selectedPersonalityDisplay = "System";
-        }
-        finally
-        {
-            isAnalysisLoading = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task ProcessAnalysisWithoutLeaderboard()
-    {
-        try
-        {
-            isAnalysisLoading = true;
-            StateHasChanged();
-
-            var personality = GetRandomPersonality();
-            var username = "Guest"; // Default username for skipped entries
-
-            var analysisRequest = new ResultsAnalysisRequestDto
-            {
-                GameId = Guid.NewGuid().ToString(),
                 Username = username,
                 Difficulty = GameSession.Difficulty.ToString(),
                 TotalScore = GameSession.TotalScore,
@@ -464,7 +363,7 @@
             }
             else
             {
-                analysisResult = $"Great job completing the {GameSession.Difficulty} level game! " +
+                analysisResult = $"Great job completing the {GameSession.Difficulty} level game, {username}! " +
                                $"You scored {GameSession.TotalScore:F1} points. " +
                                $"Keep practicing to improve your math skills! " +
                                $"(Note: Analysis service is currently unavailable.)";
@@ -473,8 +372,8 @@
         }
         catch (Exception ex)
         {
-            Logger.LogWarning(ex, "Failed to process game analysis");
-            analysisResult = $"Great job completing the game! " +
+            Logger.LogWarning(ex, "Failed to process game analysis for {Username}", username);
+            analysisResult = $"Great job completing the game, {username}! " +
                            $"You scored {GameSession.TotalScore:F1} points. Keep practicing!";
             selectedPersonalityDisplay = "System";
         }
