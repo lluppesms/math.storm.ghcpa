@@ -25,16 +25,17 @@ public class MathStormService : IMathStormService
         _analysisService = analysisService;
     }
 
-    public async Task<GameResponseDto> CreateGame(Difficulty difficulty)
+    public Task<GameResponseDto> CreateGame(Difficulty difficulty, GameMode gameMode = GameMode.Classic)
     {
-        _logger.LogInformation($"Creating game with difficulty: {difficulty}");
+        _logger.LogInformation("Creating game with difficulty {Difficulty} and mode {GameMode}", difficulty, gameMode);
 
-        var gameSession = _gameService.CreateNewGame(difficulty);
+        var gameSession = _gameService.CreateNewGame(difficulty, gameMode);
 
         var gameDto = new GameResponseDto
         {
             GameId = Guid.NewGuid().ToString(),
             Difficulty = difficulty.ToString(),
+            GameMode = gameMode.ToString(),
             Questions = gameSession.Questions.Select(q => new QuestionDto
             {
                 Id = q.Id,
@@ -45,7 +46,8 @@ public class MathStormService : IMathStormService
                 QuestionText = q.QuestionText
             }).ToList()
         };
-        return gameDto;
+
+        return Task.FromResult(gameDto);
     }
 
     public async Task<Game?> GetGameByIdAsync(string gameId)
@@ -103,6 +105,9 @@ public class MathStormService : IMathStormService
             UserId = request.UserId,
             Username = request.Username,
             Difficulty = request.Difficulty,
+            GameMode = string.IsNullOrWhiteSpace(request.GameMode)
+                ? MathStorm.Core.Models.GameMode.Classic.ToString()
+                : request.GameMode,
             TotalScore = request.Questions.Sum(q => q.Score),
             CompletedAt = DateTime.UtcNow,
             Analysis = request.Analysis,
@@ -118,7 +123,8 @@ public class MathStormService : IMathStormService
                 PercentageDifference = q.PercentageDifference,
                 Score = q.Score,
                 AccuracyScore = q.AccuracyScore,
-                TimeScore = q.TimeScore
+                TimeScore = q.TimeScore,
+                QuestionText = q.QuestionText
             }).ToList()
         };
 

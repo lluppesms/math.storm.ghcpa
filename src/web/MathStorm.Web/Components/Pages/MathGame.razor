@@ -14,14 +14,52 @@
             <div class="card">
                 <div class="card-header text-center">
                     <h1 class="display-4"><img src="Hero.png" alt="Math Storm" width="96" height="96"> Math Storm</h1>
-                    <p class="lead">Test your mathematical skills with our lightning-fast math game!</p>
+                    <p class="lead">Pick a play mode, keep your favorite difficulty, and race through math your way.</p>
                 </div>
                 <div class="card-body">
                     @if (!gameSession.IsGameStarted)
                     {
                         <div class="row">
                             <div class="col-md-12 mb-4">
-                                <h3><i class="fas fa-cog"></i> Select Difficulty Level</h3>
+                                <h3><i class="fas fa-masks-theater"></i> Choose Play Mode</h3>
+                                <p class="text-muted mode-selector-copy mb-3">Story Time is its own lane. Difficulty still controls question count, number size, and pace.</p>
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-3">
+                                        <button type="button"
+                                                class="card mode-card @(selectedMode == GameMode.Classic ? "mode-card-selected" : string.Empty)"
+                                                @onclick="() => SelectMode(GameMode.Classic)">
+                                            <div class="card-body text-start">
+                                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                                    <div>
+                                                        <div class="mode-card-eyebrow">Classic</div>
+                                                        <h4 class="mode-card-title mb-2">Fast equation drills</h4>
+                                                        <p class="card-text mb-0">See the numbers, solve fast, and keep the pace clean.</p>
+                                                    </div>
+                                                    <span class="mode-card-icon" aria-hidden="true">⚡</span>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <button type="button"
+                                                class="card mode-card @(selectedMode == GameMode.StoryTime ? "mode-card-selected" : string.Empty)"
+                                                @onclick="() => SelectMode(GameMode.StoryTime)">
+                                            <div class="card-body text-start">
+                                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                                    <div>
+                                                        <div class="mode-card-eyebrow">Story Time</div>
+                                                        <h4 class="mode-card-title mb-2">Word problems with the same four difficulties</h4>
+                                                        <p class="card-text mb-0">Read the clue, spot the math, and answer without losing the flow.</p>
+                                                    </div>
+                                                    <span class="mode-card-icon" aria-hidden="true">📖</span>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-4">
+                                <h3><i class="fas fa-cog"></i> Choose Difficulty</h3>
                                 <div class="row">
                                     <div class="col-md-6 col-lg-3 mb-3">
                                         <div class="card @(selectedDifficulty == Difficulty.Beginner ? "border-primary bg-light" : "") difficulty-card"
@@ -83,36 +121,48 @@
                             <div class="col-md-6">
                                 <h3><i class="fas fa-gamepad"></i> How to Play</h3>
                                 <ul class="list-unstyled">
-                                    <li><i class="fas fa-check text-success"></i> Answer math questions quickly and accurately</li>
+                                    <li><i class="fas fa-check text-success"></i> @GetPrimaryHowToPlayLine()</li>
                                     <li><i class="fas fa-clock text-info"></i> Questions are timed to the tenth of a second</li>
-                                    <li><i class="fas fa-calculator text-warning"></i> Operations depend on difficulty level</li>
+                                    <li><i class="fas fa-calculator text-warning"></i> Difficulty still controls question count, number size, and operations</li>
                                     <li><i class="fas fa-trophy text-primary"></i> Score based on both speed and accuracy</li>
                                 </ul>
                             </div>
                             <div class="col-md-6">
-                                <h3><i class="fas fa-chart-line"></i> Scoring</h3>
+                                <h3><i class="fas fa-chart-line"></i> @GetModeOverviewTitle()</h3>
                                 <ul class="list-unstyled">
-                                    <li><i class="fas fa-bullseye text-success"></i> Perfect accuracy = Lower score</li>
-                                    <li><i class="fas fa-tachometer-alt text-info"></i> Faster answers = Lower score</li>
-                                    <li><i class="fas fa-medal text-warning"></i> Lower total scores are better!</li>
-                                    <li><i class="fas fa-formula text-primary"></i> Score is based on both accuracy and time to answer</li>
+                                    @foreach (var detail in GetModeOverviewLines())
+                                    {
+                                        <li><i class="@detail.IconClass"></i> @detail.Text</li>
+                                    }
                                 </ul>
                             </div>
                         </div>
 
                         <div class="text-center mt-4">
                             <button class="btn btn-primary btn-lg" @onclick="StartGame">
-                                <i class="fas fa-play"></i> Start @selectedDifficulty Level
+                                <i class="fas fa-play"></i> @GetStartButtonText()
                             </button>
+                            @if (selectedMode == GameMode.StoryTime)
+                            {
+                                <p class="story-time-note mt-3 mb-0">Story Time keeps the same scoring and difficulty rules, but presents each challenge as a word problem.</p>
+                            }
                         </div>
                     }
                     else if (!gameSession.IsGameComplete)
                     {
-                        <QuestionComponent GameSession="@gameSession" OnAnswerSubmitted="HandleAnswerSubmitted" OnGameCancelled="HandleGameCancelled" />
+                        @if (selectedMode == GameMode.StoryTime)
+                        {
+                            <StoryTimeQuestionComponent GameSession="@gameSession" OnAnswerSubmitted="HandleAnswerSubmitted" OnGameCancelled="HandleGameCancelled" />
+                        }
+                        else
+                        {
+                            <QuestionComponent GameSession="@gameSession" OnAnswerSubmitted="HandleAnswerSubmitted" OnGameCancelled="HandleGameCancelled" />
+                        }
                     }
                     else
                     {
                         <ResultsComponent GameSession="@gameSession"
+                                          GameMode="@selectedMode"
                                           OnRestartGame="RestartGame" />
                     }
                 </div>
@@ -148,12 +198,13 @@
 @code {
     private GameSession gameSession = new();
     private Difficulty selectedDifficulty = Difficulty.Intermediate;
+    private GameMode selectedMode = GameMode.Classic;
     private List<LeaderboardEntry>? globalLeaderboardEntries;
     private bool isLoadingGlobalLeaderboard = true;
 
     protected override async Task OnInitializedAsync()
     {
-        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty);
+        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty, selectedMode);
         await LoadGlobalLeaderboard();
     }
 
@@ -200,13 +251,18 @@
     private async Task SelectDifficulty(Difficulty difficulty)
     {
         selectedDifficulty = difficulty;
-        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty);
+        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty, selectedMode);
         StateHasChanged();
+    }
+
+    private void SelectMode(GameMode mode)
+    {
+        selectedMode = mode;
     }
 
     private async Task StartGame()
     {
-        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty);
+        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty, selectedMode);
         gameSession.IsGameStarted = true;
         GameService.StartQuestion(gameSession);
         StateHasChanged();
@@ -234,14 +290,62 @@
 
     private async Task RestartGame()
     {
-        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty);
+        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty, selectedMode);
         StateHasChanged();
     }
 
     private async Task HandleGameCancelled()
     {
-        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty);
+        gameSession = await GameService.CreateNewGameAsync(selectedDifficulty, selectedMode);
         StateHasChanged();
+    }
+
+    private string GetPrimaryHowToPlayLine()
+    {
+        return selectedMode switch
+        {
+            GameMode.StoryTime => "Read the scene, find the hidden operation, and answer fast",
+            _ => "Answer math questions quickly and accurately"
+        };
+    }
+
+    private string GetModeOverviewTitle()
+    {
+        return selectedMode switch
+        {
+            GameMode.StoryTime => "Story Time Notes",
+            _ => "Scoring"
+        };
+    }
+
+    private IReadOnlyList<(string IconClass, string Text)> GetModeOverviewLines()
+    {
+        return selectedMode switch
+        {
+            GameMode.StoryTime =>
+            [
+                ("fas fa-book-open text-success", "Same beginner-to-expert tuning, but every prompt is a word problem"),
+                ("fas fa-bullseye text-info", "Strong reading helps, but the score still rewards math accuracy first"),
+                ("fas fa-stopwatch text-warning", "The timer starts immediately, so keep the clue-to-answer path tight"),
+                ("fas fa-cloud text-primary", "Story Time runs through the same backend flow and stores the selected mode with the game")
+            ],
+            _ =>
+            [
+                ("fas fa-bullseye text-success", "Perfect accuracy = Lower score"),
+                ("fas fa-tachometer-alt text-info", "Faster answers = Lower score"),
+                ("fas fa-medal text-warning", "Lower total scores are better!"),
+                ("fas fa-formula text-primary", "Score is based on both accuracy and time to answer")
+            ]
+        };
+    }
+
+    private string GetStartButtonText()
+    {
+        return selectedMode switch
+        {
+            GameMode.StoryTime => $"Start Story Time · {selectedDifficulty}",
+            _ => $"Start {selectedDifficulty} Level"
+        };
     }
 
     public void Dispose()

@@ -3,15 +3,56 @@
     border: 2px solid transparent;
 }
 
+.mode-card {
+    display: block;
+    width: 100%;
+    border: 2px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.mode-card:hover,
 .difficulty-card:hover {
     border-color: var(--bs-primary);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--bs-box-shadow-sm);
     transform: translateY(-2px);
+}
+
+.mode-card-selected {
+    border-color: var(--bs-primary);
+    background: var(--bs-primary-bg-subtle);
+    box-shadow: var(--bs-box-shadow);
 }
 
 .difficulty-card.border-primary {
     border-color: var(--bs-primary) !important;
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+    box-shadow: var(--bs-box-shadow);
+}
+
+.mode-card-eyebrow {
+    color: var(--bs-primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.mode-card-title {
+    font-size: 1.15rem;
+}
+
+.mode-card-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.mode-selector-copy,
+.story-time-note {
+    color: var(--bs-secondary-color);
 }
 
 .difficulty-card .card-title {
@@ -20,6 +61,12 @@
 }
 
 .difficulty-card .card-text {
-    color: #6c757d;
+    color: var(--bs-secondary-color);
     line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+    .mode-card-icon {
+        font-size: 1.5rem;
+    }
 }

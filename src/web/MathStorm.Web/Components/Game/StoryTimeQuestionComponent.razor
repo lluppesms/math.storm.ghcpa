@@ -1,0 +1,194 @@
+@rendermode InteractiveServer
+@namespace MathStorm.Web.Components.Game
+@implements IDisposable
+
+<div class="story-time-question">
+    <div class="text-center mb-4">
+        <div class="story-time-question__eyebrow">Story Time</div>
+        <h4>Question @(GameSession.CurrentQuestionIndex + 1) of @GameSession.Questions.Count</h4>
+        <div class="progress mb-3">
+            <div class="progress-bar" role="progressbar"
+                 style="width: @((GameSession.CurrentQuestionIndex + 1) * 100 / GameSession.Questions.Count)%"
+                 aria-valuenow="@(GameSession.CurrentQuestionIndex + 1)"
+                 aria-valuemin="0"
+                 aria-valuemax="@GameSession.Questions.Count"></div>
+        </div>
+    </div>
+
+    @if (GameSession.CurrentQuestion != null)
+    {
+        <div class="card story-time-question__card">
+            <div class="card-body">
+                <div class="story-time-question__layout">
+                    <div>
+                        <p class="story-time-question__intro">Read the clue, picture the scene, then solve the math behind it.</p>
+                        <p class="story-time-question__prompt">@GameSession.CurrentQuestion.QuestionText</p>
+                    </div>
+                    <aside class="story-time-question__coach" aria-label="Difficulty coaching">
+                        <h5 class="mb-2">@GameSession.Difficulty mode tip</h5>
+                        <p class="mb-0">@GetDifficultyTip()</p>
+                    </aside>
+                </div>
+
+                <div class="story-time-question__answer">
+                    <input @ref="answerInput" type="text" inputmode="decimal"
+                           value="@userAnswerText"
+                           @oninput="HandleInput"
+                           @onkeydown="HandleKeyDown"
+                           class="form-control form-control-lg text-center story-time-question__input"
+                           placeholder="Type your answer"
+                           autocomplete="off"
+                           maxlength="10" />
+                </div>
+
+                <div class="story-time-question__actions">
+                    <button class="btn btn-success btn-lg" @onclick="SubmitAnswer" disabled="@(!userAnswer.HasValue)">
+                        <i class="fas fa-check"></i> Lock In Answer
+                    </button>
+                    <button class="btn btn-outline-secondary btn-lg" @onclick="CancelGame">
+                        <i class="fas fa-times"></i> Cancel Game
+                    </button>
+                </div>
+
+                @if (GameSession.QuestionStartTime.HasValue)
+                {
+                    <div class="story-time-question__timer">
+                        <small class="text-muted">
+                            <i class="fas fa-clock"></i> Time: @elapsedTime.ToString("F1")s
+                        </small>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public GameSession GameSession { get; set; } = new();
+    [Parameter] public EventCallback<double> OnAnswerSubmitted { get; set; }
+    [Parameter] public EventCallback OnGameCancelled { get; set; }
+
+    private const int MaxInputLength = 10;
+    private double? userAnswer;
+    private string userAnswerText = string.Empty;
+    private Timer? timer;
+    private double elapsedTime;
+    private ElementReference answerInput;
+    private int currentQuestionIndex = -1;
+
+    protected override void OnParametersSet()
+    {
+        userAnswer = null;
+        userAnswerText = string.Empty;
+        elapsedTime = 0;
+        StartTimer();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender || currentQuestionIndex != GameSession.CurrentQuestionIndex)
+        {
+            currentQuestionIndex = GameSession.CurrentQuestionIndex;
+            await FocusInputAsync();
+        }
+    }
+
+    private async Task FocusInputAsync()
+    {
+        try
+        {
+            await Task.Delay(50);
+            await answerInput.FocusAsync();
+        }
+        catch
+        {
+            try
+            {
+                await Task.Delay(200);
+                await answerInput.FocusAsync();
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    private void HandleInput(ChangeEventArgs e)
+    {
+        var inputValue = e.Value?.ToString() ?? string.Empty;
+
+        if (inputValue.Length > MaxInputLength)
+        {
+            inputValue = inputValue[..MaxInputLength];
+        }
+
+        if (IsValidNumericInput(inputValue))
+        {
+            userAnswerText = inputValue;
+            userAnswer = double.TryParse(userAnswerText, out var result) ? result : null;
+        }
+    }
+
+    private static bool IsValidNumericInput(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return true;
+        }
+
+        return input == "-" || input == "." || input == "-." || double.TryParse(input, out _);
+    }
+
+    private void StartTimer()
+    {
+        timer?.Dispose();
+        timer = new Timer(UpdateTimer, null, 0, 100);
+    }
+
+    private void UpdateTimer(object? state)
+    {
+        if (GameSession.QuestionStartTime.HasValue)
+        {
+            elapsedTime = (DateTime.Now - GameSession.QuestionStartTime.Value).TotalSeconds;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task SubmitAnswer()
+    {
+        var answer = userAnswer ?? 0;
+        timer?.Dispose();
+        await OnAnswerSubmitted.InvokeAsync(answer);
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SubmitAnswer();
+        }
+    }
+
+    private async Task CancelGame()
+    {
+        timer?.Dispose();
+        await OnGameCancelled.InvokeAsync();
+    }
+
+    private string GetDifficultyTip()
+    {
+        return GameSession.Difficulty switch
+        {
+            Difficulty.Beginner => "Start with the action words: altogether, left, each, or split. They usually reveal the operation.",
+            Difficulty.Novice => "The story adds friction, but the math is still short. Pull out the numbers first, then solve.",
+            Difficulty.Intermediate => "Longer rounds mean more chances to drift. Translate the clue once, then move immediately.",
+            Difficulty.Expert => "Ignore flavor text fast. Expert Story Time still rewards the cleanest number-to-operation read.",
+            _ => "Read for the numbers, spot the operation, and answer cleanly."
+        };
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}

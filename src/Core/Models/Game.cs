@@ -16,6 +16,9 @@ public class Game
     [JsonProperty("difficulty")]
     public string Difficulty { get; set; } = string.Empty;
 
+    [JsonProperty("gameMode")]
+    public string GameMode { get; set; } = Models.GameMode.Classic.ToString();
+
     [JsonProperty("totalScore")]
     public double TotalScore { get; set; }
 
@@ -63,4 +66,7 @@ public class GameQuestion
 
     [JsonProperty("timeScore")]
     public double TimeScore { get; set; }
+
+    [JsonProperty("questionText")]
+    public string QuestionText { get; set; } = string.Empty;
 }

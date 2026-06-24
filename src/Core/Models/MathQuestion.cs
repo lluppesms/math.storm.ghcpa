@@ -13,9 +13,11 @@ public class MathQuestion
     public double Score { get; set; }
     public double AccuracyScore { get; set; }
     public double TimeScore { get; set; }
-    
-    public string QuestionText => $"{Number1} {GetOperationSymbol()} {Number2}";
-    
+    public string? PromptText { get; set; }
+
+    public string ExpressionText => $"{Number1} {GetOperationSymbol()} {Number2}";
+    public string QuestionText => string.IsNullOrWhiteSpace(PromptText) ? ExpressionText : PromptText;
+
     public string GetOperationSymbol()
     {
         return Operation switch

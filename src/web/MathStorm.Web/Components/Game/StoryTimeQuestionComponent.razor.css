@@ -1,0 +1,79 @@
+.story-time-question__eyebrow {
+    color: var(--bs-primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.story-time-question__card {
+    border: 1px solid var(--bs-border-color);
+    box-shadow: var(--bs-box-shadow-sm);
+}
+
+.story-time-question__layout {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.story-time-question__intro {
+    color: var(--bs-secondary-color);
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.story-time-question__prompt {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-bottom: 0;
+}
+
+.story-time-question__coach {
+    background: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    padding: 1rem;
+}
+
+.story-time-question__answer {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.story-time-question__input {
+    border-width: 2px;
+    max-width: 22rem;
+}
+
+.story-time-question__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.story-time-question__timer {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+@media (min-width: 992px) {
+    .story-time-question__layout {
+        grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+        align-items: start;
+    }
+}
+
+@media (max-width: 768px) {
+    .story-time-question__prompt {
+        font-size: 1.2rem;
+    }
+
+    .story-time-question__actions > .btn {
+        width: 100%;
+    }
+}

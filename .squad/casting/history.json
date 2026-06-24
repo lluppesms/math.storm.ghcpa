@@ -1,0 +1,22 @@
+{
+  "universe_usage_history": [
+    {
+      "universe": "Marvel Cinematic Universe",
+      "assignment_id": "math-storm-story-time-2026-04-27",
+      "used_at": "2026-04-27T19:26:54.287-05:00"
+    }
+  ],
+  "assignment_cast_snapshots": {
+    "math-storm-story-time-2026-04-27": {
+      "universe": "Marvel Cinematic Universe",
+      "agents": {
+        "lead": "Tony",
+        "frontend": "Natasha",
+        "backend": "Bruce",
+        "tester": "Clint",
+        "content-designer": "Wanda"
+      },
+      "created_at": "2026-04-27T19:26:54.287-05:00"
+    }
+  }
+}

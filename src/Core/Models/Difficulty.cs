@@ -2,10 +2,10 @@ namespace MathStorm.Core.Models;
 
 public enum Difficulty
 {
-    Beginner,   // 5 questions, max 2 digits, only addition/subtraction
-    Novice,     // 5 questions, max 2 digits, all operations
-    Intermediate, // 10 questions, max 3 digits, all operations  
-    Expert      // 10 questions, max 4 digits, all operations (current behavior)
+    Beginner,
+    Novice,
+    Intermediate,
+    Expert
 }
 
 public class DifficultySettings
@@ -13,7 +13,7 @@ public class DifficultySettings
     public int QuestionCount { get; set; }
     public int MaxDigits { get; set; }
     public MathOperation[] AllowedOperations { get; set; } = [];
-    
+
     public static DifficultySettings GetSettings(Difficulty difficulty)
     {
         return difficulty switch

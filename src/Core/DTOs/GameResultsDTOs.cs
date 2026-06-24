@@ -1,3 +1,5 @@
+using MathStorm.Core.Models;
+
 namespace MathStorm.Core.DTOs;
 
 public class GameResultsRequestDto
@@ -6,6 +8,7 @@ public class GameResultsRequestDto
     public string UserId { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
     public string Difficulty { get; set; } = string.Empty;
+    public string GameMode { get; set; } = Models.GameMode.Classic.ToString();
     public List<QuestionResultDto> Questions { get; set; } = [];
     public string? Analysis { get; set; }
 }
@@ -23,6 +26,7 @@ public class QuestionResultDto
     public double Score { get; set; }
     public double AccuracyScore { get; set; }
     public double TimeScore { get; set; }
+    public string QuestionText { get; set; } = string.Empty;
 }
 
 public class GameResultsResponseDto

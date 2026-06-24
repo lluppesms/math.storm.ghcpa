@@ -12,6 +12,8 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddMathStormServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddScoped<IStoryQuestionService, StoryQuestionService>();
+
         // Add core game service
         services.AddScoped<IGameService, GameService>();
 

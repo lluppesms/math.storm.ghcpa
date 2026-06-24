@@ -78,6 +78,16 @@ public class GameLogic
 
     private async Task PlayGameAsync(string username)
     {
+        var gameModeChoice = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Choose [green]play mode[/]:")
+                .AddChoices([
+                    "⚡ Classic - direct equations",
+                    "📖 Story Time - word-based math problems"
+                ]));
+
+        var gameMode = gameModeChoice.Contains("Story Time") ? GameMode.StoryTime : GameMode.Classic;
+
         // Select difficulty
         var difficultyChoice = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
@@ -98,10 +108,11 @@ public class GameLogic
             _ => Difficulty.Expert
         };
 
-        AnsiConsole.MarkupLine($"\n[green]Starting {difficulty} game...[/] 🎯");
+        var modeDisplay = gameMode == GameMode.StoryTime ? "Story Time" : "Classic";
+        AnsiConsole.MarkupLine($"\n[green]Starting {modeDisplay} - {difficulty}...[/] 🎯");
 
         // Get game using direct service call
-        var gameData = _mathStormService.GetGame(difficulty);
+        var gameData = _mathStormService.GetGame(difficulty, gameMode);
         GameSession? gameSession = null;
         string gameId = string.Empty;
 
@@ -109,16 +120,22 @@ public class GameLogic
         {
             // Service call successful - use game data
             gameId = gameData.GameId;
+            var sessionGameMode = Enum.TryParse<GameMode>(gameData.GameMode, out var parsedGameMode)
+                ? parsedGameMode
+                : GameMode.Classic;
+
             gameSession = new GameSession
             {
                 Difficulty = difficulty,
+                GameMode = sessionGameMode,
                 Questions = gameData.Questions.Select(q => new MathQuestion
                 {
                     Id = q.Id,
                     Number1 = q.Number1,
                     Number2 = q.Number2,
                     Operation = Enum.Parse<MathOperation>(q.Operation),
-                    CorrectAnswer = q.CorrectAnswer
+                    CorrectAnswer = q.CorrectAnswer,
+                    PromptText = q.QuestionText
                 }).ToList()
             };
             AnsiConsole.MarkupLine($"[yellow]Game ID: {gameId}[/]");
@@ -153,7 +170,7 @@ public class GameLogic
 
             // Display the question prominently
             var panel = new Panel($"[white bold]{question.QuestionText}[/]")
-                .Header("[blue]Math Problem[/]")
+                .Header(gameMode == GameMode.StoryTime ? "[blue]Story Time[/]" : "[blue]Math Problem[/]")
                 .Border(BoxBorder.Double)
                 .BorderColor(Color.Blue);
 
@@ -209,7 +226,8 @@ public class GameLogic
                 UserAnswer = userAnswer,
                 TimeInSeconds = timeInSeconds,
                 PercentageDifference = percentageDifference,
-                Score = questionScore
+                Score = questionScore,
+                QuestionText = question.QuestionText
             });
 
             if (i < gameSession.Questions.Count - 1)
@@ -234,6 +252,7 @@ public class GameLogic
         resultsTable.AddColumn("[white bold]Results[/]");
 
         resultsTable.AddRow("Player", $"[yellow]{username}[/]");
+        resultsTable.AddRow("Mode", $"[blue]{modeDisplay}[/]");
         resultsTable.AddRow("Difficulty", $"[blue]{difficulty}[/]");
         resultsTable.AddRow("Questions", $"[white]{gameSession.Questions.Count}[/]");
         resultsTable.AddRow("Total Score", $"[green bold]{totalScore:F1}[/]");
@@ -258,6 +277,7 @@ public class GameLogic
                 GameId = gameId,
                 Username = username,
                 Difficulty = difficulty.ToString(),
+                GameMode = gameSession.GameMode.ToString(),
                 Questions = gameResults
             };
 

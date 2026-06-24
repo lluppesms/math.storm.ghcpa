@@ -2,7 +2,7 @@ namespace MathStorm.Console.Services;
 
 public interface IConsoleMathStormService
 {
-    GameResponseDto? GetGame(Difficulty difficulty);
+    GameResponseDto? GetGame(Difficulty difficulty, GameMode gameMode = GameMode.Classic);
     Task<GameResultsResponseDto?> SubmitGameResultsAsync(GameResultsRequestDto request);
     Task<LeaderboardResponseDto?> GetLeaderboardAsync(string? difficulty = null, int topCount = 10);
     Task<ResultsAnalysisResponseDto?> AnalyzeGameResultsAsync(ResultsAnalysisRequestDto request);
@@ -20,11 +20,11 @@ public class ConsoleMathStormService : IConsoleMathStormService
         _logger = logger;
     }
 
-    public GameResponseDto? GetGame(Difficulty difficulty)
+    public GameResponseDto? GetGame(Difficulty difficulty, GameMode gameMode = GameMode.Classic)
     {
         try
         {
-            return _mathStormService.CreateGame(difficulty);
+            return _mathStormService.CreateGame(difficulty, gameMode).GetAwaiter().GetResult();
         }
         catch (Exception ex)
         {

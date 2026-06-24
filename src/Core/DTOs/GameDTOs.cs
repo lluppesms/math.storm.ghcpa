@@ -1,14 +1,18 @@
+using MathStorm.Core.Models;
+
 namespace MathStorm.Core.DTOs;
 
 public class GameRequestDto
 {
     public string Difficulty { get; set; } = "Expert";
+    public string GameMode { get; set; } = Models.GameMode.Classic.ToString();
 }
 
 public class GameResponseDto
 {
     public string GameId { get; set; } = string.Empty;
     public string Difficulty { get; set; } = string.Empty;
+    public string GameMode { get; set; } = Models.GameMode.Classic.ToString();
     public List<QuestionDto> Questions { get; set; } = [];
 }
 

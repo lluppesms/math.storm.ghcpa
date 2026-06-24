@@ -12,10 +12,17 @@
 <div class="row">
     <div class="col">
         <div class="text-center mb-4">
-            <h2><i class="fas fa-trophy"></i> Game Complete!</h2>
+            <h2><i class="fas fa-trophy"></i> @(GameMode == GameMode.StoryTime ? "Story Time Complete!" : "Game Complete!")</h2>
             <h4 class="text-primary">Total Score: @GameSession.TotalScore.ToString("F1")</h4>
             <p class="text-muted">Lower scores are better! Score = Accuracy Score + Time Score</p>
         </div>
+
+        @if (GameMode == GameMode.StoryTime)
+        {
+            <div class="alert alert-info story-mode-banner" role="status">
+                <strong>Story Time keeps the same scoring ladder.</strong> Difficulty and score rules stay unchanged; only the question framing switches to word problems.
+            </div>
+        }
 
         @* GenAI Analysis Section *@
         @if (isAnalysisLoading)
@@ -69,7 +76,19 @@
                             @foreach (var question in GameSession.Questions)
                             {
                                 <tr class="@GetRowClass(question)">
-                                    <td><span class="me-2 @GetOperationColorClass(question.Operation)">@GetOperationSymbol(question.Operation)</span>@question.QuestionText</td>
+                                    <td>
+                                        @if (GameMode == GameMode.StoryTime)
+                                        {
+                                            <div class="story-result-question">
+                                                <span class="badge text-bg-light me-2">@GetOperationName(question.Operation)</span>
+                                                <span>@question.QuestionText</span>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span><span class="me-2 @GetOperationColorClass(question.Operation)">@GetOperationSymbol(question.Operation)</span>@question.QuestionText</span>
+                                        }
+                                    </td>
                                     <td class="text-end">@(question.UserAnswer.HasValue? FormatAnswer(question.UserAnswer.Value, question.Operation) : "N/A")</td>
                                     <td class="text-end">@FormatAnswer(question.CorrectAnswer, question.Operation)</td>
                                     <td class="text-end">
@@ -143,6 +162,7 @@
 
 @code {
     [Parameter] public GameSession GameSession { get; set; } = new();
+    [Parameter] public GameMode GameMode { get; set; } = GameMode.Classic;
     [Parameter] public EventCallback OnRestartGame { get; set; }
 
     private bool showLeaderboard = false;
@@ -192,6 +212,7 @@
                 UserId = userId,
                 Username = username,
                 Difficulty = GameSession.Difficulty.ToString(),
+                GameMode = GameSession.GameMode.ToString(),
                 Questions = GameSession.Questions.Select(q => new QuestionResultDto
                 {
                     Id = q.Id,
@@ -204,7 +225,8 @@
                     PercentageDifference = q.PercentageDifference,
                     Score = q.Score,
                     AccuracyScore = q.AccuracyScore,
-                    TimeScore = q.TimeScore
+                    TimeScore = q.TimeScore,
+                    QuestionText = q.QuestionText
                 }).ToList(),
                 Analysis = null // Analysis will be added later when it comes back from LLM
             };
@@ -351,7 +373,8 @@
                     PercentageDifference = q.PercentageDifference,
                     Score = q.Score,
                     AccuracyScore = q.AccuracyScore,
-                    TimeScore = q.TimeScore
+                    TimeScore = q.TimeScore,
+                    QuestionText = q.QuestionText
                 }).ToList(),
                 Personality = personality,
                 UserMadeLeaderboard = false
@@ -432,6 +455,18 @@
             MathOperation.Multiplication => "✖️",
             MathOperation.Division => "➗",
             _ => "❓"
+        };
+    }
+
+    private string GetOperationName(MathOperation operation)
+    {
+        return operation switch
+        {
+            MathOperation.Addition => "Add",
+            MathOperation.Subtraction => "Subtract",
+            MathOperation.Multiplication => "Multiply",
+            MathOperation.Division => "Divide",
+            _ => "Solve"
         };
     }
 
