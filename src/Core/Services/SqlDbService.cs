@@ -31,7 +31,7 @@ public class SqlDbService : IDataService
             await conn.OpenAsync();
             await using var cmd = new SqlCommand(
                 "SELECT Id, Username, GamesPlayed, TotalScore, BestScore, CreatedAt, LastPlayedAt " +
-                "FROM [mathstorm].[GameUser] WHERE LOWER(Username) = LOWER(@username)", conn);
+                "FROM [mathstorm].[GameUser] WHERE Username = @username", conn);
             cmd.Parameters.AddWithValue("@username", username);
             await using var reader = await cmd.ExecuteReaderAsync();
             if (await reader.ReadAsync())
@@ -202,7 +202,7 @@ public class SqlDbService : IDataService
             await using var cmd = new SqlCommand(
                 "SELECT TOP (@topCount) Id, Difficulty, Username, UserId, GameId, Score, AchievedAt, Rank " +
                 "FROM [mathstorm].[LeaderboardEntry] " +
-                "WHERE LOWER(Difficulty) = LOWER(@difficulty) " +
+                "WHERE Difficulty = @difficulty " +
                 "ORDER BY Score ASC", conn);
             cmd.Parameters.AddWithValue("@topCount", topCount);
             cmd.Parameters.AddWithValue("@difficulty", difficulty);
@@ -386,7 +386,7 @@ public class SqlDbService : IDataService
             await using var cmd = new SqlCommand(
                 "SELECT Id, Difficulty, Username, UserId, GameId, Score, AchievedAt, Rank " +
                 "FROM [mathstorm].[LeaderboardEntry] " +
-                "WHERE LOWER(Username) = LOWER(@username) AND LOWER(Difficulty) = LOWER(@difficulty) " +
+                "WHERE Username = @username AND Difficulty = @difficulty " +
                 "ORDER BY Score ASC", conn);
             cmd.Parameters.AddWithValue("@username", username);
             cmd.Parameters.AddWithValue("@difficulty", difficulty);

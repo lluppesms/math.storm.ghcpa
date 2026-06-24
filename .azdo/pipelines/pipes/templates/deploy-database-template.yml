@@ -1,6 +1,13 @@
 # ----------------------------------------------------------------------------------------------------
 # Template to build SQL DACPAC and deploy to Azure SQL
 # ----------------------------------------------------------------------------------------------------
+# Required variable group / pipeline variables:
+#   sqlServerName      - SQL Server name WITHOUT the .database.windows.net suffix
+#                        (e.g. 'myserver', not 'myserver.database.windows.net')
+#   sqlDatabaseName    - The target database name (e.g. 'MathStormDB-dev')
+#   sqlAdminUser       - SQL administrator username
+#   sqlAdminPassword   - SQL administrator password (mark as secret in Azure DevOps)
+# ----------------------------------------------------------------------------------------------------
 parameters:
 - name: environmentName
   default: 'DEV'

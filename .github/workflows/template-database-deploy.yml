@@ -8,8 +8,8 @@
 #   AZURE_CLIENT_ID        - Service principal or managed identity client ID (for OIDC login)
 #   AZURE_TENANT_ID        - Azure tenant ID
 #   AZURE_SUBSCRIPTION_ID  - Azure subscription ID
-#   SQL_ADMIN_USER         - SQL admin username (optional; required if not using Entra-only auth)
-#   SQL_ADMIN_PASSWORD     - SQL admin password (optional; required if not using Entra-only auth)
+#   SQL_CONNECTION_STRING  - Full ADO.NET connection string to the target Azure SQL database
+#                            (use Managed Identity auth for production; SQL auth for bootstrap scenarios)
 # ------------------------------------------------------------------------------------------------------------------------
 name: z_template_database_deploy
 run-name: Deploy Database DACPAC
