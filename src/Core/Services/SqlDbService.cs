@@ -339,21 +339,32 @@ public class SqlDbService : IDataService
         try
         {
             var leaderboard = await GetLeaderboardAsync(difficulty, 10);
+            if (leaderboard.Count == 0) return;
+
+            // Build a single batched UPDATE using a CASE expression to avoid N round-trips
+            var setClauses = new System.Text.StringBuilder();
+            var idList = new System.Text.StringBuilder();
+            setClauses.Append("UPDATE [mathstorm].[LeaderboardEntry] SET Rank = CASE Id");
             await using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
+            await using var cmd = new SqlCommand();
+            cmd.Connection = conn;
+
             for (int i = 0; i < leaderboard.Count; i++)
             {
                 var entry = leaderboard[i];
                 var newRank = i + 1;
-                if (entry.Rank != newRank)
-                {
-                    await using var cmd = new SqlCommand(
-                        "UPDATE [mathstorm].[LeaderboardEntry] SET Rank=@rank WHERE Id=@id", conn);
-                    cmd.Parameters.AddWithValue("@rank", newRank);
-                    cmd.Parameters.AddWithValue("@id", entry.Id);
-                    await cmd.ExecuteNonQueryAsync();
-                }
+                var idParam = $"@id{i}";
+                var rankParam = $"@rank{i}";
+                setClauses.Append($" WHEN {idParam} THEN {rankParam}");
+                if (i > 0) idList.Append(',');
+                idList.Append(idParam);
+                cmd.Parameters.AddWithValue(idParam, entry.Id);
+                cmd.Parameters.AddWithValue(rankParam, newRank);
             }
+            setClauses.Append($" END WHERE Id IN ({idList})");
+            cmd.CommandText = setClauses.ToString();
+            await cmd.ExecuteNonQueryAsync();
         }
         catch (Exception ex)
         {
