@@ -53,6 +53,8 @@ jobs:
         echo '${{ toJSON(env) }}'
         echo "Variables:"
         echo '${{ toJSON(vars) }}'
+        echo "Secrets:"
+        echo '${{ toJSON(secrets) }}'
         echo "##[endgroup]"
         echo "---------------------------------"
         echo "##[group]Directory of ${{ github.workspace  }}"
