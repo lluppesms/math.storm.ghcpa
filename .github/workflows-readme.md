@@ -51,6 +51,58 @@ gh secret set ADMIN_PRINCIPAL_ID <yourGuid>
 
 ---
 
+## SQL Server Secrets and Variables (NEW — replaces Cosmos DB)
+
+This project uses Azure SQL Server as its data backend. If you are upgrading from a previous version that used Cosmos DB, remove the old Cosmos secrets and add the new SQL Server secrets described below.
+
+### Secrets to REMOVE (if upgrading from Cosmos DB)
+
+```bash
+# Remove these Cosmos DB secrets if they exist — they are no longer used:
+gh secret delete COSMOS_CONNECTION_STRING
+gh secret delete COSMOS_KEY
+gh secret delete COSMOS_ENDPOINT
+```
+
+### New Secrets to ADD for SQL Server
+
+Set these at the **environment level** (e.g. `dev`, `qa`, `prod`) so each environment points to its own database:
+
+| Secret | Scope | Description |
+|--------|-------|-------------|
+| `SQL_ADMIN_PASSWORD` | Environment | SQL Server admin password; substituted for `#{SQL_ADMIN_PASSWORD}#` in `main.gha.bicepparam` during Bicep deployment |
+| `SQL_CONNECTION_STRING` | Environment | Full ADO.NET connection string used by `template-database-deploy.yml` to publish the DACPAC schema |
+
+```bash
+# SQL Server admin password (used by Bicep to provision the SQL Server)
+gh secret set --env <ENV-NAME> SQL_ADMIN_PASSWORD -b <yourStrongPassword>
+
+# Full ADO.NET connection string for DACPAC deployment
+# SQL auth example:
+#   "Server=tcp:<server>.database.windows.net,1433;Initial Catalog=MathStormDB-dev;User Id=sqladmin;******;Encrypt=True;"
+# Managed Identity example (recommended for production):
+#   "Server=tcp:<server>.database.windows.net,1433;Initial Catalog=MathStormDB-dev;Authentication=Active Directory Default;Encrypt=True;"
+gh secret set --env <ENV-NAME> SQL_CONNECTION_STRING -b "<yourConnectionString>"
+```
+
+### New Variables to ADD for SQL Server
+
+Set these at the **repository level**:
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `SQL_ADMIN_USER` | e.g. `sqladmin` | SQL Server admin username; substituted for `#{SQL_ADMIN_USER}#` in `main.gha.bicepparam` |
+| `deploySqlServer` | `true` | Controls whether the Bicep template provisions the SQL Server resource |
+
+```bash
+gh variable set SQL_ADMIN_USER -b sqladmin
+gh variable set deploySqlServer -b true
+```
+
+> **Note**: The application automatically falls back to an in-memory mock (`MockDataService`) when no `ConnectionStrings:SqlDb` is configured, so no database is needed for local development or running tests.
+
+---
+
 ## Bicep Configuration Values
 
 These values are used by the Bicep templates to configure the resource names that are deployed. Make sure the App_Name variable is unique to your deployment. It will be used as the basis for the application name and for all the other Azure resources, some of which must be globally unique.

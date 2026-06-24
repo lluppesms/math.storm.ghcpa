@@ -76,7 +76,7 @@ The `FunctionBasedGameService` includes fallback logic - if the Function API is 
 
 ### Mock Services
 
-For development convenience, the Function app uses mock implementations of external dependencies (like Cosmos DB) so it can run without requiring a full Azure environment.
+For development convenience, the Function app uses mock implementations of external dependencies (like the SQL database) so it can run without requiring a full Azure environment. When no `ConnectionStrings:SqlDb` is configured, the application automatically uses an in-memory `MockDataService`.
 
 ## Troubleshooting
 
