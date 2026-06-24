@@ -54,3 +54,52 @@ Alternatively, you could define these variables in the Azure DevOps Portal on ea
          adInstance='yourLoginInstance'
          serviceConnectionName='yourServiceConnectionName'
 ```
+
+---
+
+## 5. SQL Server Variables (NEW — replaces Cosmos DB)
+
+This project has migrated from Azure Cosmos DB to Azure SQL Server. Update (or create) the variable group to include the following SQL Server variables, and remove any Cosmos DB variables.
+
+### Variables to REMOVE (if upgrading from Cosmos DB)
+
+Remove any Cosmos DB variables from the variable group (e.g. `cosmosDbEndpoint`, `cosmosDbKey`, `cosmosDbConnectionString`).
+
+### New Variables to ADD for SQL Server
+
+Add these to the variable group (or define them directly on the pipeline). Mark `sqlAdminPassword` as a **secret variable**.
+
+| Variable | Description |
+|----------|-------------|
+| `sqlServerName` | SQL Server hostname **without** the `.database.windows.net` suffix (e.g. `myapp-sql-dev`) |
+| `sqlDatabaseName` | Target database name (e.g. `MathStormDB-dev`) |
+| `sqlAdminUser` | SQL Server administrator username |
+| `sqlAdminPassword` | SQL Server administrator password — **mark as secret** |
+
+``` bash
+az pipelines variable-group variable create \
+  --organization=https://dev.azure.com/<yourAzDOOrg>/ \
+  --project='<yourAzDOProject>' \
+  --group-name Math.StormDemo \
+  --name sqlServerName --value '<yourSqlServerName>'
+
+az pipelines variable-group variable create \
+  --organization=https://dev.azure.com/<yourAzDOOrg>/ \
+  --project='<yourAzDOProject>' \
+  --group-name Math.StormDemo \
+  --name sqlDatabaseName --value 'MathStormDB-dev'
+
+az pipelines variable-group variable create \
+  --organization=https://dev.azure.com/<yourAzDOOrg>/ \
+  --project='<yourAzDOProject>' \
+  --group-name Math.StormDemo \
+  --name sqlAdminUser --value 'sqladmin'
+
+az pipelines variable-group variable create \
+  --organization=https://dev.azure.com/<yourAzDOOrg>/ \
+  --project='<yourAzDOProject>' \
+  --group-name Math.StormDemo \
+  --name sqlAdminPassword --value '<yourStrongPassword>' --secret true
+```
+
+> **Note**: The application automatically falls back to an in-memory mock when no connection string is configured, so no database is needed for local development or running tests.

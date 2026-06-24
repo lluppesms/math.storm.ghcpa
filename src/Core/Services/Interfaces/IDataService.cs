@@ -1,6 +1,6 @@
 namespace MathStorm.Core.Services;
 
-public interface ICosmosDbService
+public interface IDataService
 {
     Task<GameUser?> GetUserByUsernameAsync(string username);
     Task<GameUser> CreateUserAsync(string username);

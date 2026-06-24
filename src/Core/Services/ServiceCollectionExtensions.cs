@@ -1,5 +1,3 @@
-using Azure.Identity;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MathStorm.Core;
@@ -8,7 +6,7 @@ public static class ServiceCollectionExtensions
 {
     /// <summary>
     /// Adds MathStorm services to the service collection.
-    /// This configures all necessary services for the game to function without Azure Functions.
+    /// This configures all necessary services for the game to function.
     /// </summary>
     public static IServiceCollection AddMathStormServices(this IServiceCollection services, IConfiguration configuration)
     {
@@ -18,46 +16,18 @@ public static class ServiceCollectionExtensions
         // Add the main MathStorm service
         services.AddScoped<IMathStormService, MathStormService>();
 
-        // Configure Cosmos DB based on available settings
-        var cosmosClientOptions = new CosmosClientOptions
-        {
-            MaxRetryAttemptsOnRateLimitedRequests = 3,
-            MaxRetryWaitTimeOnRateLimitedRequests = TimeSpan.FromSeconds(30)
-        };
+        // Configure SQL Server data service based on available connection string
+        var sqlConnectionString = configuration.GetConnectionString("SqlDb");
 
-        var cosmosEndpoint = configuration["CosmosDb:Endpoint"];
-        var connectionString = configuration["CosmosDb:ConnectionString"];
-
-        if (!string.IsNullOrEmpty(cosmosEndpoint))
+        if (!string.IsNullOrEmpty(sqlConnectionString))
         {
-            // Use Managed Identity authentication
-            services.AddSingleton<CosmosClient>(provider =>
-            {
-                var creds = new DefaultAzureCredential();
-                var visualStudioTenantId = configuration["VisualStudioTenantId"];
-                if (!string.IsNullOrEmpty(visualStudioTenantId))
-                {
-                    creds = new DefaultAzureCredential(new DefaultAzureCredentialOptions
-                    {
-                        ExcludeEnvironmentCredential = true,
-                        ExcludeManagedIdentityCredential = true,
-                        TenantId = visualStudioTenantId
-                    });
-                }
-                return new CosmosClient(cosmosEndpoint, creds, cosmosClientOptions);
-            });
-            services.AddScoped<ICosmosDbService, CosmosDbService>();
-        }
-        else if (!string.IsNullOrEmpty(connectionString))
-        {
-            // Use connection string authentication
-            services.AddSingleton<CosmosClient>(_ => new CosmosClient(connectionString, cosmosClientOptions));
-            services.AddScoped<ICosmosDbService, CosmosDbService>();
+            // Use SQL Server when a connection string is configured
+            services.AddScoped<IDataService, SqlDbService>();
         }
         else
         {
-            // Use mock service when no Cosmos configuration is found
-            services.AddScoped<ICosmosDbService, MockCosmosDbService>();
+            // Use in-memory mock service for local development without a database
+            services.AddScoped<IDataService, MockDataService>();
         }
 
         // Configure Results Analysis Service

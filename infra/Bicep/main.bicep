@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------
 // Main Bicep file that creates all of the Azure Resources for one environment
-// After refactoring: Web App now handles all game logic directly without Azure Functions
+// After refactoring: Web App uses SQL Server for storage instead of Cosmos DB
 // --------------------------------------------------------------------------------
 // To deploy this Bicep manually:
 // 	 az login
@@ -21,38 +21,39 @@ param OpenAI_Endpoint string
 param OpenAI_ApiKey string
 
 // --------------------------------------------------------------------------------------------------------------
+// SQL Server Parameters
+// --------------------------------------------------------------------------------------------------------------
+param sqlAdminUser string = ''
+@secure()
+param sqlAdminPassword string = ''
+@description('Set to false to reuse an existing SQL Server (avoids waiting for a new server to be provisioned)')
+param deploySqlServer bool = true
+
+// --------------------------------------------------------------------------------------------------------------
 // Run Settings Parameters
 // --------------------------------------------------------------------------------------------------------------
 @description('Add Role Assignments for the user assigned identity?')
 param addRoleAssignments bool = true
-@description('Should resources be created with public access?')
-// param publicAccessEnabled bool = true
-// @description('Should we deploy Cosmos DB?')
-param deployCosmos bool = true
 
 // --------------------------------------------------------------------------------------------------------------
 // Personal info Parameters
 // --------------------------------------------------------------------------------------------------------------
-// @description('My IP address for network access')
-// param myIpAddress string = ''
 @description('Id of the user executing the deployment')
 param principalId string = ''
 
 // --------------------------------------------------------------------------------------------------------------
 // Misc. Parameters
 // --------------------------------------------------------------------------------------------------------------
-// calculated variables disguised as parameters
 param runDateTime string = utcNow()
 
 // --------------------------------------------------------------------------------
 var deploymentSuffix = '-${runDateTime}'
-var commonTags = {         
+var commonTags = {
   LastDeployed: runDateTime
   Application: appName
   Environment: environmentCode
 }
 var resourceGroupName = resourceGroup().name
-// var resourceToken = toLower(uniqueString(resourceGroup().id, location))
 
 // --------------------------------------------------------------------------------
 module resourceNames 'resourcenames.bicep' = {
@@ -60,41 +61,35 @@ module resourceNames 'resourcenames.bicep' = {
   params: {
     appName: appName
     environmentCode: environmentCode
-    // environmentSpecificFunctionName: ''
   }
 }
+
 // --------------------------------------------------------------------------------
 module logAnalyticsWorkspaceModule 'modules/monitor/loganalytics.bicep' = {
   name: 'logAnalytics${deploymentSuffix}'
   params: {
     newLogAnalyticsName: resourceNames.outputs.logAnalyticsWorkspaceName
     newWebApplicationInsightsName: resourceNames.outputs.webSiteAppInsightsName
-    // newFunctionApplicationInsightsName: '' // No longer deploying functions
     location: location
     tags: commonTags
   }
 }
 
 // --------------------------------------------------------------------------------
-var cosmosDatabaseName = 'MathStormData-${environmentCode}'
-var gameContainerName = 'Game'
-var userContainerName = 'GameUser' 
-var leaderboardContainerName = 'LeaderboardEntry'
-var cosmosContainerArray = [
-  { name: userContainerName, partitionKey: '/id' }
-  { name: gameContainerName, partitionKey: '/id' }
-  { name: leaderboardContainerName, partitionKey: '/id' }
-]
-module cosmosModule 'modules/database/cosmosdb.bicep' = {
-  name: 'cosmos${deploymentSuffix}'
+// SQL Server Database
+// --------------------------------------------------------------------------------
+module sqlModule 'modules/database/sqlserver.bicep' = {
+  name: 'sqlServer${deploymentSuffix}'
   params: {
-    accountName: deployCosmos ? resourceNames.outputs.cosmosDatabaseName : ''
-    // if this is no, then use the existing cosmos so you don't have to wait 20 minutes every time...
-    existingAccountName: deployCosmos ? '' : resourceNames.outputs.cosmosDatabaseName
+    sqlServerName: deploySqlServer ? resourceNames.outputs.sqlServerName : ''
+    existingSqlServerName: deploySqlServer ? '' : resourceNames.outputs.sqlServerName
+    sqlDBName: resourceNames.outputs.sqlDatabaseName
     location: location
-    tags: commonTags
-    containerArray: cosmosContainerArray
-    databaseName: cosmosDatabaseName
+    commonTags: commonTags
+    userAssignedIdentityResourceId: identity.outputs.managedIdentityId
+    workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
+    sqlAdminUser: sqlAdminUser
+    sqlAdminPassword: sqlAdminPassword
   }
 }
 
@@ -114,9 +109,7 @@ module appIdentityRoleAssignments './modules/iam/role-assignments.bicep' = if (a
   params: {
     identityPrincipalId: identity.outputs.managedIdentityPrincipalId
     principalType: 'ServicePrincipal'
-    cosmosName: cosmosModule.outputs.name
     keyVaultName: keyVaultModule.outputs.name
-    // storageAccountName: '' // No function storage needed
   }
 }
 
@@ -125,9 +118,7 @@ module adminUserRoleAssignments './modules/iam/role-assignments.bicep' = if (add
   params: {
     identityPrincipalId: principalId
     principalType: 'User'
-    cosmosName: cosmosModule.outputs.name
     keyVaultName: keyVaultModule.outputs.name
-    // storageAccountName: '' // No function storage needed
   }
 }
 
@@ -136,15 +127,12 @@ module keyVaultModule './modules/security/keyvault.bicep' = {
   name: 'keyvault${deploymentSuffix}'
   params: {
     keyVaultName: resourceNames.outputs.keyVaultName
-    // keyVaultOwnerUserId: principalId
-    // keyVaultOwnerIpAddress: myIpAddress
     location: location
     commonTags: commonTags
     adminUserObjectIds: [ principalId ]
     applicationUserObjectIds: [ identity.outputs.managedIdentityPrincipalId ]
     workspaceId: logAnalyticsWorkspaceModule.outputs.logAnalyticsWorkspaceId
     publicNetworkAccess: 'Enabled'
-    //allowNetworkAccess: 'Allow'
     useRBAC: true
   }
 }
@@ -157,16 +145,18 @@ module keyVaultSecretAppInsights './modules/security/keyvault-secret.bicep' = {
     secretName: 'webAppInsightsInstrumentationKey'
     secretValue: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
   }
-}  
+}
 
-module keyVaultSecretCosmos './modules/security/keyvault-cosmos-secret.bicep' = {
-  name: 'keyVaultSecretCosmos${deploymentSuffix}'
-  dependsOn: [ keyVaultModule, cosmosModule, webSiteModule ]
+module keyVaultSecretSql './modules/security/keyvault-sql-secret.bicep' = {
+  name: 'keyVaultSecretSql${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, sqlModule, webSiteModule ]
   params: {
     keyVaultName: keyVaultModule.outputs.name
-    accountKeySecretName: 'cosmosAccountKey'
-    connectionStringSecretName: 'cosmosConnectionString'
-    cosmosAccountName: cosmosModule.outputs.name
+    secretName: 'sqlConnectionString'
+    sqlServerName: sqlModule.outputs.serverName
+    sqlDBName: sqlModule.outputs.databaseName
+    sqlAdminUser: sqlAdminUser
+    sqlAdminPassword: sqlAdminPassword
   }
 }
 
@@ -215,10 +205,10 @@ module webSiteModule './modules/webapp/website.bicep' = {
   }
 }
 
-// In a Linux app service, any nested JSON app key like AppSettings:MyKey needs to be 
-// configured in App Service as AppSettings__MyKey for the key name. 
+// In a Linux app service, any nested JSON app key like AppSettings:MyKey needs to be
+// configured in App Service as AppSettings__MyKey for the key name.
 // In other words, any : should be replaced by __ (double underscore).
-// NOTE: See https://learn.microsoft.com/en-us/azure/app-service/configure-common?tabs=portal  
+// NOTE: See https://learn.microsoft.com/en-us/azure/app-service/configure-common?tabs=portal
 module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
   name: 'webSiteAppSettings${deploymentSuffix}'
   params: {
@@ -228,14 +218,9 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
       AppSettings__AppInsights_InstrumentationKey: logAnalyticsWorkspaceModule.outputs.webAppInsightsInstrumentationKey
       AppSettings__EnvironmentName: environmentCode
       ConnectionStrings__ApplicationInsights: logAnalyticsWorkspaceModule.outputs.webAppInsightsConnectionString
-      // Cosmos DB settings (now configured directly in web app)
-      CosmosDb__Endpoint: 'https://${cosmosModule.outputs.name}.documents.azure.com:443/'
-      CosmosDb__ConnectionString: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretCosmos.outputs.connectionStringSecretName})'
-      CosmosDb__DatabaseName: cosmosDatabaseName 
-      CosmosDb__ContainerNames__Users: userContainerName
-      CosmosDb__ContainerNames__Games: gameContainerName
-      CosmosDb__ContainerNames__Leaderboard: leaderboardContainerName
-      // OpenAI settings (now configured directly in web app)
+      // SQL Server connection string (uses Managed Identity by default)
+      ConnectionStrings__SqlDb: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretSql.outputs.secretUri})'
+      // OpenAI settings
       OpenAI__Models__gpt_4o_mini__DeploymentName: 'gpt-4o-mini'
       OpenAI__Models__gpt_4o_mini__Endpoint: OpenAI_Endpoint
       OpenAI__Models__gpt_4o_mini__ApiKey: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretOpenAI.outputs.secretUri})'
@@ -249,3 +234,6 @@ module webSiteAppSettingsModule './modules/webapp/websiteappsettings.bicep' = {
 output SUBSCRIPTION_ID string = subscription().subscriptionId
 output RESOURCE_GROUP_NAME string = resourceGroupName
 output WEB_HOST_NAME string = webSiteModule.outputs.hostName
+output SQL_SERVER_NAME string = sqlModule.outputs.serverName
+output SQL_DATABASE_NAME string = sqlModule.outputs.databaseName
+

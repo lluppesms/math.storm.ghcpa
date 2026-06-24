@@ -1,6 +1,10 @@
 namespace MathStorm.Core.Services;
 
-public class MockCosmosDbService : ICosmosDbService
+/// <summary>
+/// In-memory mock implementation of IDataService used for testing and local development
+/// when no SQL Server connection string is configured.
+/// </summary>
+public class MockDataService : IDataService
 {
     private readonly List<GameUser> _users = [];
     private readonly List<Game> _games = [];
@@ -57,7 +61,6 @@ public class MockCosmosDbService : ICosmosDbService
 
     public Task<Game?> GetGameByIdAsync(string gameId)
     {
-        // This is an alias to GetGameAsync for consistency with the web service interface
         return GetGameAsync(gameId);
     }
 
@@ -81,7 +84,6 @@ public class MockCosmosDbService : ICosmosDbService
             .Take(topCount)
             .ToList();
 
-        // Update ranks
         for (int i = 0; i < entries.Count; i++)
         {
             entries[i].Rank = i + 1;
@@ -97,7 +99,6 @@ public class MockCosmosDbService : ICosmosDbService
             .Take(topCount)
             .ToList();
 
-        // Update ranks
         for (int i = 0; i < entries.Count; i++)
         {
             entries[i].Rank = i + 1;
@@ -110,27 +111,24 @@ public class MockCosmosDbService : ICosmosDbService
     {
         // Get all entries for this user in this difficulty (case-insensitive)
         var userEntries = _leaderboard
-            .Where(l => l.Username.Equals(username, StringComparison.OrdinalIgnoreCase) && 
+            .Where(l => l.Username.Equals(username, StringComparison.OrdinalIgnoreCase) &&
                        l.Difficulty.Equals(difficulty, StringComparison.OrdinalIgnoreCase))
             .OrderBy(l => l.Score)
             .ToList();
-        
+
         // Check if user already has 3 or more entries
         if (userEntries.Count >= 3)
         {
-            // Check if new score is better (lower) than any existing score
             var worstUserScore = userEntries.Max(e => e.Score);
             if (score >= worstUserScore)
             {
-                // New score is not better than any existing entry, don't add it
                 return Task.FromResult<LeaderboardEntry?>(null);
             }
-            
-            // New score is better, remove the worst existing entry
+
             var worstUserEntry = userEntries.OrderByDescending(e => e.Score).First();
             _leaderboard.Remove(worstUserEntry);
         }
-        
+
         // Check if this score qualifies for top 10
         var currentLeaderboard = _leaderboard
             .Where(l => l.Difficulty.Equals(difficulty, StringComparison.OrdinalIgnoreCase))
@@ -138,7 +136,6 @@ public class MockCosmosDbService : ICosmosDbService
             .Take(10)
             .ToList();
 
-        // If leaderboard has less than 10 entries or this score is better than the worst score
         if (currentLeaderboard.Count < 10 || score < currentLeaderboard.Last().Score)
         {
             var entry = new LeaderboardEntry
@@ -150,19 +147,18 @@ public class MockCosmosDbService : ICosmosDbService
                 Difficulty = difficulty,
                 Score = score,
                 AchievedAt = DateTime.UtcNow,
-                Rank = 1 // Will be updated when rankings are calculated
+                Rank = 1
             };
 
             _leaderboard.Add(entry);
 
-            // If we now have more than 10 entries, remove the worst one
             if (currentLeaderboard.Count >= 10)
             {
                 var updatedLeaderboard = _leaderboard
                     .Where(l => l.Difficulty.Equals(difficulty, StringComparison.OrdinalIgnoreCase))
                     .OrderBy(l => l.Score)
                     .ToList();
-                
+
                 if (updatedLeaderboard.Count > 10)
                 {
                     var worstEntry = updatedLeaderboard.Last();

@@ -23,6 +23,53 @@ gh secret set AZURE_SUBSCRIPTION_ID -b <yourAzureSubscriptionId>
 
 ---
 
+## SQL Server Secrets and Variables (NEW — replaces Cosmos DB)
+
+This project has migrated from Azure Cosmos DB to Azure SQL Server. If you previously had Cosmos DB secrets, they are no longer needed and can be removed.
+
+### Secrets to REMOVE (if upgrading from Cosmos DB)
+
+If you had any of the following Cosmos DB secrets, they can be safely deleted:
+
+``` bash
+# These are no longer used — remove them if present:
+gh secret delete COSMOS_CONNECTION_STRING
+gh secret delete COSMOS_KEY
+gh secret delete COSMOS_ENDPOINT
+```
+
+### New Secrets to ADD for SQL Server
+
+These secrets are required for Bicep infrastructure deployment and for deploying the SQL DACPAC.  
+Set them at the **environment level** (e.g. `dev`, `qa`, `prod`) so each environment can use its own database.
+
+```bash
+# SQL Server admin password — used by Bicep when creating the SQL Server
+# (substituted for the #{SQL_ADMIN_PASSWORD}# token in main.gha.bicepparam)
+gh secret set --env <ENV-NAME> SQL_ADMIN_PASSWORD -b <yourStrongPassword>
+
+# Full ADO.NET connection string — used by the DACPAC deploy workflow to publish the schema.
+# Example (SQL auth):
+#   "Server=tcp:<server>.database.windows.net,1433;Initial Catalog=MathStormDB-dev;User Id=<adminUser>;******;Encrypt=True;"
+# Example (Managed Identity — recommended for production):
+#   "Server=tcp:<server>.database.windows.net,1433;Initial Catalog=MathStormDB-dev;Authentication=Active Directory Default;Encrypt=True;"
+gh secret set --env <ENV-NAME> SQL_CONNECTION_STRING -b "<yourConnectionString>"
+```
+
+### New Variables to ADD for SQL Server
+
+These variables are substituted into the Bicep parameter file during deployment.
+
+```bash
+# SQL Server admin username — substituted for the #{SQL_ADMIN_USER}# token in main.gha.bicepparam
+gh variable set SQL_ADMIN_USER -b sqladmin
+
+# Whether to deploy SQL Server via Bicep — set to true to provision the server
+gh variable set deploySqlServer -b true
+```
+
+---
+
 ## Bicep Configuration Values
 
 These variables and secrets are used by the Bicep templates to configure the resource names that are deployed.  Make sure the App_Name variable is unique to your deploy. It will be used as the basis for the website name and for all the other Azure resources, which must be globally unique.

@@ -49,10 +49,20 @@ stages:
         environmentName: ${{ environmentName }}
         parseBicepOutputs: ${{ parameters.parseBicepOutputs }}
 
-  - stage: Deploy${{ environmentName }}WebApp
-    displayName: Deploy ${{ environmentName }} WebApp
+  - stage: Deploy${{ environmentName }}Database
+    displayName: Deploy ${{ environmentName }} Database
     dependsOn: CreateInfrastructure${{ environmentName }}
     condition: succeeded('CreateInfrastructure${{ environmentName }}')
+    jobs:
+    - template: templates/deploy-database-template.yml
+      parameters:
+        environmentName: ${{ environmentName }}
+        serviceConnectionName: $(serviceConnectionDEV)
+
+  - stage: Deploy${{ environmentName }}WebApp
+    displayName: Deploy ${{ environmentName }} WebApp
+    dependsOn: Deploy${{ environmentName }}Database
+    condition: succeeded('Deploy${{ environmentName }}Database')
     jobs:
     - template: templates/deploy-webapp-template.yml
       parameters:

@@ -10,18 +10,18 @@ public class MathStormService : IMathStormService
 {
     private readonly ILogger<MathStormService> _logger;
     private readonly IGameService _gameService;
-    private readonly ICosmosDbService _cosmosDbService;
+    private readonly IDataService _dataService;
     private readonly IResultsAnalysisService _analysisService;
 
     public MathStormService(
         ILogger<MathStormService> logger,
         IGameService gameService,
-        ICosmosDbService cosmosDbService,
+        IDataService dataService,
         IResultsAnalysisService analysisService)
     {
         _logger = logger;
         _gameService = gameService;
-        _cosmosDbService = cosmosDbService;
+        _dataService = dataService;
         _analysisService = analysisService;
     }
 
@@ -58,7 +58,7 @@ public class MathStormService : IMathStormService
             return null;
         }
 
-        return await _cosmosDbService.GetGameByIdAsync(gameId);
+        return await _dataService.GetGameByIdAsync(gameId);
     }
 
     public async Task<bool> UpdateGameAnalysisAsync(string gameId, string analysis)
@@ -71,7 +71,7 @@ public class MathStormService : IMathStormService
             return false;
         }
 
-        return await _cosmosDbService.UpdateGameAnalysisAsync(gameId, analysis);
+        return await _dataService.UpdateGameAnalysisAsync(gameId, analysis);
     }
 
     public async Task<GameResultsResponseDto?> SubmitGameResultsAsync(GameResultsRequestDto request)
@@ -85,10 +85,10 @@ public class MathStormService : IMathStormService
         }
 
         // Get user by Username
-        var user = await _cosmosDbService.GetUserByUsernameAsync(request.Username);
+        var user = await _dataService.GetUserByUsernameAsync(request.Username);
         if (user == null)
         {
-            user = await _cosmosDbService.CreateUserAsync(request.Username);
+            user = await _dataService.CreateUserAsync(request.Username);
             if (user == null)
             {
                 _logger.LogWarning($"User not found: {request.Username}");
@@ -123,7 +123,7 @@ public class MathStormService : IMathStormService
         };
 
         // Save game
-        await _cosmosDbService.CreateGameAsync(game);
+        await _dataService.CreateGameAsync(game);
 
         // Update user statistics
         user.GamesPlayed++;
@@ -133,7 +133,7 @@ public class MathStormService : IMathStormService
             user.BestScore = game.TotalScore;
         }
         user.LastPlayedAt = DateTime.UtcNow;
-        await _cosmosDbService.UpdateUserAsync(user);
+        await _dataService.UpdateUserAsync(user);
 
         // Do NOT add to leaderboard yet - that happens after analysis is complete
         return new GameResultsResponseDto
@@ -150,8 +150,8 @@ public class MathStormService : IMathStormService
         _logger.LogInformation($"Getting leaderboard - difficulty: {difficulty}, topCount: {topCount}");
 
         var entries = string.IsNullOrEmpty(difficulty)
-            ? await _cosmosDbService.GetGlobalLeaderboardAsync(topCount)
-            : await _cosmosDbService.GetLeaderboardAsync(difficulty, topCount);
+            ? await _dataService.GetGlobalLeaderboardAsync(topCount)
+            : await _dataService.GetLeaderboardAsync(difficulty, topCount);
 
         return new LeaderboardResponseDto
         {
@@ -181,7 +181,7 @@ public class MathStormService : IMathStormService
         }
 
         // Get the game record
-        var game = await _cosmosDbService.GetGameByIdAsync(gameId);
+        var game = await _dataService.GetGameByIdAsync(gameId);
         if (game == null)
         {
             _logger.LogWarning($"Game not found: {gameId}");
@@ -189,11 +189,11 @@ public class MathStormService : IMathStormService
         }
 
         // Add to leaderboard
-        var leaderboardEntry = await _cosmosDbService.AddToLeaderboardAsync(
+        var leaderboardEntry = await _dataService.AddToLeaderboardAsync(
             game.UserId, game.Username, game.Id, game.Difficulty, game.TotalScore);
 
         // Update rankings
-        await _cosmosDbService.UpdateLeaderboardRankingsAsync(game.Difficulty);
+        await _dataService.UpdateLeaderboardRankingsAsync(game.Difficulty);
 
         return new GameResultsResponseDto
         {
@@ -258,7 +258,7 @@ public class MathStormService : IMathStormService
         }
 
         // Check if user exists
-        var existingUser = await _cosmosDbService.GetUserByUsernameAsync(request.Username);
+        var existingUser = await _dataService.GetUserByUsernameAsync(request.Username);
         var response = new UserAuthResponseDto
         {
             Username = request.Username
@@ -267,7 +267,7 @@ public class MathStormService : IMathStormService
         if (existingUser == null)
         {
             // Create new user
-            var newUser = await _cosmosDbService.CreateUserAsync(request.Username);
+            var newUser = await _dataService.CreateUserAsync(request.Username);
             response.IsAuthenticated = true;
             response.IsNewUser = true;
             response.UserId = newUser.Id;

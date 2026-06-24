@@ -33,7 +33,7 @@ This repository is an example of deploying a .NET 10 application suite into Azur
 | **🖥️ Frontend** | Blazor Server, HTML5, CSS3, JavaScript, Bootstrap |
 | **🔧 Backend** | .NET 10, Azure Functions, ASP.NET Core |
 | **☁️ Cloud** | Azure App Service, Azure Functions, Azure Storage |
-| **📊 Data** | Azure Table Storage, Cosmos Database |
+| **📊 Data** | Azure SQL Server, mathstorm schema, SQL DACPAC |
 | **🧪 Testing** | xUnit, Playwright, Integration Tests |
 | **🚀 DevOps** | GitHub Actions, Azure DevOps, Azure CLI (azd) |
 | **🏗️ Infrastructure** | Bicep, ARM Templates, Infrastructure as Code |
@@ -84,10 +84,11 @@ Math Storm offers two distinct interfaces to match your preferred style of inter
 ## 🛠️ **Development Workflow**
 
 #### 🔄 **Local Development**
-1. **Prerequisites:** .NET 10 SDK, Azure Functions Core Tools, Cosmos Emulator
+1. **Prerequisites:** .NET 10 SDK, Azure Functions Core Tools
 2. **Setup:** Clone repository → Restore packages → Configure local settings
 3. **Run Locally:** Start Azure Functions → Launch web app → Test console app
 4. **Development:** Edit code → Run tests → Debug → Iterate
+5. **Database:** When `ConnectionStrings:SqlDb` is not set, the app uses an in-memory mock automatically — no database required for local dev or tests.
 
 #### 🧪 **Testing Strategy**
 - **Unit Tests:** xUnit with comprehensive coverage for business logic
