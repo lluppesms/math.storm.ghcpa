@@ -1,0 +1,48 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# GHA Reusable Called Workflow to build a SQL DACPAC database project
+# ------------------------------------------------------------------------------------------------------------------------
+name: z_template_database_build
+run-name: Build Database DACPAC
+on:
+  workflow_call:
+    inputs:
+      envCode:
+        required: true
+        type: string
+      rootDirectory:
+        required: true
+        type: string
+      projectName:
+        required: true
+        type: string
+
+# ------------------------------------------------------------------------------------------------------------------------
+jobs:
+  build:
+    name: Build Database
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.envCode }}
+    env:
+      DOTNET_CORE_VERSION: 10.0.x
+      artifactName: database
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+
+    - name: Restore and Build DACPAC
+      run: |
+        dotnet build "${{ inputs.rootDirectory }}/${{ inputs.projectName }}" --configuration Release
+
+    - name: Save DACPAC Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.artifactName }}
+        path: "${{ inputs.rootDirectory }}/bin/Release/**/*.dacpac"
+        if-no-files-found: error

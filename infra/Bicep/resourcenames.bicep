@@ -36,7 +36,8 @@ output functionFlexAppServicePlanName string = '${functionFlexAppName}-${resourc
 output functionFlexInsightsName string   = '${functionFlexAppName}-${resourceAbbreviations.insightsComponents}'
 
 output logAnalyticsWorkspaceName string  = toLower('${sanitizedAppNameWithDashes}-${sanitizedEnvironment}-${resourceAbbreviations.operationalInsightsWorkspaces}')
-output cosmosDatabaseName string         = toLower('${sanitizedAppName}-${resourceAbbreviations.documentDBDatabaseAccounts}-${sanitizedEnvironment}')
+output sqlServerName string              = toLower('${sanitizedAppName}${resourceAbbreviations.sqlServers}-${sanitizedEnvironment}')
+output sqlDatabaseName string            = 'MathStormDB-${sanitizedEnvironment}'
 
 output userAssignedIdentityName string   = toLower('${sanitizedAppName}-${resourceAbbreviations.managedIdentityUserAssignedIdentities}-${sanitizedEnvironment}')
 

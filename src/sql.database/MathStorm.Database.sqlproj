@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build">
+  <Sdk Name="Microsoft.Build.Sql" Version="0.2.5-preview" />
+  <PropertyGroup>
+    <Name>MathStorm.Database</Name>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
+    <ModelCollation>1033,CI</ModelCollation>
+    <EnableDefaultSqlItems>False</EnableDefaultSqlItems>
+    <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
+    <DefaultFilegroup>PRIMARY</DefaultFilegroup>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <ProjectGuid>{4a7f3e01-9c2d-4b5e-8f6a-2d3e4f5a6b7c}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup>
+    <PreDeploy Include="MathStorm\Pre.Deployment.sql" />
+    <PostDeploy Include="MathStorm\Post.Deployment.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Schemas\" />
+    <Folder Include="MathStorm\" />
+    <Folder Include="MathStorm\Tables\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="Schemas\mathstorm.sql" />
+    <Build Include="MathStorm\Tables\GameUser.sql" />
+    <Build Include="MathStorm\Tables\Game.sql" />
+    <Build Include="MathStorm\Tables\LeaderboardEntry.sql" />
+  </ItemGroup>
+</Project>

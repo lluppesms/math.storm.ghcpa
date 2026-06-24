@@ -1,10 +1,8 @@
 ﻿global using MathStorm.Core.Models;
 global using MathStorm.Core.Services;
 global using MathStorm.Core.Helpers;
-global using Microsoft.Azure.Cosmos;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Logging;
-global using Newtonsoft.Json;
 global using MathStorm.Core.DTOs;
 global using Azure.AI.OpenAI;
 global using Azure;

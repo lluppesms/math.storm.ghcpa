@@ -48,8 +48,8 @@ on:
         required: false
         type: string
         default: 'create'
-      deployCosmos: 
-        description: Deploy Cosmos DB
+      deploySqlServer: 
+        description: Deploy SQL Server (set false to reuse an existing server)
         type: boolean
         default: true
 
@@ -75,7 +75,7 @@ jobs:
       generatedResourceGroupName: ${{ vars.RESOURCE_GROUP_NAME || format('{0}-{1}', vars.RESOURCEGROUP_PREFIX, inputs.envCode) }}
       createResourceGroup: ${{ inputs.createResourceGroup }}
       requestorName: ${{ inputs.requestorName }}
-      deployCosmos: ${{ inputs.deployCosmos }}
+      deploySqlServer: ${{ inputs.deploySqlServer }}
 
     # ------------------------------------------------------------------------------------------------------------------------
     # Outputs

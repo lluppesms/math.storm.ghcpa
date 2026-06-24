@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------------------------------------------------
-# GHA Workflow to deploy Azure Resources and WebApp and Function
+# GHA Workflow to deploy Azure Resources (Bicep), SQL Database DACPAC, and WebApp
 # ------------------------------------------------------------------------------------------------------------------------
-# FYI: You need to set up some secrets before running this workflows - see CreateGitHubSecrets.md for details.
+# FYI: You need to set up some secrets before running this workflow - see CreateGitHubSecrets.md for details.
 # ------------------------------------------------------------------------------------------------------------------------
 name: 4.bicep.build.deploy
 run-name: '4 - [${{ inputs.deployEnvironment }}] Bicep/Build/Deploy (${{ inputs.bicepDeploymentMode }}) by @${{ github.actor }}'
@@ -32,17 +32,13 @@ on:
         description: Create Resource Group?
         type: boolean
         default: true
+      runBuildDeployDatabase:
+        description: Build and Deploy Database DACPAC
+        default: true
+        type: boolean
       runBuildDeployWeb:
         description: Build and Deploy Web App
         default: true
-        type: boolean
-      # runBuildDeployFunction:
-      #   description: Build and Deploy Function
-      #   default: true
-      #   type: boolean
-      runDeployCosmos:
-        description: Update Cosmos DB
-        default: false
         type: boolean
       runSmokeTest:
         description: Run Smoke Tests
@@ -85,7 +81,7 @@ jobs:
   create-infra:
     name: Create Infra ${{ inputs.deployEnvironment }}
     uses: ./.github/workflows/template-create-infra.yml
-    if: inputs.runCreateInfra || inputs.runBuildDeployWeb
+    if: inputs.runCreateInfra || inputs.runBuildDeployWeb || inputs.runBuildDeployDatabase
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}
@@ -96,9 +92,18 @@ jobs:
       requestorName: ${{ github.actor }}
       createResourceGroup: ${{ inputs.createResourceGroup }}
       bicepDeploymentMode: ${{ inputs.bicepDeploymentMode }}
-      deployCosmos: ${{ inputs.runDeployCosmos }}
 
 # ------------------------------------------------------------------------------------------------------------------------
+  build-database:
+    name: Build Database
+    uses: ./.github/workflows/template-database-build.yml
+    if: inputs.runBuildDeployDatabase
+    secrets: inherit
+    with:
+      envCode: ${{ inputs.deployEnvironment }}
+      rootDirectory: 'src/sql.database'
+      projectName: 'MathStorm.Database.sqlproj'
+
   build-webapp:
     name: Build WebApp
     uses: ./.github/workflows/template-webapp-build.yml
@@ -113,21 +118,16 @@ jobs:
       testApplication: true
       listFilesAfterBuild: true
 
-  # build-func:
-  #   name: Build Function
-  #   if: inputs.runBuildDeployFunction
-  #   uses: ./.github/workflows/template-function-app-build.yml
-  #   secrets: inherit
-  #   with:
-  #     envCode: ${{ inputs.deployEnvironment }}
-  #     rootDirectory: '${{ vars.FUNC_PROJECT_FOLDER_NAME }}'
-  #     projectName: '${{ vars.FUNC_PROJECT_NAME }}'
-  #     testDirectory: '${{ vars.FUNC_TEST_FOLDER_NAME }}'
-  #     testProjectName: '${{ vars.FUNC_TEST_PROJECT_NAME }}'
-  #     testApplication: true
-  #     listFilesAfterBuild: true
-
 # ------------------------------------------------------------------------------------------------------------------------
+  deploy-database:
+    name: Deploy Database ${{ inputs.deployEnvironment }}
+    uses: ./.github/workflows/template-database-deploy.yml
+    if: inputs.runBuildDeployDatabase
+    needs: [ build-database, create-infra ]
+    secrets: inherit
+    with:
+      envCode: ${{ inputs.deployEnvironment }}
+
   deploy-webapp:
     name: Deploy WebApp ${{ inputs.deployEnvironment }}
     uses: ./.github/workflows/template-webapp-deploy.yml
@@ -138,23 +138,12 @@ jobs:
       envCode: ${{ inputs.deployEnvironment }}
       listFilesBeforeDeploy: true
 
-  # deploy-func:
-  #   name: Deploy Function
-  #   # the login seems to crash if you try to deploy both web and function at the same time...???
-  #   needs: [ build-func, create-infra, deploy-webapp ]
-  #   uses: ./.github/workflows/template-function-app-deploy.yml
-  #   if: inputs.runBuildDeployFunction
-  #   secrets: inherit
-  #   with:
-  #     envCode: ${{ inputs.deployEnvironment }}
-  #     listFilesBeforeDeploy: true
-     
 # ------------------------------------------------------------------------------------------------------------------------
   run-smoke-test:
     name: Smoke Test ${{ inputs.deployEnvironment }}
     uses: ./.github/workflows/template-smoke-test.yml
     if: inputs.runSmokeTest
-    needs: deploy-webapp
+    needs: [ deploy-webapp, deploy-database ]
     secrets: inherit
     with:
       envCode: ${{ inputs.deployEnvironment }}

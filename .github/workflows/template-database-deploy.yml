@@ -1,0 +1,61 @@
+# ------------------------------------------------------------------------------------------------------------------------
+# GHA Reusable Called Workflow to deploy a SQL DACPAC to Azure SQL Database
+# ------------------------------------------------------------------------------------------------------------------------
+# Required GitHub Environment variables:
+#   AZURE_SQL_SERVER    - The Azure SQL Server name (e.g. myserver.database.windows.net)
+#   AZURE_SQL_DATABASE  - The database name
+# Required GitHub Secrets:
+#   AZURE_CLIENT_ID        - Service principal or managed identity client ID (for OIDC login)
+#   AZURE_TENANT_ID        - Azure tenant ID
+#   AZURE_SUBSCRIPTION_ID  - Azure subscription ID
+#   SQL_ADMIN_USER         - SQL admin username (optional; required if not using Entra-only auth)
+#   SQL_ADMIN_PASSWORD     - SQL admin password (optional; required if not using Entra-only auth)
+# ------------------------------------------------------------------------------------------------------------------------
+name: z_template_database_deploy
+run-name: Deploy Database DACPAC
+on:
+  workflow_call:
+    inputs:
+      envCode:
+        required: true
+        type: string
+
+# ------------------------------------------------------------------------------------------------------------------------
+jobs:
+  deploy:
+    name: Deploy Database
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.envCode }}
+    env:
+      artifactName: database
+
+    steps:
+    - name: Download DACPAC artifact
+      uses: actions/download-artifact@v4.1.7
+      with:
+        name: ${{ env.artifactName }}
+        path: ./dacpac
+
+    - name: Login to Azure using OIDC
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Deploy DACPAC to Azure SQL
+      uses: azure/sql-action@v2.3
+      with:
+        connection-string: ${{ secrets.SQL_CONNECTION_STRING }}
+        path: './dacpac/*.dacpac'
+        action: 'publish'
+        arguments: '/p:BlockOnPossibleDataLoss=false'
+
+    - name: Logout and cleanup
+      shell: bash
+      if: always()
+      run: |
+        az logout
+        az cache purge
+        az account clear
